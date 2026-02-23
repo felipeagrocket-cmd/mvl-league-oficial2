@@ -8433,27 +8433,28 @@ const App = () => {
   };
 
   // PATROCINADORES LOGIC (Fase 1)
-  const addSponsor = (data) =>
-    setDb((prev) => ({
-      ...prev,
-      sponsors: [{ id: generateId(), ...data }, ...(prev.sponsors || [])],
-    }));
-  const updateSponsor = (id, data) =>
-    setDb((prev) => ({
-      ...prev,
-      sponsors: prev.sponsors?.map((s) =>
-        s.id === id ? { ...s, ...data } : s
-      ),
-    }));
-  const deleteSponsor = (id) =>
-    setDb((prev) => ({
-      ...prev,
-      sponsors: prev.sponsors?.filter((s) => s.id !== id),
-    }));
+  const addSponsor = async (data) => {
+    await salvarNoFirebase("sponsors", data);
+  };
+  const updateSponsor = async (id, data) => {
+    try {
+      await updateDoc(doc(firebaseDb, "sponsors", id), data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+  const deleteSponsor = async (id) => {
+    try {
+      await deleteDoc(doc(firebaseDb, "sponsors", id));
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-  const addPlayer = (playerData) => {
+  const addPlayer = async (playerData) => {
+    const id = generateId();
     const newPlayer = {
-      id: generateId(),
+      id,
       nickname: playerData.nickname,
       gameId: playerData.gameId,
       avatarUrl:
@@ -8467,32 +8468,41 @@ const App = () => {
       contractEnd: null,
       releaseClauseMultiplier: 0,
     };
-    setDb((prev) => ({ ...prev, players: [...prev.players, newPlayer] }));
+    await salvarNoFirebase("players", newPlayer);
   };
-  const updatePlayer = (id, updatedData) =>
-    setDb((prev) => ({
-      ...prev,
-      players: prev.players.map((p) =>
-        p.id === id ? { ...p, ...updatedData } : p
-      ),
-    }));
-  const updateContract = (id, contractEnd, releaseClauseMultiplier) =>
-    setDb((prev) => ({
-      ...prev,
-      players: prev.players.map((p) =>
-        p.id === id
-          ? { ...p, contractEnd: contractEnd || null, releaseClauseMultiplier }
-          : p
-      ),
-    }));
-  const pausePlayer = (id) =>
-    setDb((prev) => ({
-      ...prev,
-      players: prev.players.map((p) =>
-        p.id === id ? { ...p, isPaused: !p.isPaused } : p
-      ),
-    }));
-  const banPlayer = (id, reason, duration) => {
+
+  const updatePlayer = async (id, updatedData) => {
+    try {
+      await updateDoc(doc(firebaseDb, "players", id), updatedData);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const updateContract = async (id, contractEnd, releaseClauseMultiplier) => {
+    try {
+      await updateDoc(doc(firebaseDb, "players", id), {
+        contractEnd: contractEnd || null,
+        releaseClauseMultiplier,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const pausePlayer = async (id) => {
+    const player = db.players.find((p) => p.id === id);
+    if (!player) return;
+    try {
+      await updateDoc(doc(firebaseDb, "players", id), {
+        isPaused: !player.isPaused,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const banPlayer = async (id, reason, duration) => {
     const player = db.players.find((p) => p.id === id);
     if (!player) return;
     let unbanDate = null;
@@ -8504,8 +8514,9 @@ const App = () => {
       unbanDate = now.toISOString();
       durationLabel = `${days} Dia(s)`;
     }
+    const banId = generateId();
     const banRecord = {
-      id: generateId(),
+      id: banId,
       gameId: player.gameId,
       reason: reason || "Violação",
       date: new Date().toLocaleDateString(),
@@ -8515,16 +8526,18 @@ const App = () => {
       nickname: player.nickname,
       avatarUrl: player.avatarUrl,
     };
-    setDb((prev) => ({
-      ...prev,
-      players: prev.players.filter((p) => p.id !== id),
-      bannedPlayers: [...prev.bannedPlayers, banRecord],
-    }));
+    try {
+      await setDoc(doc(firebaseDb, "bannedPlayers", banId), banRecord);
+      await deleteDoc(doc(firebaseDb, "players", id));
+    } catch (e) {
+      console.error(e);
+    }
   };
-  const unbanPlayer = (banId) =>
-    setDb((prev) => {
-      const banRecord = prev.bannedPlayers.find((b) => b.id === banId);
-      if (!banRecord) return prev;
+
+  const unbanPlayer = async (banId) => {
+    const banRecord = db.bannedPlayers.find((b) => b.id === banId);
+    if (!banRecord) return;
+    try {
       if (banRecord.originalPlayerId) {
         const restored = {
           id: banRecord.originalPlayerId,
@@ -8535,285 +8548,351 @@ const App = () => {
           clanId: null,
           marketValue: 10000000,
         };
-        return {
-          ...prev,
-          players: [...prev.players, restored],
-          bannedPlayers: prev.bannedPlayers.filter((b) => b.id !== banId),
-        };
+        await setDoc(doc(firebaseDb, "players", restored.id), restored);
       }
-      return {
-        ...prev,
-        bannedPlayers: prev.bannedPlayers.filter((b) => b.id !== banId),
-      };
-    });
-  const removePlayer = (id) =>
-    setDb((prev) => ({
-      ...prev,
-      players: prev.players.filter((p) => p.id !== id),
-    }));
-  const addSplit = (name, champId, format) =>
-    setDb((prev) => ({
-      ...prev,
-      splits: [
-        ...prev.splits.map((s) =>
-          s.isActive
-            ? {
-                ...s,
-                isActive: false,
-                isFinished: true,
-                endDate: new Date().toLocaleDateString(),
-              }
-            : s
-        ),
-        {
+      await deleteDoc(doc(firebaseDb, "bannedPlayers", banId));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const removePlayer = async (id) => {
+    try {
+      await deleteDoc(doc(firebaseDb, "players", id));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const addClan = async (data) => {
+    const id = generateId();
+    await setDoc(doc(firebaseDb, "clans", id), { id, ...data });
+  };
+
+  const updateClan = async (id, data) => {
+    try {
+      await updateDoc(doc(firebaseDb, "clans", id), data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const deleteClan = async (id) => {
+    try {
+      await deleteDoc(doc(firebaseDb, "clans", id));
+      const playersToUpdate = db.players.filter((p) => p.clanId === id);
+      for (const p of playersToUpdate) {
+        await updateDoc(doc(firebaseDb, "players", p.id), {
+          clanId: null,
+          contractEnd: null,
+          releaseClauseMultiplier: 0,
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const assignPlayerToClan = async (clanId, playerId) => {
+    try {
+      await updateDoc(doc(firebaseDb, "players", playerId), { clanId });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const removePlayerFromClan = async (playerId) => {
+    try {
+      await updateDoc(doc(firebaseDb, "players", playerId), {
+        clanId: null,
+        contractEnd: null,
+        releaseClauseMultiplier: 0,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const updateClanFinancials = async (clanId, newBudget, reason, type) => {
+    const clan = db.clans.find((c) => c.id === clanId);
+    if (!clan) return;
+    const diff = newBudget - clan.budget;
+    try {
+      await updateDoc(doc(firebaseDb, "clans", clanId), { budget: newBudget });
+      await salvarNoFirebase("financialLogs", {
+        id: generateId(),
+        clanId,
+        type,
+        amount: diff,
+        oldBalance: clan.budget,
+        newBalance: newBudget,
+        reason,
+        date: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const transferPlayer = async (
+    playerId,
+    targetClanId,
+    price,
+    isHostile = false
+  ) => {
+    const player = db.players.find((p) => p.id === playerId);
+    const fromClan = db.clans.find((c) => c.id === player.clanId);
+    const toClan = db.clans.find((c) => c.id === targetClanId);
+    if (!player || !toClan) return;
+    try {
+      await updateDoc(doc(firebaseDb, "clans", targetClanId), {
+        budget: toClan.budget - price,
+      });
+      if (fromClan) {
+        await updateDoc(doc(firebaseDb, "clans", fromClan.id), {
+          budget: fromClan.budget + price,
+        });
+        await salvarNoFirebase("financialLogs", {
           id: generateId(),
-          name,
-          championshipId: champId,
-          format: format || "mix",
-          startDate: new Date().toLocaleDateString(),
-          isActive: true,
-          isFinished: false,
-          enrolledClans: [],
-        },
-      ],
-    }));
-  const updateSplit = (id, data) =>
-    setDb((prev) => ({
-      ...prev,
-      splits: prev.splits.map((s) => (s.id === id ? { ...s, ...data } : s)),
-    }));
-  const endSplit = (id) =>
-    setDb((prev) => ({
-      ...prev,
-      splits: prev.splits.map((s) =>
-        s.id === id
-          ? {
-              ...s,
-              isActive: false,
-              isFinished: true,
-              endDate: new Date().toLocaleDateString(),
-            }
-          : s
-      ),
-    }));
-  const addChampionship = (name, url) =>
-    setDb((prev) => ({
-      ...prev,
-      championships: [
-        ...prev.championships,
-        { id: generateId(), name, trophyUrl: url },
-      ],
-    }));
-  const updateChampionship = (id, data) =>
-    setDb((prev) => ({
-      ...prev,
-      championships: prev.championships.map((c) =>
-        c.id === id ? { ...c, ...data } : c
-      ),
-    }));
-  const removeChampionship = (id) =>
-    setDb((prev) => ({
-      ...prev,
-      championships: prev.championships.filter((c) => c.id !== id),
-    }));
-
-  const saveMatch = (info, stats, id, date) => {
-    const matchId = id || generateId();
-    const newMatch = {
-      id: matchId,
-      splitId: info.splitId,
-      mapName: info.mapName,
-      md3GroupId: info.md3GroupId,
-      winnerSide: info.winnerSide,
-      scoreA: info.scoreA,
-      scoreB: info.scoreB,
-      clanA_Id: info.clanA_Id,
-      clanB_Id: info.clanB_Id,
-      stage: info.stage,
-      date: date || new Date().toISOString(),
-    };
-    const newStats = stats.map((p) => ({
-      id: generateId(),
-      matchId,
-      playerId: p.playerId,
-      kills: p.kills,
-      deaths: p.deaths,
-      mapWin: p.mapWin,
-    }));
-
-    setDb((prev) => {
-      let updatedClans = [...prev.clans];
-      let newLogs = [];
-      let updatedSponsors = prev.sponsors ? [...prev.sponsors] : [];
-      const currentSplit = prev.splits.find((s) => s.id === info.splitId);
-
-      // Simulamos como ficará a lista de mapas para contar derrotas depois
-      const allMatches = id
-        ? [...prev.matches.filter((m) => m.id !== id), newMatch]
-        : [...prev.matches, newMatch];
-
-      // 1. Cobrança de Salários
-      if (currentSplit && currentSplit.format === "cxc") {
-        stats.forEach((stat) => {
-          const player = prev.players.find((p) => p.id === stat.playerId);
-          if (player && player.clanId) {
-            const salaryAmount = Math.round(
-              (player.marketValue || 10000000) * 0.005
-            );
-            const clanIndex = updatedClans.findIndex(
-              (c) => c.id === player.clanId
-            );
-            if (clanIndex !== -1) {
-              const oldBalance = updatedClans[clanIndex].budget;
-              updatedClans[clanIndex].budget -= salaryAmount;
-              newLogs.push({
-                id: generateId(),
-                clanId: player.clanId,
-                type: "salary",
-                amount: -salaryAmount,
-                oldBalance: oldBalance,
-                newBalance: updatedClans[clanIndex].budget,
-                reason: `Salário: ${player.nickname} (Mapa: ${info.mapName})`,
-                date: new Date().toISOString(),
-              });
-            }
-          }
+          clanId: fromClan.id,
+          type: "transfer_sell",
+          amount: price,
+          oldBalance: fromClan.budget,
+          newBalance: fromClan.budget + price,
+          reason: `Venda de ${player.nickname}`,
+          date: new Date().toISOString(),
         });
       }
+      await updateDoc(doc(firebaseDb, "players", playerId), {
+        clanId: targetClanId,
+        contractEnd: null,
+        releaseClauseMultiplier: 0,
+      });
+      await salvarNoFirebase("transfers", {
+        id: generateId(),
+        type: fromClan ? "transfer" : "contract",
+        playerId: player.id,
+        playerName: player.nickname,
+        fromClanId: fromClan ? fromClan.id : null,
+        toClanId: toClan.id,
+        toClanName: toClan.name,
+        value: price,
+        date: new Date().toISOString(),
+        isHostile,
+      });
+      await salvarNoFirebase("financialLogs", {
+        id: generateId(),
+        clanId: toClan.id,
+        type: "transfer_buy",
+        amount: -price,
+        oldBalance: toClan.budget,
+        newBalance: toClan.budget - price,
+        reason: `Compra de ${player.nickname}`,
+        date: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-      // Função Auxiliar: Conta quantas derrotas SEGUIDAS o clã tem até agora
-      const getLosingStreak = (clanId) => {
-        const clanMatches = allMatches
-          .filter((m) => m.clanA_Id === clanId || m.clanB_Id === clanId)
-          .sort((a, b) => new Date(b.date) - new Date(a.date));
-        let streak = 0;
-        for (let m of clanMatches) {
-          const isLoser =
-            (m.winnerSide === "B" && m.clanA_Id === clanId) ||
-            (m.winnerSide === "A" && m.clanB_Id === clanId);
-          if (isLoser) streak++;
-          else break; // Se ele ganhou ou empatou alguma partida, quebra a sequência de derrotas.
-        }
-        return streak;
-      };
+  const addStoreItem = async (itemData) => {
+    await salvarNoFirebase("items", { id: generateId(), ...itemData });
+  };
 
-      // 2. Pagamentos e Rescisões dos Patrocinadores
-      const processSponsors = (clanId, isWinner) => {
-        if (!clanId || !updatedSponsors) return;
-        const clanIndex = updatedClans.findIndex((c) => c.id === clanId);
-        if (clanIndex === -1) return;
+  const deleteStoreItem = async (id) => {
+    try {
+      await deleteDoc(doc(firebaseDb, "items", id));
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-        let streak = 0;
-        if (!isWinner) streak = getLosingStreak(clanId); // Só calcula se tiver perdido
+  const updateStoreItem = async (id, updatedData) => {
+    try {
+      await updateDoc(doc(firebaseDb, "items", id), updatedData);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-        updatedSponsors = updatedSponsors.map((sponsor) => {
-          if (sponsor.clanId !== clanId) return sponsor;
+  const sellItemToPlayer = async (playerId, itemId) => {
+    const player = db.players.find((p) => p.id === playerId);
+    const item = db.items.find((i) => i.id === itemId);
+    if (!player || !item) return;
+    if (item.stock <= 0) {
+      alert("Erro: Item esgotado no estoque.");
+      return;
+    }
 
-          // A) Pagamento de Bônus / Cota
-          if (
-            sponsor.type === "fixed" ||
-            (sponsor.type === "victory" && isWinner)
-          ) {
-            const oldBalance = updatedClans[clanIndex].budget;
-            updatedClans[clanIndex].budget += sponsor.amount;
-            newLogs.push({
-              id: generateId(),
-              clanId: clanId,
-              type: "sponsor",
-              amount: sponsor.amount,
-              oldBalance: oldBalance,
-              newBalance: updatedClans[clanIndex].budget,
-              reason: `Patrocínio ${sponsor.name} (${
-                sponsor.type === "fixed" ? "Cota Fixa" : "Vitória"
-              })`,
-              date: new Date().toISOString(),
-            });
-          }
+    let newEarnings = player.totalEarnings || 0;
+    if (!item.isPremium) {
+      if (newEarnings < item.price) {
+        alert(
+          `Erro: Saldo insuficiente. O jogador tem apenas ${formatCurrency(
+            newEarnings
+          )}.`
+        );
+        return;
+      }
+      newEarnings -= item.price;
+    }
+    try {
+      await updateDoc(doc(firebaseDb, "players", playerId), {
+        totalEarnings: newEarnings,
+        inventory: [...(player.inventory || []), item],
+      });
+      await updateDoc(doc(firebaseDb, "items", itemId), {
+        stock: item.stock - 1,
+      });
+      alert(
+        `✅ Venda Concluída! ${item.name} foi adicionado à mochila de ${player.nickname}.`
+      );
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-          // B) Quebra de Contrato (Se não for Premium, perder, e atingir tolerância)
-          if (
-            !isWinner &&
-            !sponsor.isPremium &&
-            sponsor.tolerance > 0 &&
-            streak >= sponsor.tolerance
-          ) {
-            newLogs.push({
-              id: generateId(),
-              clanId: clanId,
-              type: "penalty",
-              amount: 0,
-              oldBalance: updatedClans[clanIndex].budget,
-              newBalance: updatedClans[clanIndex].budget,
-              reason: `🚨 Contrato Rompido: ${sponsor.name} abandonou a equipe (${streak} derrotas seguidas).`,
-              date: new Date().toISOString(),
-            });
-            return { ...sponsor, clanId: null }; // Desvincula o Clã do Patrocinador
-          }
+  const addSplit = async (name, champId, format) => {
+    const id = generateId();
+    try {
+      for (const s of db.splits) {
+        if (s.isActive)
+          await updateDoc(doc(firebaseDb, "splits", s.id), {
+            isActive: false,
+            isFinished: true,
+            endDate: new Date().toLocaleDateString(),
+          });
+      }
+      await salvarNoFirebase("splits", {
+        id,
+        name,
+        championshipId: champId,
+        format: format || "mix",
+        startDate: new Date().toLocaleDateString(),
+        isActive: true,
+        isFinished: false,
+        enrolledClans: [],
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-          return sponsor;
-        });
-      };
+  const updateSplit = async (id, data) => {
+    try {
+      await updateDoc(doc(firebaseDb, "splits", id), data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-      // Roda a verificação para os dois clãs
-      processSponsors(info.clanA_Id, info.winnerSide === "A");
-      processSponsors(info.clanB_Id, info.winnerSide === "B");
+  const endSplit = async (id) => {
+    try {
+      await updateDoc(doc(firebaseDb, "splits", id), {
+        isActive: false,
+        isFinished: true,
+        endDate: new Date().toLocaleDateString(),
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-      return {
-        ...prev,
-        clans: updatedClans,
-        sponsors: updatedSponsors,
-        financialLogs: [...newLogs, ...(prev.financialLogs || [])],
-        matches: allMatches,
-        stats: id
-          ? [...prev.stats.filter((s) => s.matchId !== id), ...newStats]
-          : [...prev.stats, ...newStats],
-        players: prev.players.map((p) => {
-          const statsDessaPartida = stats.find((s) => s.playerId === p.id);
-          if (statsDessaPartida && currentSplit?.format === "cxc") {
+  const saveMatch = async (info, stats, id, date) => {
+    const matchId = id || generateId();
+    try {
+      await setDoc(doc(firebaseDb, "matches", matchId), {
+        ...info,
+        id: matchId,
+        date: date || new Date().toISOString(),
+      });
+      for (const s of stats) {
+        const sid = generateId();
+        await setDoc(doc(firebaseDb, "stats", sid), { ...s, id: sid, matchId });
+        if (info.format === "cxc") {
+          const p = db.players.find((pl) => pl.id === s.playerId);
+          if (p) {
             const salary = Math.round((p.marketValue || 10000000) * 0.005);
-            return { ...p, totalEarnings: (p.totalEarnings || 0) + salary };
+            await updateDoc(doc(firebaseDb, "players", p.id), {
+              totalEarnings: (p.totalEarnings || 0) + salary,
+            });
           }
-          return p;
-        }),
-      };
+        }
+      }
+    } catch (e) {
+      console.error("Erro ao salvar partida:", e);
+    }
+  };
+
+  const deleteMatch = async (id) => {
+    try {
+      await deleteDoc(doc(firebaseDb, "matches", id));
+      const statsToDel = db.stats.filter((s) => s.matchId === id);
+      for (const s of statsToDel) {
+        await deleteDoc(doc(firebaseDb, "stats", s.id));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const addChampionship = async (name, url) => {
+    await salvarNoFirebase("championships", {
+      id: generateId(),
+      name,
+      trophyUrl: url,
     });
   };
 
-  const deleteMatch = (id) =>
-    setDb((prev) => ({
-      ...prev,
-      matches: prev.matches.filter((m) => m.id !== id),
-      stats: prev.stats.filter((s) => s.matchId !== id),
-    }));
-  const addNews = (data) =>
-    setDb((prev) => ({
-      ...prev,
-      news: [
-        { id: generateId(), ...data, date: new Date().toLocaleDateString() },
-        ...prev.news,
-      ],
-    }));
-  const removeNews = (id) =>
-    setDb((prev) => ({ ...prev, news: prev.news.filter((n) => n.id !== id) }));
-  const addMap = (name) =>
-    setDb((prev) => ({
-      ...prev,
-      maps: [...prev.maps, { id: generateId(), name, isActive: true }],
-    }));
-  const toggleMapStatus = (id) =>
-    setDb((prev) => ({
-      ...prev,
-      maps: prev.maps.map((m) =>
-        m.id === id ? { ...m, isActive: !m.isActive } : m
-      ),
-    }));
-  const removeMap = (id) =>
-    setDb((prev) => ({ ...prev, maps: prev.maps.filter((m) => m.id !== id) }));
-  const addClan = (data) =>
-    setDb((prev) => ({
-      ...prev,
-      clans: [...(prev.clans || []), { id: generateId(), ...data }],
-    }));
+  const updateChampionship = async (id, data) => {
+    try {
+      await updateDoc(doc(firebaseDb, "championships", id), data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const removeChampionship = async (id) => {
+    try {
+      await deleteDoc(doc(firebaseDb, "championships", id));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const addNews = async (data) => {
+    await salvarNoFirebase("news", {
+      id: generateId(),
+      ...data,
+      date: new Date().toLocaleDateString(),
+    });
+  };
+
+  const removeNews = async (id) => {
+    try {
+      await deleteDoc(doc(firebaseDb, "news", id));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const addMap = async (name) => {
+    await salvarNoFirebase("maps", { id: generateId(), name, isActive: true });
+  };
+
+  const toggleMapStatus = async (id) => {
+    const m = db.maps.find((x) => x.id === id);
+    if (m)
+      await updateDoc(doc(firebaseDb, "maps", id), { isActive: !m.isActive });
+  };
+
+  const removeMap = async (id) => {
+    try {
+      await deleteDoc(doc(firebaseDb, "maps", id));
+    } catch (e) {
+      console.error(e);
+    }
+  };
   const updateClan = (id, data) =>
     setDb((prev) => ({
       ...prev,
