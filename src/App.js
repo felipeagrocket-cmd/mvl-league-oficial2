@@ -63,7 +63,15 @@ import {
 } from "lucide-react";
 
 import { db as firebaseDb } from "./firebase";
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+} from "firebase/firestore";
 
 const generateId = () =>
   Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -73,6 +81,18 @@ const formatCurrency = (value) =>
     currency: "BRL",
     maximumFractionDigits: 0,
   }).format(value);
+
+const salvarNoFirebase = async (colecao, dados) => {
+  try {
+    const idParaSalvar = dados.id || generateId();
+    await setDoc(doc(firebaseDb, colecao, idParaSalvar), {
+      ...dados,
+      id: idParaSalvar,
+    });
+  } catch (e) {
+    console.error(`Erro ao salvar na coleção ${colecao}:`, e);
+  }
+};
 
 const SEED_CLANS = [
   {
@@ -8129,51 +8149,69 @@ const App = () => {
       }),
     }));
   };
-  const handleGenerateGroupStage = (splitId) => {
-    setDb((prev) => {
-      const split = prev.splits.find((s) => s.id === splitId);
-      if (!split || !split.enrolledClans || split.enrolledClans.length < 2) {
-        alert("Inscreva pelo menos 2 clãs na fase anterior.");
-        return prev;
-      }
-      const existing = prev.series.filter(
-        (s) => s.splitId === splitId && s.stage === "Fase de Grupos"
-      );
-      if (existing.length > 0) {
-        alert("Fase de grupos já gerada! Desfaça para gerar novamente.");
-        return prev;
-      }
-      const newSeries = [];
-      const clans = split.enrolledClans;
-      for (let i = 0; i < clans.length; i++) {
-        for (let j = i + 1; j < clans.length; j++) {
-          const clanA = prev.clans.find((c) => c.id === clans[i]);
-          const clanB = prev.clans.find((c) => c.id === clans[j]);
-          if (clanA && clanB) {
-            newSeries.push({
-              id: generateId(),
-              splitId: splitId,
-              label: `Grupos`,
-              stage: "Fase de Grupos",
-              teamA: clanA.name,
-              teamB: clanB.name,
-              clanA_Id: clanA.id,
-              clanB_Id: clanB.id,
-              matchIds: [],
-              date: new Date().toISOString(),
-            });
-          }
+  const handleGenerateGroupStage = async (splitId) => {
+    const split = db.splits.find((s) => s.id === splitId);
+    if (!split || !split.enrolledClans || split.enrolledClans.length < 2) {
+      alert("Inscreva pelo menos 2 clãs na fase anterior.");
+      return;
+    }
+    const existing = db.series.filter(
+      (s) => s.splitId === splitId && s.stage === "Fase de Grupos"
+    );
+    if (existing.length > 0) {
+      alert("Fase de grupos já gerada! Desfaça para gerar novamente.");
+      return;
+    }
+
+    const newSeries = [];
+    const clans = split.enrolledClans;
+
+    for (let i = 0; i < clans.length; i++) {
+      for (let j = i + 1; j < clans.length; j++) {
+        const clanA = db.clans.find((c) => c.id === clans[i]);
+        const clanB = db.clans.find((c) => c.id === clans[j]);
+        if (clanA && clanB) {
+          const serieData = {
+            id: generateId(),
+            splitId: splitId,
+            label: `Grupos`,
+            stage: "Fase de Grupos",
+            teamA: clanA.name,
+            teamB: clanB.name,
+            clanA_Id: clanA.id,
+            clanB_Id: clanB.id,
+            matchIds: [],
+            date: new Date().toISOString(),
+          };
+          newSeries.push(serieData);
+          await salvarNoFirebase("series", serieData);
         }
       }
-      return { ...prev, series: [...(prev.series || []), ...newSeries] };
-    });
+    }
+
+    setDb((prev) => ({
+      ...prev,
+      series: [...(prev.series || []), ...newSeries],
+    }));
   };
-  const handleUndoGroupStage = (splitId) => {
+  const handleUndoGroupStage = async (splitId) => {
     if (
       window.confirm(
         "⚠️ ATENÇÃO: Isso apagará TODOS os confrontos gerados da Fase de Grupos. Continuar?"
       )
     ) {
+      const seriesToDelete = db.series.filter(
+        (s) => s.splitId === splitId && s.stage === "Fase de Grupos"
+      );
+
+      for (const s of seriesToDelete) {
+        try {
+          await deleteDoc(doc(firebaseDb, "series", s.id));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
       setDb((prev) => ({
         ...prev,
         series: prev.series.filter(
@@ -8182,65 +8220,75 @@ const App = () => {
       }));
     }
   };
-  const handleGeneratePlayoffs = (splitId) => {
-    setDb((prev) => {
-      const existing = prev.series.filter(
-        (s) => s.splitId === splitId && s.stage === "Playoffs"
+
+  const handleGeneratePlayoffs = async (splitId) => {
+    const existing = db.series.filter(
+      (s) => s.splitId === splitId && s.stage === "Playoffs"
+    );
+    if (existing.length > 0) {
+      alert("Playoffs já gerados! Desfaça para gerar novamente.");
+      return;
+    }
+
+    const b = new BackendController(db);
+    const standings = b.getClanStandings(splitId);
+
+    if (standings.length < 4) {
+      alert(
+        "São necessários pelo menos 4 times ranqueados para gerar a árvore de Playoffs."
       );
-      if (existing.length > 0) {
-        alert("Playoffs já gerados! Desfaça para gerar novamente.");
-        return prev;
-      }
-      const b = new BackendController(prev);
-      const standings = b.getClanStandings(splitId);
-      if (standings.length < 4) {
-        alert(
-          "São necessários pelo menos 4 times ranqueados para gerar a árvore de Playoffs."
-        );
-        return prev;
-      }
-      const newSeries = [
-        {
-          id: generateId(),
-          splitId,
-          label: "Semifinal 1",
-          stage: "Playoffs",
-          teamA: standings[0].name,
-          teamB: standings[3].name,
-          clanA_Id: standings[0].id,
-          clanB_Id: standings[3].id,
-          matchIds: [],
-          date: new Date().toISOString(),
-        },
-        {
-          id: generateId(),
-          splitId,
-          label: "Semifinal 2",
-          stage: "Playoffs",
-          teamA: standings[1].name,
-          teamB: standings[2].name,
-          clanA_Id: standings[1].id,
-          clanB_Id: standings[2].id,
-          matchIds: [],
-          date: new Date().toISOString(),
-        },
-        {
-          id: generateId(),
-          splitId,
-          label: "Grande Final",
-          stage: "Playoffs",
-          teamA: "Vencedor Semi 1",
-          teamB: "Vencedor Semi 2",
-          clanA_Id: null,
-          clanB_Id: null,
-          matchIds: [],
-          date: new Date().toISOString(),
-        },
-      ];
-      return { ...prev, series: [...(prev.series || []), ...newSeries] };
-    });
+      return;
+    }
+
+    const newSeries = [
+      {
+        id: generateId(),
+        splitId,
+        label: "Semifinal 1",
+        stage: "Playoffs",
+        teamA: standings[0].name,
+        teamB: standings[3].name,
+        clanA_Id: standings[0].id,
+        clanB_Id: standings[3].id,
+        matchIds: [],
+        date: new Date().toISOString(),
+      },
+      {
+        id: generateId(),
+        splitId,
+        label: "Semifinal 2",
+        stage: "Playoffs",
+        teamA: standings[1].name,
+        teamB: standings[2].name,
+        clanA_Id: standings[1].id,
+        clanB_Id: standings[2].id,
+        matchIds: [],
+        date: new Date().toISOString(),
+      },
+      {
+        id: generateId(),
+        splitId,
+        label: "Grande Final",
+        stage: "Playoffs",
+        teamA: "Vencedor Semi 1",
+        teamB: "Vencedor Semi 2",
+        clanA_Id: null,
+        clanB_Id: null,
+        matchIds: [],
+        date: new Date().toISOString(),
+      },
+    ];
+
+    for (const s of newSeries) {
+      await salvarNoFirebase("series", s);
+    }
+
+    setDb((prev) => ({
+      ...prev,
+      series: [...(prev.series || []), ...newSeries],
+    }));
   };
-  const handleGenerateMixTournament = (splitId, playerIds) => {
+  const handleGenerateMixTournament = async (splitId, playerIds) => {
     const b = new BackendController(db);
     const teamNames = [
       "Alfa",
@@ -8341,18 +8389,35 @@ const App = () => {
         date: new Date().toISOString(),
       });
     }
+
+    for (const s of newSeries) {
+      await salvarNoFirebase("series", s);
+    }
+
     setDb((prev) => ({
       ...prev,
       series: [...(prev.series || []), ...newSeries],
     }));
     return { teams, precision };
   };
-  const handleUndoPlayoffs = (splitId) => {
+
+  const handleUndoPlayoffs = async (splitId) => {
     if (
       window.confirm(
         "⚠️ ATENÇÃO: Isso apagará a árvore de Playoffs. Continuar?"
       )
     ) {
+      const seriesToDelete = db.series.filter(
+        (s) => s.splitId === splitId && s.stage === "Playoffs"
+      );
+      for (const s of seriesToDelete) {
+        try {
+          await deleteDoc(doc(firebaseDb, "series", s.id));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
       setDb((prev) => ({
         ...prev,
         series: prev.series.filter(
@@ -8892,205 +8957,6 @@ const App = () => {
     } catch (e) {
       console.error(e);
     }
-  };
-  const updateClan = (id, data) =>
-    setDb((prev) => ({
-      ...prev,
-      clans: prev.clans.map((c) => (c.id === id ? { ...c, ...data } : c)),
-    }));
-  const deleteClan = (id) => {
-    setDb((prev) => ({
-      ...prev,
-      clans: prev.clans.filter((c) => c.id !== id),
-      players: prev.players.map((p) =>
-        p.clanId === id ? { ...p, clanId: null } : p
-      ),
-    }));
-  };
-  const assignPlayerToClan = (clanId, playerId) =>
-    setDb((prev) => ({
-      ...prev,
-      players: prev.players.map((p) =>
-        p.id === playerId ? { ...p, clanId } : p
-      ),
-    }));
-  const removePlayerFromClan = (playerId) =>
-    setDb((prev) => ({
-      ...prev,
-      players: prev.players.map((p) =>
-        p.id === playerId
-          ? {
-              ...p,
-              clanId: null,
-              contractEnd: null,
-              releaseClauseMultiplier: 0,
-            }
-          : p
-      ),
-    }));
-  const updateClanFinancials = (clanId, newBudget, reason, type) => {
-    setDb((prev) => {
-      const clan = prev.clans.find((c) => c.id === clanId);
-      if (!clan) return prev;
-      const diff = newBudget - clan.budget;
-      const newLog = {
-        id: generateId(),
-        clanId,
-        type,
-        amount: diff,
-        oldBalance: clan.budget,
-        newBalance: newBudget,
-        reason,
-        date: new Date().toISOString(),
-      };
-      return {
-        ...prev,
-        clans: prev.clans.map((c) =>
-          c.id === clanId ? { ...c, budget: newBudget } : c
-        ),
-        financialLogs: [newLog, ...(prev.financialLogs || [])],
-      };
-    });
-  };
-  const transferPlayer = (playerId, targetClanId, price, isHostile = false) => {
-    setDb((prev) => {
-      const player = prev.players.find((p) => p.id === playerId);
-      const fromClan = prev.clans.find((c) => c.id === player.clanId);
-      const toClan = prev.clans.find((c) => c.id === targetClanId);
-      if (!player || !toClan) return prev;
-      const updatedClans = prev.clans.map((c) => {
-        if (c.id === targetClanId) return { ...c, budget: c.budget - price };
-        if (fromClan && c.id === fromClan.id)
-          return { ...c, budget: c.budget + price };
-        return c;
-      });
-      const updatedPlayers = prev.players.map((p) =>
-        p.id === playerId
-          ? {
-              ...p,
-              clanId: targetClanId,
-              contractEnd: null,
-              releaseClauseMultiplier: 0,
-            }
-          : p
-      );
-      const newTransfer = {
-        id: generateId(),
-        type: fromClan ? "transfer" : "contract",
-        playerId: player.id,
-        playerName: player.nickname,
-        fromClanId: fromClan ? fromClan.id : null,
-        toClanId: toClan.id,
-        toClanName: toClan.name,
-        value: price,
-        date: new Date().toISOString(),
-        isHostile,
-      };
-      const newLogs = [];
-      if (fromClan) {
-        newLogs.push({
-          id: generateId(),
-          clanId: fromClan.id,
-          type: "transfer_sell",
-          amount: price,
-          oldBalance: fromClan.budget,
-          newBalance: fromClan.budget + price,
-          reason: `Venda de ${player.nickname}`,
-          date: new Date().toISOString(),
-        });
-      }
-      newLogs.push({
-        id: generateId(),
-        clanId: toClan.id,
-        type: "transfer_buy",
-        amount: -price,
-        oldBalance: toClan.budget,
-        newBalance: toClan.budget - price,
-        reason: `Compra de ${player.nickname}`,
-        date: new Date().toISOString(),
-      });
-      return {
-        ...prev,
-        clans: updatedClans,
-        players: updatedPlayers,
-        transfers: [newTransfer, ...prev.transfers],
-        financialLogs: [...newLogs, ...(prev.financialLogs || [])],
-      };
-    });
-  };
-
-  // --- SISTEMA DA LOJA VIP ---
-  const addStoreItem = (itemData) => {
-    setDb((prev) => ({
-      ...prev,
-      items: [{ id: generateId(), ...itemData }, ...(prev.items || [])],
-    }));
-  };
-
-  const deleteStoreItem = (id) => {
-    setDb((prev) => ({
-      ...prev,
-      items: prev.items.filter((i) => i.id !== id),
-    }));
-  };
-
-  const updateStoreItem = (id, updatedData) => {
-    setDb((prev) => ({
-      ...prev,
-      items: prev.items.map((i) =>
-        i.id === id ? { ...i, ...updatedData } : i
-      ),
-    }));
-  };
-
-  const sellItemToPlayer = (playerId, itemId) => {
-    setDb((prev) => {
-      const player = prev.players.find((p) => p.id === playerId);
-      const item = prev.items.find((i) => i.id === itemId);
-
-      if (!player || !item) return prev;
-      if (item.stock <= 0) {
-        alert("Erro: Item esgotado no estoque.");
-        return prev;
-      }
-
-      let newEarnings = player.totalEarnings || 0;
-
-      // Se não for premium (dinheiro real), debita do patrimônio
-      if (!item.isPremium) {
-        if (newEarnings < item.price) {
-          alert(
-            `Erro: Saldo insuficiente. O jogador tem apenas ${formatCurrency(
-              newEarnings
-            )}.`
-          );
-          return prev;
-        }
-        newEarnings -= item.price;
-      }
-
-      const updatedPlayers = prev.players.map((p) => {
-        if (p.id === playerId) {
-          return {
-            ...p,
-            totalEarnings: newEarnings,
-            inventory: [...(p.inventory || []), item], // Adiciona na mochila
-          };
-        }
-        return p;
-      });
-
-      const updatedItems = prev.items.map((i) => {
-        if (i.id === itemId) return { ...i, stock: i.stock - 1 };
-        return i;
-      });
-
-      alert(
-        `✅ Venda Concluída! ${item.name} foi adicionado à mochila de ${player.nickname}.`
-      );
-
-      return { ...prev, players: updatedPlayers, items: updatedItems };
-    });
   };
 
   return (
