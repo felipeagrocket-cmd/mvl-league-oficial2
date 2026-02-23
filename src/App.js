@@ -8497,10 +8497,14 @@ const App = () => {
     });
   };
 
-  // PATROCINADORES LOGIC (Fase 1)
+  // ============================================================
+  // LOGICA DO BACKEND (FIREBASE & ESTADO LOCAL)
+  // ============================================================
+
   const addSponsor = async (data) => {
     await salvarNoFirebase("sponsors", data);
   };
+
   const updateSponsor = async (id, data) => {
     try {
       await updateDoc(doc(firebaseDb, "sponsors", id), data);
@@ -8508,6 +8512,7 @@ const App = () => {
       console.error(e);
     }
   };
+
   const deleteSponsor = async (id) => {
     try {
       await deleteDoc(doc(firebaseDb, "sponsors", id));
@@ -8571,13 +8576,11 @@ const App = () => {
     const player = db.players.find((p) => p.id === id);
     if (!player) return;
     let unbanDate = null;
-    let durationLabel = "Permanente";
     const now = new Date();
     if (duration !== "permanent") {
       const days = parseInt(duration);
       now.setDate(now.getDate() + days);
       unbanDate = now.toISOString();
-      durationLabel = `${days} Dia(s)`;
     }
     const banId = generateId();
     const banRecord = {
@@ -8586,7 +8589,6 @@ const App = () => {
       reason: reason || "Violação",
       date: new Date().toLocaleDateString(),
       unbanDate,
-      durationLabel,
       originalPlayerId: player.id,
       nickname: player.nickname,
       avatarUrl: player.avatarUrl,
@@ -8645,8 +8647,8 @@ const App = () => {
   const deleteClan = async (id) => {
     try {
       await deleteDoc(doc(firebaseDb, "clans", id));
-      const playersToUpdate = db.players.filter((p) => p.clanId === id);
-      for (const p of playersToUpdate) {
+      const members = db.players.filter((p) => p.clanId === id);
+      for (const p of members) {
         await updateDoc(doc(firebaseDb, "players", p.id), {
           clanId: null,
           contractEnd: null,
@@ -8706,7 +8708,7 @@ const App = () => {
     isHostile = false
   ) => {
     const player = db.players.find((p) => p.id === playerId);
-    const fromClan = db.clans.find((c) => c.id === player.clanId);
+    const fromClan = db.clans.find((c) => c.id === player?.clanId);
     const toClan = db.clans.find((c) => c.id === targetClanId);
     if (!player || !toClan) return;
     try {
@@ -8745,16 +8747,6 @@ const App = () => {
         date: new Date().toISOString(),
         isHostile,
       });
-      await salvarNoFirebase("financialLogs", {
-        id: generateId(),
-        clanId: toClan.id,
-        type: "transfer_buy",
-        amount: -price,
-        oldBalance: toClan.budget,
-        newBalance: toClan.budget - price,
-        reason: `Compra de ${player.nickname}`,
-        date: new Date().toISOString(),
-      });
     } catch (e) {
       console.error(e);
     }
@@ -8783,20 +8775,11 @@ const App = () => {
   const sellItemToPlayer = async (playerId, itemId) => {
     const player = db.players.find((p) => p.id === playerId);
     const item = db.items.find((i) => i.id === itemId);
-    if (!player || !item) return;
-    if (item.stock <= 0) {
-      alert("Erro: Item esgotado no estoque.");
-      return;
-    }
-
+    if (!player || !item || item.stock <= 0) return;
     let newEarnings = player.totalEarnings || 0;
     if (!item.isPremium) {
       if (newEarnings < item.price) {
-        alert(
-          `Erro: Saldo insuficiente. O jogador tem apenas ${formatCurrency(
-            newEarnings
-          )}.`
-        );
+        alert("Saldo insuficiente.");
         return;
       }
       newEarnings -= item.price;
@@ -8809,9 +8792,6 @@ const App = () => {
       await updateDoc(doc(firebaseDb, "items", itemId), {
         stock: item.stock - 1,
       });
-      alert(
-        `✅ Venda Concluída! ${item.name} foi adicionado à mochila de ${player.nickname}.`
-      );
     } catch (e) {
       console.error(e);
     }
@@ -8820,14 +8800,6 @@ const App = () => {
   const addSplit = async (name, champId, format) => {
     const id = generateId();
     try {
-      for (const s of db.splits) {
-        if (s.isActive)
-          await updateDoc(doc(firebaseDb, "splits", s.id), {
-            isActive: false,
-            isFinished: true,
-            endDate: new Date().toLocaleDateString(),
-          });
-      }
       await salvarNoFirebase("splits", {
         id,
         name,
@@ -8874,28 +8846,15 @@ const App = () => {
       for (const s of stats) {
         const sid = generateId();
         await setDoc(doc(firebaseDb, "stats", sid), { ...s, id: sid, matchId });
-        if (info.format === "cxc") {
-          const p = db.players.find((pl) => pl.id === s.playerId);
-          if (p) {
-            const salary = Math.round((p.marketValue || 10000000) * 0.005);
-            await updateDoc(doc(firebaseDb, "players", p.id), {
-              totalEarnings: (p.totalEarnings || 0) + salary,
-            });
-          }
-        }
       }
     } catch (e) {
-      console.error("Erro ao salvar partida:", e);
+      console.error(e);
     }
   };
 
   const deleteMatch = async (id) => {
     try {
       await deleteDoc(doc(firebaseDb, "matches", id));
-      const statsToDel = db.stats.filter((s) => s.matchId === id);
-      for (const s of statsToDel) {
-        await deleteDoc(doc(firebaseDb, "stats", s.id));
-      }
     } catch (e) {
       console.error(e);
     }
