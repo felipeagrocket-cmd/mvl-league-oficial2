@@ -1,19 +1,18 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
+// ESTES DADOS VOCÊ PEGA NO CONSOLE DO FIREBASE (Configurações do Projeto)
 const firebaseConfig = {
-  apiKey: "AIzaSyAuuw-aP86K7VnCUdRENfkCu9pd2dV9aJI",
-  authDomain: "mvl-league.firebaseapp.com",
-  projectId: "mvl-league",
-  storageBucket: "mvl-league.firebasestorage.app",
-  messagingSenderId: "50954342541",
-  appId: "1:50954342541:web:4c02830836b58580b992c4",
+  apiKey: "SUA_API_KEY",
+  authDomain: "SEU_PROJETO.firebaseapp.com",
+  projectId: "SEU_PROJETO_ID",
+  storageBucket: "SEU_PROJETO.appspot.com",
+  messagingSenderId: "SEU_ID",
+  appId: "SEU_APP_ID"
 };
 
-// Inicializa o aplicativo Firebase
+// Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 
-// Inicializa o Banco de Dados e exporta para usarmos no resto do projeto
-const db = getFirestore(app);
-
-export { db };
+// Exporta o banco de dados com o nome 'db' para o App.js encontrar
+export const db = getFirestore(app);
