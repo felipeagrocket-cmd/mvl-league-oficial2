@@ -610,6 +610,7 @@ class BackendController {
         deaths: 0,
         marketValue: p.marketValue,
         inventory: p.inventory,
+        pointsBreakdown: { kills: 0, kdBonus: 0, mapWins: 0, md3Wins: 0 }, // A fatura criada!
       };
     });
     this.db.stats.forEach((s) => {
@@ -617,10 +618,22 @@ class BackendController {
       if (!p) return;
       p.kills += s.kills;
       p.deaths += s.deaths;
+
       p.points += s.kills;
-      if ((s.deaths === 0 ? s.kills : s.kills / s.deaths) >= 1) p.points += 1;
-      if (s.mapWin) p.points += 1;
-      if (s.md3Win) p.points += 3;
+      p.pointsBreakdown.kills += s.kills; // Guardando kill por kill
+
+      if ((s.deaths === 0 ? s.kills : s.kills / s.deaths) >= 1) {
+        p.points += 1;
+        p.pointsBreakdown.kdBonus += 1; // Guardando bônus de KD
+      }
+      if (s.mapWin) {
+        p.points += 1;
+        p.pointsBreakdown.mapWins += 1; // Guardando bônus de mapa
+      }
+      if (s.md3Win) {
+        p.points += 3;
+        p.pointsBreakdown.md3Wins += 3; // Guardando bônus de MD3
+      }
     });
     return Object.values(map)
       .map((p) => ({ ...p, kd: this.calculateKD(p.kills, p.deaths) }))
