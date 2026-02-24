@@ -8228,32 +8228,47 @@ const App = () => {
   };
 
   useEffect(() => {
-    const updatedPlayers = db.players.map((p) => {
-      const profile = backend.getPlayerFullProfile(p.id);
-      const totalMatches = profile?.stats?.totalMatches || 0;
-      const lastUpdate = p.lastValuationMatches || 0;
-      if (
-        totalMatches - lastUpdate >= 3 ||
-        (totalMatches > 0 && lastUpdate === 0)
-      ) {
-        const dynamicValue = backend.calculateDynamicMarketValue(
-          p,
-          profile.stats
-        );
-        if (dynamicValue !== p.marketValue) {
-          return {
-            ...p,
-            marketValue: dynamicValue,
-            lastValuationMatches: totalMatches,
-          };
+    if (
+      !db.stats ||
+      db.stats.length === 0 ||
+      !db.players ||
+      db.players.length === 0
+    )
+      return;
+
+    const updateValuationsInFirebase = async () => {
+      for (const p of db.players) {
+        const profile = backend.getPlayerFullProfile(p.id);
+        const totalMatches = profile?.stats?.totalMatches || 0;
+        const lastUpdate = p.lastValuationMatches || 0;
+
+        // Verifica se precisa atualizar o passe
+        if (
+          totalMatches - lastUpdate >= 3 ||
+          (totalMatches > 0 && lastUpdate === 0)
+        ) {
+          const dynamicValue = backend.calculateDynamicMarketValue(
+            p,
+            profile.stats
+          );
+
+          // MÁGICA: Se o valor calculado for diferente, SALVA DEFINITIVO NO FIREBASE
+          if (dynamicValue !== p.marketValue) {
+            try {
+              await updateDoc(doc(firebaseDb, "players", p.id), {
+                marketValue: dynamicValue,
+                lastValuationMatches: totalMatches,
+              });
+            } catch (e) {
+              console.error("Erro ao atualizar valor de passe:", e);
+            }
+          }
         }
       }
-      return p;
-    });
-    if (JSON.stringify(updatedPlayers) !== JSON.stringify(db.players)) {
-      setDb((prev) => ({ ...prev, players: updatedPlayers }));
-    }
-  }, [db.stats]);
+    };
+
+    updateValuationsInFirebase();
+  }, [db.stats]); // Roda essa verificação sempre que uma partida for alterada
 
   const goToProfile = (playerId) => {
     setSelectedProfileId(playerId);
@@ -8996,7 +9011,7 @@ const App = () => {
         date: date || new Date().toISOString(),
       });
 
-      // NOVO: Se for uma EDIÇÃO, apaga os status antigos do banco para não duplicar
+      // O ASPIRADOR DE PÓ: Apaga os status antigos/duplicados antes de salvar os novos
       if (id) {
         const oldStats = db.stats.filter((s) => s.matchId === id);
         for (const oldStat of oldStats) {
