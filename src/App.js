@@ -5091,13 +5091,38 @@ const AdminPanel = ({
   };
   const handleImageUpload = (e, setter) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setter(reader.result);
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      // Cria uma imagem invisível para redimensionar
+      const img = new Image();
+      img.src = reader.result;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+
+        // Define o tamanho máximo da imagem (400px é perfeito para avatares e logos)
+        const MAX_WIDTH = 400;
+        const scaleSize = MAX_WIDTH / img.width;
+
+        // Se a imagem já for menor que 400px, mantém o tamanho original
+        if (img.width < MAX_WIDTH) {
+          canvas.width = img.width;
+          canvas.height = img.height;
+        } else {
+          canvas.width = MAX_WIDTH;
+          canvas.height = img.height * scaleSize;
+        }
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // Converte de volta para código, mas super leve (70% de qualidade)
+        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+        setter(compressedBase64);
       };
-      reader.readAsDataURL(file);
-    }
+    };
+    reader.readAsDataURL(file);
   };
   const openBanModal = (player) => {
     setSelectedPlayerToBan(player);
