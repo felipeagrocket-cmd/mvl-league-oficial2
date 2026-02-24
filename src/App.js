@@ -62,7 +62,8 @@ import {
   Wallet,
 } from "lucide-react";
 
-import { db as firebaseDb } from "./firebase";
+import { db as firebaseDb, auth } from "./firebase";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import {
   collection,
   addDoc,
@@ -5089,7 +5090,7 @@ const AdminPanel = ({
   const handleDragEnd = () => {
     setDraggedItemIndex(null);
   };
-const handleImageUpload = (e, setter) => {
+  const handleImageUpload = (e, setter) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -5099,10 +5100,10 @@ const handleImageUpload = (e, setter) => {
       img.src = reader.result;
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        
-        const MAX_WIDTH = 400; 
+
+        const MAX_WIDTH = 400;
         const scaleSize = MAX_WIDTH / img.width;
-        
+
         if (img.width < MAX_WIDTH) {
           canvas.width = img.width;
           canvas.height = img.height;
@@ -5110,12 +5111,12 @@ const handleImageUpload = (e, setter) => {
           canvas.width = MAX_WIDTH;
           canvas.height = img.height * scaleSize;
         }
-        
+
         const ctx = canvas.getContext("2d");
         // Limpa o fundo para garantir que fique 100% transparente
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        
+
         // Troca de JPEG para WEBP (Mantém a transparência e comprime em 80%)
         const compressedBase64 = canvas.toDataURL("image/webp", 0.8);
         setter(compressedBase64);
@@ -8036,7 +8037,8 @@ const App = () => {
   const [view, setView] = useState("home");
   const [selectedProfileId, setSelectedProfileId] = useState(null);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
-  const [loginInput, setLoginInput] = useState("");
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
   const [showLogin, setShowLogin] = useState(false);
   // --- SINCRONIZADOR EM TEMPO REAL (FIREBASE) ---
   useEffect(() => {
@@ -8162,18 +8164,24 @@ const App = () => {
     setView("profile");
     window.scrollTo(0, 0);
   };
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (loginInput === "1234") {
+    try {
+      // O Firebase vai conferir se o e-mail e a senha existem lá no painel
+      await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
       setIsAdminLoggedIn(true);
       setView("admin");
       setShowLogin(false);
-      setLoginInput("");
-    } else {
-      alert("Senha incorreta");
+      setLoginEmail("");
+      setLoginPassword("");
+    } catch (error) {
+      console.error("Erro no login:", error);
+      alert("Acesso Negado: E-mail ou senha incorretos.");
     }
   };
-  const handleLogout = () => {
+
+  const handleLogout = async () => {
+    await signOut(auth);
     setIsAdminLoggedIn(false);
     setView("home");
   };
@@ -9073,14 +9081,25 @@ const App = () => {
               <Lock className="text-amber-400" size={28} /> Acesso Restrito
             </h2>
             <form onSubmit={handleLogin} className="space-y-6">
-              <input
-                type="password"
-                placeholder="Senha de Acesso"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-5 text-white text-center text-xl tracking-[0.5em] focus:border-amber-400 outline-none transition-all placeholder:tracking-normal placeholder:text-slate-600 shadow-inner"
-                value={loginInput}
-                onChange={(e) => setLoginInput(e.target.value)}
-                autoFocus
-              />
+              <div className="space-y-4 w-full mb-6">
+                <input
+                  type="email"
+                  placeholder="Seu E-mail de Admin"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white text-center focus:border-amber-400 outline-none transition-all placeholder:text-slate-600 shadow-inner"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  required
+                  autoFocus
+                />
+                <input
+                  type="password"
+                  placeholder="Sua Senha"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white text-center focus:border-amber-400 outline-none transition-all placeholder:text-slate-600 shadow-inner"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  required
+                />
+              </div>
               <div className="flex gap-4">
                 <button
                   type="button"
