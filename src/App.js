@@ -5095,17 +5095,14 @@ const AdminPanel = ({
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      // Cria uma imagem invisível para redimensionar
       const img = new Image();
       img.src = reader.result;
       img.onload = () => {
         const canvas = document.createElement("canvas");
-
-        // Define o tamanho máximo da imagem (400px é perfeito para avatares e logos)
-        const MAX_WIDTH = 400;
+        
+        const MAX_WIDTH = 400; 
         const scaleSize = MAX_WIDTH / img.width;
-
-        // Se a imagem já for menor que 400px, mantém o tamanho original
+        
         if (img.width < MAX_WIDTH) {
           canvas.width = img.width;
           canvas.height = img.height;
@@ -5113,15 +5110,19 @@ const AdminPanel = ({
           canvas.width = MAX_WIDTH;
           canvas.height = img.height * scaleSize;
         }
-
+        
         const ctx = canvas.getContext("2d");
+        // Limpa o fundo para garantir que fique 100% transparente
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        // Converte de volta para código, mas super leve (70% de qualidade)
-        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+        
+        // Troca de JPEG para WEBP (Mantém a transparência e comprime em 80%)
+        const compressedBase64 = canvas.toDataURL("image/webp", 0.8);
         setter(compressedBase64);
       };
     };
+    reader.readAsDataURL(file);
+  };
     reader.readAsDataURL(file);
   };
   const openBanModal = (player) => {
