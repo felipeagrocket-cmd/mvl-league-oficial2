@@ -5089,7 +5089,7 @@ const AdminPanel = ({
   const handleDragEnd = () => {
     setDraggedItemIndex(null);
   };
-  const handleImageUpload = (e, setter) => {
+const handleImageUpload = (e, setter) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -5121,8 +5121,6 @@ const AdminPanel = ({
         setter(compressedBase64);
       };
     };
-    reader.readAsDataURL(file);
-  };
     reader.readAsDataURL(file);
   };
   const openBanModal = (player) => {
