@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth"; // NOVO: Importa o sistema de Login
 
 const firebaseConfig = {
   apiKey: "AIzaSyAuuw-aP86K7VnCUdRENfkCu9pd2dV9aJI",
@@ -13,7 +14,9 @@ const firebaseConfig = {
 // Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 
-// Exporta o banco de dados com o nome 'db' para o App.js conseguir ler e gravar
+// Exporta o banco de dados e o sistema de login
 export const db = getFirestore(app);
+export const auth = getAuth(app); // NOVO: Exporta o porteiro
+
 
 
