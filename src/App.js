@@ -71,6 +71,7 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  onSnapshot,
 } from "firebase/firestore";
 
 const generateId = () =>
@@ -8025,6 +8026,37 @@ const App = () => {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [loginInput, setLoginInput] = useState("");
   const [showLogin, setShowLogin] = useState(false);
+  // --- SINCRONIZADOR EM TEMPO REAL (FIREBASE) ---
+  useEffect(() => {
+    const colecoes = [
+      "players",
+      "clans",
+      "splits",
+      "championships",
+      "maps",
+      "matches",
+      "stats",
+      "news",
+      "series",
+      "bannedPlayers",
+      "sponsors",
+      "items",
+      "transfers",
+      "financialLogs",
+    ];
+
+    const unsubs = colecoes.map((colecao) => {
+      return onSnapshot(collection(firebaseDb, colecao), (snapshot) => {
+        const dadosAtualizados = snapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+        setDb((prev) => ({ ...prev, [colecao]: dadosAtualizados }));
+      });
+    });
+
+    return () => unsubs.forEach((unsub) => unsub());
+  }, []);
 
   // FUNÇÃO PARA TESTAR O FIREBASE
   const testarConexaoFirebase = async () => {
