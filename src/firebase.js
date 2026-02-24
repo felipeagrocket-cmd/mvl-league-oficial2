@@ -1,18 +1,18 @@
+// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-// ESTES DADOS VOCÊ PEGA NO CONSOLE DO FIREBASE (Configurações do Projeto)
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_PROJETO.firebaseapp.com",
-  projectId: "SEU_PROJETO_ID",
-  storageBucket: "SEU_PROJETO.appspot.com",
-  messagingSenderId: "SEU_ID",
-  appId: "SEU_APP_ID"
+  apiKey: "AIzaSyAuuw-aP86K7VnCUdRENfkCu9pd2dV9aJI",
+  authDomain: "mvl-league.firebaseapp.com",
+  projectId: "mvl-league",
+  storageBucket: "mvl-league.firebasestorage.app",
+  messagingSenderId: "50954342541",
+  appId: "1:50954342541:web:4c02830836b58580b992c4"
 };
 
-// Inicializa o Firebase
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Exporta o banco de dados com o nome 'db' para o App.js encontrar
-export const db = getFirestore(app);
