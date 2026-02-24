@@ -4385,6 +4385,13 @@ const TournamentMD3Modal = ({
     .map((id) => data.matches.find((m) => m.id === id))
     .filter(Boolean);
 
+  // Lógica para liberar geral no formato MIX
+  const splitInfo = data.splits.find((s) => s.id === series.splitId);
+  const isMix = splitInfo?.format === "mix";
+  const allActivePlayers = data.players
+    .filter((p) => !p.isPaused)
+    .sort((a, b) => a.nickname.localeCompare(b.nickname));
+
   // Inicia os 5 slots pegando os primeiros jogadores por padrão
   const initializeLineup = (playersList) => {
     return Array(5)
@@ -4794,9 +4801,15 @@ const TournamentMD3Modal = ({
                           <option value="" className="text-slate-500">
                             Selecionar Jogador...
                           </option>
-                          {playersA.map((p) => (
+                          {(isMix ? allActivePlayers : playersA).map((p) => (
                             <option key={p.id} value={p.id}>
-                              {p.nickname}
+                              {p.nickname}{" "}
+                              {isMix && p.clanId
+                                ? `[${
+                                    data.clans.find((c) => c.id === p.clanId)
+                                      ?.tag
+                                  }]`
+                                : ""}
                             </option>
                           ))}
                         </select>
@@ -4857,9 +4870,15 @@ const TournamentMD3Modal = ({
                           <option value="" className="text-slate-500">
                             Selecionar Jogador...
                           </option>
-                          {playersB.map((p) => (
+                          {(isMix ? allActivePlayers : playersB).map((p) => (
                             <option key={p.id} value={p.id}>
-                              {p.nickname}
+                              {p.nickname}{" "}
+                              {isMix && p.clanId
+                                ? `[${
+                                    data.clans.find((c) => c.id === p.clanId)
+                                      ?.tag
+                                  }]`
+                                : ""}
                             </option>
                           ))}
                         </select>
