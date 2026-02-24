@@ -4505,6 +4505,12 @@ const TournamentMD3Modal = ({
     });
   };
 
+  // Olheiro: Cria uma lista de quem já está escalado nos dois times
+  const selectedPlayerIds = [
+    ...lineupA.map((s) => s.playerId),
+    ...lineupB.map((s) => s.playerId),
+  ].filter(Boolean);
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-fadeIn overflow-y-auto">
       <div className="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-5xl shadow-2xl relative flex flex-col my-8">
@@ -4801,17 +4807,23 @@ const TournamentMD3Modal = ({
                           <option value="" className="text-slate-500">
                             Selecionar Jogador...
                           </option>
-                          {(isMix ? allActivePlayers : playersA).map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.nickname}{" "}
-                              {isMix && p.clanId
-                                ? `[${
-                                    data.clans.find((c) => c.id === p.clanId)
-                                      ?.tag
-                                  }]`
-                                : ""}
-                            </option>
-                          ))}
+                          {(isMix ? allActivePlayers : playersA)
+                            .filter(
+                              (p) =>
+                                p.id === slot.playerId ||
+                                !selectedPlayerIds.includes(p.id)
+                            )
+                            .map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.nickname}{" "}
+                                {isMix && p.clanId
+                                  ? `[${
+                                      data.clans.find((c) => c.id === p.clanId)
+                                        ?.tag
+                                    }]`
+                                  : ""}
+                              </option>
+                            ))}
                         </select>
                         <input
                           type="number"
@@ -4870,17 +4882,23 @@ const TournamentMD3Modal = ({
                           <option value="" className="text-slate-500">
                             Selecionar Jogador...
                           </option>
-                          {(isMix ? allActivePlayers : playersB).map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.nickname}{" "}
-                              {isMix && p.clanId
-                                ? `[${
-                                    data.clans.find((c) => c.id === p.clanId)
-                                      ?.tag
-                                  }]`
-                                : ""}
-                            </option>
-                          ))}
+                          {(isMix ? allActivePlayers : playersB)
+                            .filter(
+                              (p) =>
+                                p.id === slot.playerId ||
+                                !selectedPlayerIds.includes(p.id)
+                            )
+                            .map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.nickname}{" "}
+                                {isMix && p.clanId
+                                  ? `[${
+                                      data.clans.find((c) => c.id === p.clanId)
+                                        ?.tag
+                                    }]`
+                                  : ""}
+                              </option>
+                            ))}
                         </select>
                         <input
                           type="number"
