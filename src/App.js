@@ -9031,7 +9031,14 @@ const App = () => {
 
   const deleteMatch = async (id) => {
     try {
+      // 1. Deleta a partida
       await deleteDoc(doc(firebaseDb, "matches", id));
+
+      // 2. Caça e deleta todas as "Estatísticas Órfãs" para não bagunçar o Ranking
+      const orphanStats = db.stats.filter((s) => s.matchId === id);
+      for (const s of orphanStats) {
+        await deleteDoc(doc(firebaseDb, "stats", s.id));
+      }
     } catch (e) {
       console.error(e);
     }
