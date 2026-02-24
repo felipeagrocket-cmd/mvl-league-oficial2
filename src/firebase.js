@@ -1,9 +1,6 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getFirestore } from "firebase/firestore";
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAuuw-aP86K7VnCUdRENfkCu9pd2dV9aJI",
   authDomain: "mvl-league.firebaseapp.com",
@@ -13,6 +10,10 @@ const firebaseConfig = {
   appId: "1:50954342541:web:4c02830836b58580b992c4"
 };
 
-// Initialize Firebase
+// Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
+
+// Exporta o banco de dados com o nome 'db' para o App.js conseguir ler e gravar
+export const db = getFirestore(app);
+
 
