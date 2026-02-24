@@ -7991,34 +7991,22 @@ const AdminPanel = ({
 // ============================================================================
 const App = () => {
   const [db, setDb] = useState({
-    players: SEED_PLAYERS,
-    clans: SEED_CLANS,
-    splits: [
-      {
-        id: "s1",
-        name: "Split 1 - Abertura",
-        championshipId: "c1",
-        format: "cxc",
-        startDate: "2024-02-01",
-        endDate: "",
-        isActive: true,
-        isFinished: false,
-        enrolledClans: [],
-      },
-    ],
-    championships: SEED_CHAMPIONSHIPS,
-    maps: SEED_MAPS,
+    players: [],
+    clans: [],
+    splits: [],
+    championships: [],
+    maps: [],
     matches: [],
     stats: [],
-    news: SEED_NEWS,
+    news: [],
     series: [],
-    bannedPlayers: SEED_BANNED,
-    sponsors: typeof SEED_SPONSORS !== "undefined" ? SEED_SPONSORS : [],
-    items: typeof SEED_STORE_ITEMS !== "undefined" ? SEED_STORE_ITEMS : [],
+    bannedPlayers: [],
+    sponsors: [],
+    items: [],
     settings: DEFAULT_SETTINGS,
     adminMenuOrder: DEFAULT_ADMIN_MENU_ORDER,
-    transfers: SEED_TRANSFERS,
-    financialLogs: SEED_FINANCIAL_LOGS,
+    transfers: [],
+    financialLogs: [],
   });
 
   const [view, setView] = useState("home");
