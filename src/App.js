@@ -432,15 +432,20 @@ class BackendController {
       if (m.winnerSide === "A") wA++;
       if (m.winnerSide === "B") wB++;
     });
+
+    // NOVO: Lógica dinâmica para MD1, MD3 ou MD5
+    const bestOf = series.bestOf || 3; // Se for antigo, assume que é MD3
+    const winsNeeded = Math.ceil(bestOf / 2); // Ex: MD5 precisa de 3 vitórias
+    const isFinished =
+      wA >= winsNeeded || wB >= winsNeeded || matches.length === bestOf;
+
     return {
       ...series,
+      bestOf,
       winsA: wA,
       winsB: wB,
       matches,
-      status:
-        wA >= 2 || wB >= 2 || matches.length === 3
-          ? "Finalizada"
-          : "Em Andamento",
+      status: isFinished ? "Finalizada" : "Em Andamento",
       finalWinner: wA > wB ? "A" : wB > wA ? "B" : null,
     };
   }
@@ -5095,7 +5100,10 @@ const AdminPanel = ({
   const [settingsForm, setSettingsForm] = useState(
     data.settings || DEFAULT_SETTINGS
   );
-
+  // NOVO: Memórias dos formatos escolhidos
+  const [groupBestOf, setGroupBestOf] = useState(3);
+  const [playoffBestOf, setPlayoffBestOf] = useState(3);
+  const [mixBestOf, setMixBestOf] = useState(3);
   const [marketSelectedPlayer, setMarketSelectedPlayer] = useState("");
   const [marketTargetClan, setMarketTargetClan] = useState("");
   const [marketPriceOverride, setMarketPriceOverride] = useState("");
@@ -5450,17 +5458,33 @@ const AdminPanel = ({
                                   </h4>
                                 </div>
                                 {!hasGroups ? (
-                                  <button
-                                    onClick={() => {
-                                      onGenerateGroupStage(selectedSplitId);
-                                      triggerFeedback(
-                                        "Calendário gerado com sucesso!"
-                                      );
-                                    }}
-                                    className="bg-amber-400 hover:bg-amber-300 text-black text-xs font-black uppercase px-6 py-2.5 rounded-lg transition-all shadow-lg flex items-center gap-2"
-                                  >
-                                    <Calendar size={14} /> Gerar Calendário
-                                  </button>
+                                  <div className="flex items-center gap-3">
+                                    <select
+                                      value={groupBestOf}
+                                      onChange={(e) =>
+                                        setGroupBestOf(Number(e.target.value))
+                                      }
+                                      className="bg-slate-900 border border-amber-500/30 rounded-lg p-2.5 text-xs text-amber-500 font-bold outline-none cursor-pointer"
+                                    >
+                                      <option value={1}>MD1</option>
+                                      <option value={3}>MD3</option>
+                                      <option value={5}>MD5</option>
+                                    </select>
+                                    <button
+                                      onClick={() => {
+                                        onGenerateGroupStage(
+                                          selectedSplitId,
+                                          groupBestOf
+                                        );
+                                        triggerFeedback(
+                                          "Calendário gerado com sucesso!"
+                                        );
+                                      }}
+                                      className="bg-amber-400 hover:bg-amber-300 text-black text-xs font-black uppercase px-6 py-2.5 rounded-lg transition-all shadow-lg flex items-center gap-2"
+                                    >
+                                      <Calendar size={14} /> Gerar Calendário
+                                    </button>
+                                  </div>
                                 ) : (
                                   <button
                                     onClick={() => {
@@ -5505,7 +5529,7 @@ const AdminPanel = ({
                                           }
                                           className="bg-amber-500 hover:bg-amber-400 text-black px-4 py-2 rounded-lg font-bold text-[10px] uppercase transition-all"
                                         >
-                                          Jogar MD3
+                                          Gerenciar Série
                                         </button>
                                       </div>
                                     );
@@ -5671,24 +5695,43 @@ const AdminPanel = ({
                                 </div>
                               )}
 
-                              <button
-                                disabled={selectedPlayersForMix.length < 10}
-                                onClick={() => {
-                                  const result = onGenerateMixTournament(
-                                    selectedSplitId,
-                                    selectedPlayersForMix
-                                  );
-                                  setMixSummary(result); // Esta linha guarda os dados de precisão
-                                  setSelectedPlayersForMix([]);
-                                  triggerFeedback(
-                                    "Torneio MIX gerado e balanceado!"
-                                  );
-                                }}
-                                className="w-full bg-blue-500 hover:bg-blue-400 disabled:opacity-30 disabled:cursor-not-allowed text-white font-black uppercase py-4 rounded-2xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3"
-                              >
-                                <Zap size={20} /> Balancear Equipes e Gerar
-                                Chaves
-                              </button>
+                              <div className="flex flex-col gap-3">
+                                <div className="flex justify-between items-center bg-slate-900 p-3 rounded-xl border border-blue-500/30">
+                                  <span className="text-[10px] uppercase font-bold text-blue-400 tracking-widest">
+                                    Formato da Série
+                                  </span>
+                                  <select
+                                    value={mixBestOf}
+                                    onChange={(e) =>
+                                      setMixBestOf(Number(e.target.value))
+                                    }
+                                    className="bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-xs text-white font-bold outline-none cursor-pointer"
+                                  >
+                                    <option value={1}>Melhor de 1 (MD1)</option>
+                                    <option value={3}>Melhor de 3 (MD3)</option>
+                                    <option value={5}>Melhor de 5 (MD5)</option>
+                                  </select>
+                                </div>
+                                <button
+                                  disabled={selectedPlayersForMix.length < 10}
+                                  onClick={() => {
+                                    const result = onGenerateMixTournament(
+                                      selectedSplitId,
+                                      selectedPlayersForMix,
+                                      mixBestOf
+                                    );
+                                    setMixSummary(result);
+                                    setSelectedPlayersForMix([]);
+                                    triggerFeedback(
+                                      "Torneio MIX gerado e balanceado!"
+                                    );
+                                  }}
+                                  className="w-full bg-blue-500 hover:bg-blue-400 disabled:opacity-30 disabled:cursor-not-allowed text-white font-black uppercase py-4 rounded-2xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3"
+                                >
+                                  <Zap size={20} /> Balancear Equipes e Gerar
+                                  Chaves
+                                </button>
+                              </div>
                               {selectedPlayersForMix.length < 10 && (
                                 <p className="text-center text-slate-600 text-[10px] mt-4 uppercase font-bold tracking-widest animate-pulse">
                                   Aguardando mínimo de 10 jogadores...
@@ -5711,16 +5754,32 @@ const AdminPanel = ({
                               </h4>
                             </div>
                             {!hasPlayoffs ? (
-                              <button
-                                onClick={() => {
-                                  onGeneratePlayoffs(selectedSplitId);
-                                  triggerFeedback("Chaveamento gerado!");
-                                }}
-                                disabled={!hasGroups}
-                                className="bg-amber-400 hover:bg-amber-300 disabled:opacity-50 disabled:cursor-not-allowed text-black text-xs font-black uppercase px-6 py-2.5 rounded-lg transition-all shadow-lg shadow-amber-400/20 flex items-center gap-2"
-                              >
-                                <Trophy size={14} /> Gerar Chaveamento Top 4
-                              </button>
+                              <div className="flex items-center gap-3">
+                                <select
+                                  value={playoffBestOf}
+                                  onChange={(e) =>
+                                    setPlayoffBestOf(Number(e.target.value))
+                                  }
+                                  className="bg-slate-900 border border-amber-500/30 rounded-lg p-2.5 text-xs text-amber-500 font-bold outline-none cursor-pointer"
+                                >
+                                  <option value={1}>MD1</option>
+                                  <option value={3}>MD3</option>
+                                  <option value={5}>MD5</option>
+                                </select>
+                                <button
+                                  onClick={() => {
+                                    onGeneratePlayoffs(
+                                      selectedSplitId,
+                                      playoffBestOf
+                                    );
+                                    triggerFeedback("Chaveamento gerado!");
+                                  }}
+                                  disabled={!hasGroups}
+                                  className="bg-amber-400 hover:bg-amber-300 disabled:opacity-50 disabled:cursor-not-allowed text-black text-xs font-black uppercase px-6 py-2.5 rounded-lg transition-all shadow-lg shadow-amber-400/20 flex items-center gap-2"
+                                >
+                                  <Trophy size={14} /> Gerar Chaveamento Top 4
+                                </button>
+                              </div>
                             ) : (
                               <button
                                 onClick={() => {
@@ -5839,7 +5898,7 @@ const AdminPanel = ({
                                         <Play size={14} />{" "}
                                         {isFinished
                                           ? "Ver Resultado"
-                                          : "Jogar MD3"}
+                                          : "Gerenciar Série"}
                                       </button>
                                     </div>
                                   </div>
@@ -8238,7 +8297,7 @@ const App = () => {
       }),
     }));
   };
-  const handleGenerateGroupStage = async (splitId) => {
+  const handleGenerateGroupStage = async (splitId, bestOf = 3) => {
     const split = db.splits.find((s) => s.id === splitId);
     if (!split || !split.enrolledClans || split.enrolledClans.length < 2) {
       alert("Inscreva pelo menos 2 clãs na fase anterior.");
@@ -8271,6 +8330,7 @@ const App = () => {
             clanB_Id: clanB.id,
             matchIds: [],
             date: new Date().toISOString(),
+            bestOf: bestOf,
           };
           newSeries.push(serieData);
           await salvarNoFirebase("series", serieData);
@@ -8310,7 +8370,7 @@ const App = () => {
     }
   };
 
-  const handleGeneratePlayoffs = async (splitId) => {
+  const handleGeneratePlayoffs = async (splitId, bestOf = 3) => {
     const existing = db.series.filter(
       (s) => s.splitId === splitId && s.stage === "Playoffs"
     );
@@ -8341,30 +8401,25 @@ const App = () => {
         clanB_Id: standings[3].id,
         matchIds: [],
         date: new Date().toISOString(),
+        bestOf: bestOf, // <--- ADICIONE AQUI
       },
       {
         id: generateId(),
         splitId,
         label: "Semifinal 2",
-        stage: "Playoffs",
-        teamA: standings[1].name,
-        teamB: standings[2].name,
-        clanA_Id: standings[1].id,
-        clanB_Id: standings[2].id,
+        // ... (resto do código da semi 2) ...
         matchIds: [],
         date: new Date().toISOString(),
+        bestOf: bestOf, // <--- ADICIONE AQUI TAMBÉM
       },
       {
         id: generateId(),
         splitId,
         label: "Grande Final",
-        stage: "Playoffs",
-        teamA: "Vencedor Semi 1",
-        teamB: "Vencedor Semi 2",
-        clanA_Id: null,
-        clanB_Id: null,
+        // ... (resto do código da final) ...
         matchIds: [],
         date: new Date().toISOString(),
+        bestOf: bestOf, // <--- ADICIONE AQUI TAMBÉM
       },
     ];
 
@@ -8377,7 +8432,11 @@ const App = () => {
       series: [...(prev.series || []), ...newSeries],
     }));
   };
-  const handleGenerateMixTournament = async (splitId, playerIds) => {
+  const handleGenerateMixTournament = async (
+    splitId,
+    playerIds,
+    bestOf = 3
+  ) => {
     const b = new BackendController(db);
     const teamNames = [
       "Alfa",
@@ -8425,7 +8484,7 @@ const App = () => {
       newSeries.push({
         id: generateId(),
         splitId,
-        label: "Grande Final",
+        label: "Grande Final", // (ou Semifinal 1, Semifinal 2...)
         stage: "Playoffs",
         teamA: teams[0].name,
         teamB: teams[1].name,
@@ -8433,6 +8492,7 @@ const App = () => {
         clanB_Id: null,
         matchIds: [],
         date: new Date().toISOString(),
+        bestOf: bestOf, // <--- ADICIONE AQUI DENTRO DO PUSH
         mixPlayersA: teams[0].players.map((p) => p.id),
         mixPlayersB: teams[1].players.map((p) => p.id),
       });
@@ -8448,6 +8508,7 @@ const App = () => {
         clanB_Id: null,
         matchIds: [],
         date: new Date().toISOString(),
+        bestOf: bestOf,
         mixPlayersA: teams[0].players.map((p) => p.id),
         mixPlayersB: teams[3].players.map((p) => p.id),
       });
@@ -8462,6 +8523,7 @@ const App = () => {
         clanB_Id: null,
         matchIds: [],
         date: new Date().toISOString(),
+        bestOf: bestOf,
         mixPlayersA: teams[1].players.map((p) => p.id),
         mixPlayersB: teams[2].players.map((p) => p.id),
       });
@@ -8476,6 +8538,7 @@ const App = () => {
         clanB_Id: null,
         matchIds: [],
         date: new Date().toISOString(),
+        bestOf: bestOf,
       });
     }
 
