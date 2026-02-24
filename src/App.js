@@ -6711,9 +6711,33 @@ const AdminPanel = ({
             )}
             {activeTab === "players" && (
               <div className="animate-fadeIn">
-                <h3 className="text-xl font-black text-white mb-6 border-b border-slate-800 pb-4 tracking-tight">
-                  Gerenciar Jogadores
-                </h3>
+                <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                  <h3 className="text-xl font-black text-white tracking-tight">
+                    Gerenciar Jogadores
+                  </h3>
+                  <button
+                    onClick={async () => {
+                      if (
+                        window.confirm(
+                          "Deseja trocar todos os avatares antigos pela nova imagem padrão?"
+                        )
+                      ) {
+                        const antigos = data.players.filter((p) =>
+                          p.avatarUrl.includes("dicebear")
+                        );
+                        for (const p of antigos) {
+                          await onUpdatePlayer(p.id, {
+                            avatarUrl: "https://i.imgur.com/KE2qIR5.png",
+                          });
+                        }
+                        triggerFeedback("Avatares antigos atualizados!");
+                      }
+                    }}
+                    className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold uppercase px-4 py-2 rounded-lg transition-colors border border-slate-700 shadow-sm"
+                  >
+                    Trocar Avatares Antigos
+                  </button>
+                </div>
                 <div
                   className={`bg-slate-950 p-8 rounded-2xl border mb-10 transition-colors ${
                     editingPlayerId
@@ -7715,7 +7739,9 @@ const AdminPanel = ({
                           type="file"
                           className="hidden"
                           accept="image/*"
-                          onChange={(e) => handleImageUpload(e, setNewChampIcon)}
+                          onChange={(e) =>
+                            handleImageUpload(e, setNewChampIcon)
+                          }
                         />
                       </label>
                     </div>
@@ -8718,9 +8744,7 @@ const App = () => {
       id,
       nickname: playerData.nickname,
       gameId: playerData.gameId,
-      avatarUrl:
-        playerData.avatarUrl ||
-        `https://api.dicebear.com/7.x/avataaars/svg?seed=${playerData.nickname}`,
+      avatarUrl: playerData.avatarUrl || "https://i.imgur.com/KE2qIR5.png",
       isPaused: false,
       clanId: null,
       marketValue: 10000000,
