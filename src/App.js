@@ -8228,13 +8228,8 @@ const App = () => {
   };
 
   useEffect(() => {
-    if (
-      !db.stats ||
-      db.stats.length === 0 ||
-      !db.players ||
-      db.players.length === 0
-    )
-      return;
+    // Tiramos a trava do db.stats para ele poder agir quando o banco for zerado!
+    if (!db.players || db.players.length === 0) return;
 
     const updateValuationsInFirebase = async () => {
       for (const p of db.players) {
@@ -8242,18 +8237,23 @@ const App = () => {
         const totalMatches = profile?.stats?.totalMatches || 0;
         const lastUpdate = p.lastValuationMatches || 0;
 
-        // Verifica se precisa atualizar o passe
+        // Verifica se precisa atualizar o passe OU SE PRECISA ZERAR TUDO (totalMatches === 0)
         if (
           totalMatches - lastUpdate >= 3 ||
-          (totalMatches > 0 && lastUpdate === 0)
+          (totalMatches > 0 && lastUpdate === 0) ||
+          (totalMatches === 0 &&
+            (p.marketValue !== 10000000 || lastUpdate !== 0))
         ) {
-          const dynamicValue = backend.calculateDynamicMarketValue(
-            p,
-            profile.stats
-          );
+          // Se não tem partida, o valor volta pro padrão de 10 Milhões
+          const dynamicValue =
+            totalMatches === 0
+              ? 10000000
+              : backend.calculateDynamicMarketValue(p, profile.stats);
 
-          // MÁGICA: Se o valor calculado for diferente, SALVA DEFINITIVO NO FIREBASE
-          if (dynamicValue !== p.marketValue) {
+          if (
+            dynamicValue !== p.marketValue ||
+            (totalMatches === 0 && lastUpdate !== 0)
+          ) {
             try {
               await updateDoc(doc(firebaseDb, "players", p.id), {
                 marketValue: dynamicValue,
@@ -8268,7 +8268,7 @@ const App = () => {
     };
 
     updateValuationsInFirebase();
-  }, [db.stats]); // Roda essa verificação sempre que uma partida for alterada
+  }, [db.stats]);
 
   const goToProfile = (playerId) => {
     setSelectedProfileId(playerId);
