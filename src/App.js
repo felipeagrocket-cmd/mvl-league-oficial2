@@ -1817,7 +1817,7 @@ const MatchDetailsModal = ({ matchId, data, onClose, highlightPlayerId }) => {
             >
               <span className="text-blue-400 font-bold uppercase text-xs mb-2">
                 Time Blue{" "}
-                {match.clanA_Id
+                {match.clanA_Id && match.clanA_Id !== "tempA"
                   ? `[${data.clans.find((c) => c.id === match.clanA_Id)?.tag}]`
                   : ""}
               </span>
@@ -1837,7 +1837,7 @@ const MatchDetailsModal = ({ matchId, data, onClose, highlightPlayerId }) => {
             >
               <span className="text-red-400 font-bold uppercase text-xs mb-2">
                 Time Red{" "}
-                {match.clanB_Id
+                {match.clanB_Id && match.clanB_Id !== "tempB"
                   ? `[${data.clans.find((c) => c.id === match.clanB_Id)?.tag}]`
                   : ""}
               </span>
@@ -8932,6 +8932,16 @@ const App = () => {
         id: matchId,
         date: date || new Date().toISOString(),
       });
+
+      // NOVO: Se for uma EDIÇÃO, apaga os status antigos do banco para não duplicar
+      if (id) {
+        const oldStats = db.stats.filter((s) => s.matchId === id);
+        for (const oldStat of oldStats) {
+          await deleteDoc(doc(firebaseDb, "stats", oldStat.id));
+        }
+      }
+
+      // Salva os 10 jogadores limpinhos
       for (const s of stats) {
         const sid = generateId();
         await setDoc(doc(firebaseDb, "stats", sid), { ...s, id: sid, matchId });
