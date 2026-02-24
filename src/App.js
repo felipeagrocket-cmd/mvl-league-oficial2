@@ -7705,22 +7705,33 @@ const AdminPanel = ({
                     />
                   </div>
                   <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 border-dashed mb-6">
-                    <label className="block text-slate-400 text-[10px] uppercase font-bold mb-3 tracking-wider">
-                      Ícone do Troféu (URL)
+                    <label className="block text-slate-400 text-[10px] uppercase font-bold mb-4 tracking-wider">
+                      Ícone do Troféu (Upload)
                     </label>
-                    <input
-                      type="text"
-                      placeholder="https://..."
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3.5 text-white text-sm outline-none mb-4 focus:border-amber-400 transition-colors"
-                      value={newChampIcon}
-                      onChange={(e) => setNewChampIcon(e.target.value)}
-                    />
+                    <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+                      <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-3 px-6 rounded-lg border border-slate-600 transition-colors flex items-center gap-2 shadow-lg">
+                        <Upload size={16} /> Escolher Arquivo
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, setNewChampIcon)}
+                        />
+                      </label>
+                    </div>
                     {newChampIcon && (
-                      <div className="flex justify-center p-4 bg-slate-800 rounded-lg">
+                      <div className="mt-6 relative w-20 h-20 rounded-xl overflow-hidden border-2 border-slate-700 bg-slate-800 p-2 flex items-center justify-center group">
                         <img
                           src={newChampIcon}
-                          className="h-16 w-16 object-contain drop-shadow-lg"
+                          className="max-w-full max-h-full object-contain drop-shadow-lg"
+                          alt="Preview Troféu"
                         />
+                        <button
+                          onClick={() => setNewChampIcon("")}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
+                        >
+                          <Trash2 size={20} />
+                        </button>
                       </div>
                     )}
                   </div>
