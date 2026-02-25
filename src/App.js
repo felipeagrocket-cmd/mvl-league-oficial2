@@ -7190,6 +7190,34 @@ const AdminPanel = ({
                             ? 0
                             : parseInt(newSponsorTolerance || 3),
                         };
+
+                        // NOVO: Lógica de cobrança de Luvas do Patrocinador
+                        const oldSponsor = editingSponsorId
+                          ? data.sponsors.find((s) => s.id === editingSponsorId)
+                          : null;
+                        const isNewAssignment =
+                          newSponsorClan &&
+                          (!oldSponsor || oldSponsor.clanId !== newSponsorClan);
+
+                        if (isNewAssignment && sData.cost > 0) {
+                          const targetClan = data.clans.find(
+                            (c) => c.id === newSponsorClan
+                          );
+                          if (!targetClan || targetClan.budget < sData.cost) {
+                            triggerFeedback(
+                              "Erro: O clã não tem caixa para pagar as luvas!"
+                            );
+                            return; // Interrompe a assinatura se não tiver dinheiro
+                          }
+                          // Debita do clã automaticamente
+                          onUpdateClanFinancials(
+                            newSponsorClan,
+                            targetClan.budget - sData.cost,
+                            `Contrato de Patrocínio: ${sData.name}`,
+                            "sponsor_fee"
+                          );
+                        }
+
                         if (editingSponsorId) {
                           onUpdateSponsor(editingSponsorId, sData);
                           triggerFeedback("Patrocinador atualizado!");
@@ -8930,6 +8958,21 @@ const App = () => {
       await updateDoc(doc(firebaseDb, "clans", targetClanId), {
         budget: toClan.budget - price,
       });
+
+      // NOVO: Log financeiro para o clã COMPRADOR
+      await salvarNoFirebase("financialLogs", {
+        id: generateId(),
+        clanId: targetClanId,
+        type: "transfer_buy",
+        amount: -price,
+        oldBalance: toClan.budget,
+        newBalance: toClan.budget - price,
+        reason: isHostile
+          ? `Compra Hostil: ${player.nickname}`
+          : `Contratação: ${player.nickname}`,
+        date: new Date().toISOString(),
+      });
+
       if (fromClan) {
         await updateDoc(doc(firebaseDb, "clans", fromClan.id), {
           budget: fromClan.budget + price,
@@ -9059,7 +9102,6 @@ const App = () => {
         date: date || new Date().toISOString(),
       });
 
-      // O ASPIRADOR DE PÓ: Apaga os status antigos/duplicados antes de salvar os novos
       if (id) {
         const oldStats = db.stats.filter((s) => s.matchId === id);
         for (const oldStat of oldStats) {
@@ -9067,11 +9109,96 @@ const App = () => {
         }
       }
 
-      // Salva os 10 jogadores limpinhos
       for (const s of stats) {
         const sid = generateId();
         await setDoc(doc(firebaseDb, "stats", sid), { ...s, id: sid, matchId });
       }
+
+      // --- NOVO: MOTOR FINANCEIRO AUTOMATIZADO ---
+      // Só processa finanças se for uma partida NOVA (se não tiver "id" de edição)
+      if (!id) {
+        const split = db.splits.find((s) => s.id === info.splitId);
+        const isCxC = split?.format === "cxc";
+
+        const clanChanges = {};
+        const initClanChange = (cId) => {
+          if (!clanChanges[cId])
+            clanChanges[cId] = { totalChange: 0, logs: [] };
+        };
+
+        // 1. Paga Bônus de Patrocinadores para os Clãs
+        const checkSponsors = (cId, isWinner) => {
+          if (!cId || cId === "tempA" || cId === "tempB") return;
+          const clanSponsors = db.sponsors.filter((s) => s.clanId === cId);
+          clanSponsors.forEach((sp) => {
+            if (sp.type === "fixed" || (sp.type === "victory" && isWinner)) {
+              initClanChange(cId);
+              clanChanges[cId].totalChange += sp.amount;
+              clanChanges[cId].logs.push({
+                amount: sp.amount,
+                reason: `Cota ${sp.name} (${info.mapName})`,
+                type: "sponsor_bonus",
+              });
+            }
+          });
+        };
+        checkSponsors(info.clanA_Id, info.winnerSide === "A");
+        checkSponsors(info.clanB_Id, info.winnerSide === "B");
+
+        // 2. Paga Salários dos Jogadores e Debita dos Clãs
+        if (isCxC) {
+          for (const s of stats) {
+            const player = db.players.find((p) => p.id === s.playerId);
+            if (player) {
+              const salary = (player.marketValue || 10000000) * 0.005; // 0.5% do passe
+
+              // Adiciona na conta pessoal do jogador
+              await updateDoc(doc(firebaseDb, "players", player.id), {
+                totalEarnings: (player.totalEarnings || 0) + salary,
+              });
+
+              // Debita da conta do Clã
+              if (player.clanId) {
+                initClanChange(player.clanId);
+                clanChanges[player.clanId].totalChange -= salary;
+                clanChanges[player.clanId].logs.push({
+                  amount: -salary,
+                  reason: `Salário: ${player.nickname}`,
+                  type: "salary",
+                });
+              }
+            }
+          }
+        }
+
+        // 3. Executa as transações consolidadas no banco de dados
+        for (const [cId, changes] of Object.entries(clanChanges)) {
+          const clan = db.clans.find((c) => c.id === cId);
+          if (clan) {
+            const newBudget = clan.budget + changes.totalChange;
+            await updateDoc(doc(firebaseDb, "clans", cId), {
+              budget: newBudget,
+            });
+
+            let currentBalance = clan.budget;
+            for (const log of changes.logs) {
+              const newBal = currentBalance + log.amount;
+              await salvarNoFirebase("financialLogs", {
+                id: generateId(),
+                clanId: cId,
+                type: log.type,
+                amount: log.amount,
+                oldBalance: currentBalance,
+                newBalance: newBal,
+                reason: log.reason,
+                date: new Date().toISOString(),
+              });
+              currentBalance = newBal;
+            }
+          }
+        }
+      }
+      // --- FIM DO MOTOR FINANCEIRO ---
     } catch (e) {
       console.error(e);
     }
