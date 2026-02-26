@@ -9496,12 +9496,13 @@ const App = () => {
             className="flex items-center gap-3 cursor-pointer group select-none"
             onClick={handleLogoClick}
           >
-            <div className="bg-gradient-to-br from-amber-400 to-amber-600 p-2 rounded-lg shadow-lg shadow-amber-500/20 group-hover:shadow-amber-500/40 transition-all duration-300">
-              <Swords
-                className="text-black group-hover:rotate-12 transition-transform duration-300"
-                size={24}
-              />
-            </div>
+            {/* A NOVA LOGO DA MVL OFICIAL */}
+            <img
+              src="https://i.imgur.com/wfE2hD3.png"
+              alt="MVL Logo"
+              className="w-10 h-10 md:w-12 md:h-12 object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-[0_0_15px_rgba(251,191,36,0.3)]"
+            />
+
             <span className="text-2xl font-black tracking-tighter italic text-white group-hover:text-amber-400 transition-colors drop-shadow-lg">
               {db.settings.siteName || "MVL"}
             </span>
