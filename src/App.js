@@ -1918,19 +1918,22 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
           </div>
         )}
         <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-10">
-          <div className="relative group cursor-default">
+          <div className="relative group cursor-pointer transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-110 hover:-translate-y-3">
             {/* O FOGO ANIMADO ATRÁS DA FOTO */}
             <div className={cosmetics.fireProfile}></div>
 
-            {/* Coroa flutuante se for Premium com animação extra */}
+            {/* Coroa flutuante se for Premium com animação de pulo */}
             {cosmetics.isPremium && (
-              <Crown className="absolute -top-6 -left-6 text-amber-400 w-12 h-12 -rotate-12 drop-shadow-[0_5px_15px_rgba(251,191,36,0.8)] z-20 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />
+              <Crown className="absolute -top-6 -left-6 text-amber-400 w-12 h-12 -rotate-12 drop-shadow-[0_10px_20px_rgba(251,191,36,0.8)] z-20 group-hover:scale-[1.4] group-hover:rotate-[15deg] group-hover:-translate-y-4 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]" />
             )}
+
             <img
               src={player.avatarUrl}
-              className={`w-32 h-32 md:w-40 md:h-40 rounded-2xl shadow-2xl object-cover transition-all duration-500 relative z-10 ${
+              className={`w-32 h-32 md:w-40 md:h-40 rounded-2xl shadow-2xl object-cover transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative z-10 ${
                 cosmetics.avatarRing
-              } ${player.isPaused ? "grayscale" : ""}`}
+              } ${
+                player.isPaused ? "grayscale" : ""
+              } group-hover:shadow-[0_20px_50px_rgba(250,204,21,0.5)]`}
             />
           </div>
           <div className="text-center md:text-left flex-1 w-full">
