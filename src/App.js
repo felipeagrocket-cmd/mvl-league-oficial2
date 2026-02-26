@@ -1918,23 +1918,33 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
           </div>
         )}
         <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-10">
-          <div className="relative group cursor-pointer transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-110 hover:-translate-y-3">
-            {/* O FOGO ANIMADO ATRÁS DA FOTO */}
-            <div className={cosmetics.fireProfile}></div>
+          {/* Container Principal - O gatilho do mouse (group) */}
+          <div className="relative group cursor-pointer z-10">
+            
+            {/* O FOGO ATRÁS (Fica parado ou move muito pouco para dar base) */}
+            <div className={`${cosmetics.fireProfile} transition-all duration-500 group-hover:scale-105`}></div>
 
-            {/* Coroa flutuante se for Premium com animação de pulo */}
+            {/* COROA - Camada da frente: Move mais rápido, gira e sobe mais alto */}
             {cosmetics.isPremium && (
-              <Crown className="absolute -top-6 -left-6 text-amber-400 w-12 h-12 -rotate-12 drop-shadow-[0_10px_20px_rgba(251,191,36,0.8)] z-20 group-hover:scale-[1.4] group-hover:rotate-[15deg] group-hover:-translate-y-4 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]" />
+              <Crown className="absolute -top-7 -left-7 text-amber-400 w-14 h-14 -rotate-12 drop-shadow-[0_10px_20px_rgba(251,191,36,0.8)] z-30 
+              transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] 
+              group-hover:scale-[1.3] group-hover:rotate-[25deg] group-hover:-translate-y-6 group-hover:-translate-x-2" />
             )}
-
-            <img
-              src={player.avatarUrl}
-              className={`w-32 h-32 md:w-40 md:h-40 rounded-2xl shadow-2xl object-cover transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative z-10 ${
-                cosmetics.avatarRing
-              } ${
-                player.isPaused ? "grayscale" : ""
-              } group-hover:shadow-[0_20px_50px_rgba(250,204,21,0.5)]`}
-            />
+            
+            {/* MOLDURA (O Aro) - Camada do meio: Sobe um pouco */}
+            {/* Criei essa div para segurar a moldura separada da imagem */}
+            <div className={`relative z-20 w-32 h-32 md:w-40 md:h-40 rounded-2xl ${cosmetics.avatarRing} shadow-2xl overflow-hidden
+              transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
+              group-hover:-translate-y-2 group-hover:scale-105 group-hover:shadow-[0_25px_60px_rgba(250,204,21,0.6)]`}>
+                
+                {/* FOTO DO JOGADOR - Camada de dentro: Sobe MAIS que a moldura */}
+                <img
+                  src={player.avatarUrl}
+                  className={`w-full h-full object-cover rounded-2xl ${player.isPaused ? "grayscale" : ""}
+                  transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                  group-hover:-translate-y-4 group-hover:scale-110`}
+                />
+            </div>
           </div>
           <div className="text-center md:text-left flex-1 w-full">
             <div className="flex flex-col md:flex-row justify-between items-start w-full gap-6">
