@@ -21,8 +21,8 @@
     "typescript": "5.7.2"
   },
   "scripts": {
-    "start": "react-ste start",
-    "build": "react-scripts build",
+    "start": "react-scripts start",
+    "build": "GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
