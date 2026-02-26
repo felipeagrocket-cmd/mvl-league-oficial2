@@ -1910,8 +1910,12 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
       >
         <ChevronRight size={14} className="rotate-180" /> Voltar
       </button>
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 mb-8 relative overflow-hidden shadow-2xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+      {/* Retiramos o overflow-hidden da caixa principal para a foto poder pular para fora */}
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 mb-8 relative shadow-2xl">
+        {/* Isolamos o corte (overflow-hidden) apenas no brilho de fundo para não vazar no site */}
+        <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-[120px]"></div>
+        </div>
         {player.isPaused && (
           <div className="absolute top-6 right-6 bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-1.5 rounded-full font-bold uppercase text-[10px] z-20 flex items-center gap-2">
             <Ban size={12} /> Suspenso
@@ -1920,30 +1924,36 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
         <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-10">
           {/* Container Principal - O gatilho do mouse (group) */}
           <div className="relative group cursor-pointer z-10">
-            
             {/* O FOGO ATRÁS (Fica parado ou move muito pouco para dar base) */}
-            <div className={`${cosmetics.fireProfile} transition-all duration-500 group-hover:scale-105`}></div>
+            <div
+              className={`${cosmetics.fireProfile} transition-all duration-500 group-hover:scale-105`}
+            ></div>
 
             {/* COROA - Camada da frente: Move mais rápido, gira e sobe mais alto */}
             {cosmetics.isPremium && (
-              <Crown className="absolute -top-7 -left-7 text-amber-400 w-14 h-14 -rotate-12 drop-shadow-[0_10px_20px_rgba(251,191,36,0.8)] z-30 
+              <Crown
+                className="absolute -top-7 -left-7 text-amber-400 w-14 h-14 -rotate-12 drop-shadow-[0_10px_20px_rgba(251,191,36,0.8)] z-30 
               transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] 
-              group-hover:scale-[1.3] group-hover:rotate-[25deg] group-hover:-translate-y-6 group-hover:-translate-x-2" />
+              group-hover:scale-[1.3] group-hover:rotate-[25deg] group-hover:-translate-y-6 group-hover:-translate-x-2"
+              />
             )}
-            
+
             {/* MOLDURA (O Aro) - Camada do meio: Sobe um pouco */}
             {/* Criei essa div para segurar a moldura separada da imagem */}
-            <div className={`relative z-20 w-32 h-32 md:w-40 md:h-40 rounded-2xl ${cosmetics.avatarRing} shadow-2xl overflow-hidden
+            <div
+              className={`relative z-20 w-32 h-32 md:w-40 md:h-40 rounded-2xl ${cosmetics.avatarRing} shadow-2xl overflow-hidden
               transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-              group-hover:-translate-y-2 group-hover:scale-105 group-hover:shadow-[0_25px_60px_rgba(250,204,21,0.6)]`}>
-                
-                {/* FOTO DO JOGADOR - Camada de dentro: Sobe MAIS que a moldura */}
-                <img
-                  src={player.avatarUrl}
-                  className={`w-full h-full object-cover rounded-2xl ${player.isPaused ? "grayscale" : ""}
+              group-hover:-translate-y-2 group-hover:scale-105 group-hover:shadow-[0_25px_60px_rgba(250,204,21,0.6)]`}
+            >
+              {/* FOTO DO JOGADOR - Camada de dentro: Sobe MAIS que a moldura */}
+              <img
+                src={player.avatarUrl}
+                className={`w-full h-full object-cover rounded-2xl ${
+                  player.isPaused ? "grayscale" : ""
+                }
                   transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
                   group-hover:-translate-y-4 group-hover:scale-110`}
-                />
+              />
             </div>
           </div>
           <div className="text-center md:text-left flex-1 w-full">
