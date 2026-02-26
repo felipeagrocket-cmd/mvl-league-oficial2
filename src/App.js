@@ -2882,8 +2882,177 @@ const PointsDetailsModal = ({ player, onClose }) => {
   );
 };
 
-const RankingTable = ({ data, title, isGlobal = false, onPlayerClick }) => {
+const PricingDetailsModal = ({ player, backend, onClose }) => {
+  if (!player || !backend) return null;
+  const fullProfile = backend.getPlayerFullProfile(player.playerId);
+  const dbPlayer = backend.db.players.find((p) => p.id === player.playerId);
+  const stats = fullProfile?.stats;
+
+  if (!stats || stats.totalMatches === 0) {
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn">
+        <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-slate-500 hover:text-white"
+          >
+            <X size={20} />
+          </button>
+          <h3 className="text-white font-bold uppercase flex items-center gap-2 mb-4 text-sm">
+            <DollarSign className="text-green-400" size={16} /> Composição do
+            Passe
+          </h3>
+          <p className="text-slate-400 text-sm">
+            O jogador ainda não possui partidas registradas. O valor do passe é
+            o padrão inicial de {formatCurrency(10000000)}.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const baseValue = 10000000;
+  const avgKills = stats.totalKills / stats.totalMatches;
+  const killBonus = avgKills * 1000000;
+  const winRateBonus = (stats.winRate / 100) * 15000000;
+
+  let kdLabel = "Neutro (1.0x)";
+  let kdColor = "text-slate-400";
+  if (stats.totalKD >= 1.5) {
+    kdLabel = "+45% (Monstro)";
+    kdColor = "text-emerald-400";
+  } else if (stats.totalKD >= 1.2) {
+    kdLabel = "+25% (Ótimo)";
+    kdColor = "text-emerald-400";
+  } else if (stats.totalKD >= 1.0) {
+    kdLabel = "+10% (Bom)";
+    kdColor = "text-emerald-400";
+  } else if (stats.totalKD < 0.8) {
+    kdLabel = "-15% (Abaixo do Ideal)";
+    kdColor = "text-red-400";
+  }
+
+  let matchLabel = "Padrão (1.0x)";
+  let matchColor = "text-slate-400";
+  if (stats.totalMatches < 3) {
+    matchLabel = "-25% (Em Avaliação)";
+    matchColor = "text-red-400";
+  } else if (stats.totalMatches >= 10) {
+    matchLabel = "+5% (Veterano Experiente)";
+    matchColor = "text-emerald-400";
+  }
+
+  const devMult = dbPlayer.devaluationMultiplier || 1;
+  const devLabel =
+    devMult < 1
+      ? `-${Math.round((1 - devMult) * 100)}% (Fim de Temporada)`
+      : "Nenhum";
+  const devColor = devMult < 1 ? "text-red-400" : "text-slate-400";
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn">
+      <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden">
+        <div className="bg-slate-950 p-5 border-b border-slate-800 flex justify-between items-center">
+          <h3 className="text-white font-bold uppercase flex items-center gap-2 text-sm">
+            <DollarSign className="text-green-400" size={16} /> Relatório de
+            Precificação
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-slate-500 hover:text-white transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-800 border-dashed">
+            <img
+              src={player.avatarUrl}
+              className="w-12 h-12 rounded-lg bg-slate-800 object-cover border border-slate-700"
+              alt={player.nickname}
+            />
+            <div>
+              <h4 className="text-white font-black text-xl uppercase tracking-tight truncate w-48">
+                {player.nickname}
+              </h4>
+              <span className="text-green-400 text-sm font-mono font-black tracking-widest">
+                {formatCurrency(dbPlayer.marketValue)}
+              </span>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center p-3 bg-slate-950/50 rounded-lg border border-slate-800">
+              <div className="text-slate-400 text-[10px] font-bold uppercase">
+                Passe Base (Padrão)
+              </div>
+              <div className="text-white font-mono font-bold text-xs">
+                {formatCurrency(baseValue)}
+              </div>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-slate-950/50 rounded-lg border border-slate-800">
+              <div className="text-slate-400 text-[10px] font-bold uppercase">
+                Média de Kills ({avgKills.toFixed(1)} K/M)
+              </div>
+              <div className="text-emerald-400 font-mono font-bold text-xs">
+                +{formatCurrency(killBonus)}
+              </div>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-slate-950/50 rounded-lg border border-slate-800">
+              <div className="text-slate-400 text-[10px] font-bold uppercase">
+                Taxa de Vitórias ({stats.winRate}%)
+              </div>
+              <div className="text-emerald-400 font-mono font-bold text-xs">
+                +{formatCurrency(winRateBonus)}
+              </div>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-slate-950/50 rounded-lg border border-slate-800">
+              <div className="text-slate-400 text-[10px] font-bold uppercase">
+                Multiplicador K/D ({stats.totalKD.toFixed(2)})
+              </div>
+              <div
+                className={`font-mono font-bold text-[10px] uppercase ${kdColor}`}
+              >
+                {kdLabel}
+              </div>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-slate-950/50 rounded-lg border border-slate-800">
+              <div className="text-slate-400 text-[10px] font-bold uppercase">
+                Frequência ({stats.totalMatches} jogos)
+              </div>
+              <div
+                className={`font-mono font-bold text-[10px] uppercase ${matchColor}`}
+              >
+                {matchLabel}
+              </div>
+            </div>
+            {devMult < 1 && (
+              <div className="flex justify-between items-center p-3 bg-slate-950/50 rounded-lg border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.05)]">
+                <div className="text-red-400 text-[10px] font-bold uppercase flex items-center gap-1">
+                  <Activity size={10} /> Soft Reset Aplicado
+                </div>
+                <div
+                  className={`font-mono font-bold text-[10px] uppercase ${devColor}`}
+                >
+                  {devLabel}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const RankingTable = ({
+  data,
+  title,
+  isGlobal = false,
+  onPlayerClick,
+  backend,
+}) => {
   const [selectedBreakdown, setSelectedBreakdown] = useState(null);
+  const [selectedPricing, setSelectedPricing] = useState(null);
   return (
     <>
       <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-full ring-1 ring-white/5">
@@ -3003,6 +3172,18 @@ const RankingTable = ({ data, title, isGlobal = false, onPlayerClick }) => {
                           >
                             <Info size={14} />
                           </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPricing(player);
+                            }}
+                            className="text-slate-600 hover:text-green-400 transition-colors p-1 rounded hover:bg-slate-800 ml-1"
+                            title="Ver Relatório de Precificação"
+                          >
+                            <DollarSign size={14} />
+                          </button>
+
                           {player.isPaused && (
                             <span className="text-[9px] ml-1 text-amber-500 font-normal uppercase border border-amber-500/50 px-1.5 py-0.5 rounded bg-amber-900/20">
                               Pausado
@@ -3045,6 +3226,13 @@ const RankingTable = ({ data, title, isGlobal = false, onPlayerClick }) => {
         <PointsDetailsModal
           player={selectedBreakdown}
           onClose={() => setSelectedBreakdown(null)}
+        />
+      )}
+      {selectedPricing && (
+        <PricingDetailsModal
+          player={selectedPricing}
+          backend={backend}
+          onClose={() => setSelectedPricing(null)}
         />
       )}
     </>
@@ -9690,6 +9878,7 @@ const App = () => {
                       title="Ranking Geral Histórico"
                       isGlobal
                       onPlayerClick={goToProfile}
+                      backend={backend}
                     />
                   </div>
                   <div className="space-y-8">
