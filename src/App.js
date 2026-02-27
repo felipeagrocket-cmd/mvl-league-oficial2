@@ -1998,6 +1998,14 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
   // Puxa as informações de XP do motor que criamos
   const levelData = LevelEngine.getLevelData(player.xp || 0);
 
+  // GATILHO DA DOPAMINA: Faz a barra começar em 0 e encher sozinha com suspense
+  const [barWidth, setBarWidth] = useState(0);
+  useEffect(() => {
+    // Dá um delay de 300 milissegundos para a tela aparecer antes da barra disparar
+    const timer = setTimeout(() => setBarWidth(levelData.progressPercent), 300);
+    return () => clearTimeout(timer);
+  }, [levelData.progressPercent]);
+
   return (
     <div className="animate-fadeIn pb-12">
       <button
@@ -2220,14 +2228,17 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                     </div>
                   </div>
 
-                  {/* A Barra de XP (CSS Nativo e Tailwind) */}
-                  <div className="w-full h-5 bg-slate-900 rounded-full border border-slate-800 overflow-hidden relative shadow-inner">
+                  {/* A Barra Animada (Dopamina Pura) */}
+                  <div className="w-full h-7 bg-slate-950/80 rounded-full border border-slate-800 overflow-hidden relative shadow-inner p-[2px]">
                     <div
-                      className="h-full bg-gradient-to-r from-amber-600 via-amber-400 to-yellow-300 relative shadow-[0_0_15px_rgba(251,191,36,0.6)] transition-all duration-1000 ease-out"
-                      style={{ width: `${levelData.progressPercent}%` }}
+                      className="h-full bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-300 rounded-full relative transition-all duration-[2000ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] shadow-[0_0_20px_rgba(251,191,36,0.8)]"
+                      style={{ width: `${barWidth}%` }}
                     >
-                      {/* Brilho "foguinho" na ponta da barra rodando */}
-                      <div className="absolute top-0 right-0 bottom-0 w-20 bg-gradient-to-l from-white/60 to-transparent animate-pulse" />
+                      {/* Reflexo superior para dar aspecto de vidro/líquido 3D */}
+                      <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent rounded-t-full" />
+
+                      {/* O Núcleo do Fogo na ponta da barra piscando forte */}
+                      <div className="absolute top-0 right-0 bottom-0 w-16 bg-gradient-to-l from-white/90 to-transparent rounded-r-full animate-pulse blur-[1px]" />
                     </div>
                   </div>
 
@@ -7172,15 +7183,25 @@ const AdminPanel = ({
                           // O Motor Retroativo
                           for (const player of data.players) {
                             let totalXp = 0;
-                            const playerStats = data.stats.filter(s => s.playerId === player.id);
+                            const playerStats = data.stats.filter(
+                              (s) => s.playerId === player.id
+                            );
 
                             for (const stat of playerStats) {
-                              const match = data.matches.find(m => m.id === stat.matchId);
+                              const match = data.matches.find(
+                                (m) => m.id === stat.matchId
+                              );
                               if (match) {
-                                const split = data.splits.find(sp => sp.id === match.splitId);
+                                const split = data.splits.find(
+                                  (sp) => sp.id === match.splitId
+                                );
                                 // Conta XP apenas se o campeonato antigo era formato MIX
                                 if (split && split.format === "mix") {
-                                  const xpResult = LevelEngine.calculateMatchXP(stat.mapWin, stat.kills, stat.deaths);
+                                  const xpResult = LevelEngine.calculateMatchXP(
+                                    stat.mapWin,
+                                    stat.kills,
+                                    stat.deaths
+                                  );
                                   totalXp += xpResult.xpChange;
                                 }
                               }
@@ -7190,11 +7211,16 @@ const AdminPanel = ({
                             totalXp = Math.max(0, totalXp);
 
                             // Injeta o XP recalculado no banco de dados do jogador
-                            await updateDoc(doc(firebaseDb, "players", player.id), { 
-                              xp: totalXp 
-                            });
+                            await updateDoc(
+                              doc(firebaseDb, "players", player.id),
+                              {
+                                xp: totalXp,
+                              }
+                            );
                           }
-                          triggerFeedback("⚡ XP Retroativo processado para todos!");
+                          triggerFeedback(
+                            "⚡ XP Retroativo processado para todos!"
+                          );
                         }
                       }}
                       className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-[10px] font-bold uppercase px-4 py-2 rounded-lg transition-colors border border-amber-500/30 shadow-sm flex items-center gap-2"
