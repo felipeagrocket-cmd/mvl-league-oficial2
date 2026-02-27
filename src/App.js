@@ -9609,11 +9609,11 @@ const App = () => {
         // 1. Passa os dados do jogador pela nossa engrenagem GC Killer
         const xpResult = LevelEngine.calculateMatchXP(s.mapWin, s.kills, s.deaths);
         
-        // 2. Calcula o novo saldo de XP (garantindo que não fique negativo)
+        // 2. Calcula o novo saldo de XP
         const currentXp = player.xp || 0;
         const newXp = Math.max(0, currentXp + xpResult.xpChange);
 
-        // 3. Salva no banco de dados o XP total e deixa o "extrato" salvo para mostrarmos na UI depois
+        // 3. Salva no banco de dados o XP total e o extrato
         await updateDoc(doc(firebaseDb, "players", player.id), {
           xp: newXp,
           lastXpChange: xpResult.xpChange,
@@ -9623,15 +9623,13 @@ const App = () => {
     }
   }
   // --- FIM DO MOTOR DE XP ---
-
 }
-// --- FIM DO MOTOR FINANCEIRO E DE XP ---
-    } catch (e) {
-      console.error(e);
-    }
-  };
+} catch (e) {
+console.error(e);
+}
+};
 
-  const deleteMatch = async (id) => {
+const deleteMatch = async (id) => {
     try {
       // 1. Deleta a partida
       await deleteDoc(doc(firebaseDb, "matches", id));
