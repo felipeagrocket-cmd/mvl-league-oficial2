@@ -2222,7 +2222,7 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
 
                   {/* A Barra de XP (CSS Nativo e Tailwind) */}
                   <div className="w-full h-5 bg-slate-900 rounded-full border border-slate-800 overflow-hidden relative shadow-inner">
-                    <div 
+                    <div
                       className="h-full bg-gradient-to-r from-amber-600 via-amber-400 to-yellow-300 relative shadow-[0_0_15px_rgba(251,191,36,0.6)] transition-all duration-1000 ease-out"
                       style={{ width: `${levelData.progressPercent}%` }}
                     >
@@ -7161,28 +7161,70 @@ const AdminPanel = ({
                   <h3 className="text-xl font-black text-white tracking-tight">
                     Gerenciar Jogadores
                   </h3>
-                  <button
-                    onClick={async () => {
-                      if (
-                        window.confirm(
-                          "Deseja trocar todos os avatares antigos pela nova imagem padrão?"
-                        )
-                      ) {
-                        const antigos = data.players.filter((p) =>
-                          p.avatarUrl.includes("dicebear")
-                        );
-                        for (const p of antigos) {
-                          await onUpdatePlayer(p.id, {
-                            avatarUrl: "https://i.imgur.com/KE2qIR5.png",
-                          });
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={async () => {
+                        if (
+                          window.confirm(
+                            "Deseja calcular o XP retroativo de todos os jogadores com base nos Mixes antigos?"
+                          )
+                        ) {
+                          // O Motor Retroativo
+                          for (const player of data.players) {
+                            let totalXp = 0;
+                            const playerStats = data.stats.filter(s => s.playerId === player.id);
+
+                            for (const stat of playerStats) {
+                              const match = data.matches.find(m => m.id === stat.matchId);
+                              if (match) {
+                                const split = data.splits.find(sp => sp.id === match.splitId);
+                                // Conta XP apenas se o campeonato antigo era formato MIX
+                                if (split && split.format === "mix") {
+                                  const xpResult = LevelEngine.calculateMatchXP(stat.mapWin, stat.kills, stat.deaths);
+                                  totalXp += xpResult.xpChange;
+                                }
+                              }
+                            }
+
+                            // Evita que alguém fique com XP negativo
+                            totalXp = Math.max(0, totalXp);
+
+                            // Injeta o XP recalculado no banco de dados do jogador
+                            await updateDoc(doc(firebaseDb, "players", player.id), { 
+                              xp: totalXp 
+                            });
+                          }
+                          triggerFeedback("⚡ XP Retroativo processado para todos!");
                         }
-                        triggerFeedback("Avatares antigos atualizados!");
-                      }
-                    }}
-                    className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold uppercase px-4 py-2 rounded-lg transition-colors border border-slate-700 shadow-sm"
-                  >
-                    Trocar Avatares Antigos
-                  </button>
+                      }}
+                      className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-[10px] font-bold uppercase px-4 py-2 rounded-lg transition-colors border border-amber-500/30 shadow-sm flex items-center gap-2"
+                    >
+                      <Zap size={14} /> Sincronizar XP Antigo
+                    </button>
+
+                    <button
+                      onClick={async () => {
+                        if (
+                          window.confirm(
+                            "Deseja trocar todos os avatares antigos pela nova imagem padrão?"
+                          )
+                        ) {
+                          const antigos = data.players.filter((p) =>
+                            p.avatarUrl.includes("dicebear")
+                          );
+                          for (const p of antigos) {
+                            await onUpdatePlayer(p.id, {
+                              avatarUrl: "https://i.imgur.com/KE2qIR5.png",
+                            });
+                          }
+                          triggerFeedback("Avatares antigos atualizados!");
+                        }
+                      }}
+                      className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold uppercase px-4 py-2 rounded-lg transition-colors border border-slate-700 shadow-sm"
+                    >
+                      Trocar Avatares Antigos
+                    </button>
+                  </div>
                 </div>
                 <div
                   className={`bg-slate-950 p-8 rounded-2xl border mb-10 transition-colors ${
