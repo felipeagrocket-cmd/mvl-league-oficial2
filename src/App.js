@@ -661,6 +661,7 @@ class BackendController {
         marketValue: p.marketValue,
         pointsBreakdown: { kills: 0, kdBonus: 0, mapWins: 0, md3Wins: 0 },
         inventory: p.inventory,
+        xp: p.xp || 0,
       };
     });
     this.db.stats
@@ -704,6 +705,7 @@ class BackendController {
         marketValue: p.marketValue,
         inventory: p.inventory,
         pointsBreakdown: { kills: 0, kdBonus: 0, mapWins: 0, md3Wins: 0 }, // A fatura criada!
+        xp: p.xp || 0,
       };
     });
     this.db.stats.forEach((s) => {
@@ -1803,6 +1805,7 @@ const MatchDetailsModal = ({ matchId, data, onClose, highlightPlayerId }) => {
         clanTag: clan?.tag,
         kd: s.deaths === 0 ? s.kills : Number((s.kills / s.deaths).toFixed(2)),
         inventory: p?.inventory,
+        xp: p?.xp || 0,
       };
     });
   const mvp = [...stats].sort((a, b) => b.kills - a.kills || b.kd - a.kd)[0]
@@ -1869,10 +1872,34 @@ const MatchDetailsModal = ({ matchId, data, onClose, highlightPlayerId }) => {
                     }`}
                   >
                     {p.clanTag && (
-                      <span className="text-amber-500 font-mono text-[10px]">
+                      <span className="text-amber-500 font-mono text-[10px] shrink-0">
                         [{p.clanTag}]
                       </span>
                     )}
+
+                    {/* ESCUDO DE LEVEL NO HISTÓRICO DE PARTIDAS */}
+                    <div
+                      className="relative flex items-center justify-center w-5 h-6 shrink-0"
+                      title={`Level ${
+                        LevelEngine.getLevelData(p.xp || 0).level
+                      }`}
+                    >
+                      <Shield
+                        className="absolute text-slate-950 drop-shadow-md"
+                        size={18}
+                        fill="currentColor"
+                        strokeWidth={1}
+                      />
+                      <Shield
+                        className="absolute text-amber-500/60"
+                        size={18}
+                        strokeWidth={1.5}
+                      />
+                      <span className="relative z-10 text-[8px] font-black text-amber-400 leading-none mt-px">
+                        {LevelEngine.getLevelData(p.xp || 0).level}
+                      </span>
+                    </div>
+
                     {checkCosmetics(p).isPremium && (
                       <Crown size={10} className="text-amber-400 shrink-0" />
                     )}
@@ -3406,6 +3433,30 @@ const RankingTable = ({
                                 className="text-amber-400 shrink-0"
                               />
                             )}
+
+                            {/* ESCUDO DE LEVEL NO RANKING */}
+                            <div
+                              className="relative flex items-center justify-center w-5 h-6 shrink-0"
+                              title={`Level ${
+                                LevelEngine.getLevelData(player.xp || 0).level
+                              }`}
+                            >
+                              <Shield
+                                className="absolute text-slate-950 drop-shadow-md"
+                                size={20}
+                                fill="currentColor"
+                                strokeWidth={1}
+                              />
+                              <Shield
+                                className="absolute text-amber-500/60"
+                                size={20}
+                                strokeWidth={1.5}
+                              />
+                              <span className="relative z-10 text-[8px] font-black text-amber-400 leading-none mt-px">
+                                {LevelEngine.getLevelData(player.xp || 0).level}
+                              </span>
+                            </div>
+
                             <span className="truncate">{player.nickname}</span>
                           </span>
                           <button
