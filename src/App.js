@@ -1994,7 +1994,7 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
     player.releaseClauseMultiplier
   );
   const cosmetics = checkCosmetics(player);
-  
+
   // Puxa as informações de XP do motor que criamos
   const levelData = LevelEngine.getLevelData(player.xp || 0);
 
@@ -2165,20 +2165,33 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
               </div>
             </div>
 
-{/* --- MOTOR DE VÍCIO: CARD DE LEVEL E XP (DOPAMINA) --- */}
-<div className="mt-10 mb-8 bg-slate-950/80 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+            {/* --- MOTOR DE VÍCIO: CARD DE LEVEL E XP (DOPAMINA) --- */}
+            <div className="mt-10 mb-8 bg-slate-950/80 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
               {/* Brilho de fundo do card */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-full bg-amber-500/5 blur-[80px] pointer-events-none"></div>
-              
+
               <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-10">
                 {/* Escudo Gigante do Nível */}
                 <div className="flex flex-col items-center justify-center shrink-0 group">
                   <div className="relative flex items-center justify-center w-28 h-32 group-hover:scale-110 transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
-                    <Shield className="absolute text-slate-900 drop-shadow-[0_0_25px_rgba(251,191,36,0.4)]" size={130} fill="currentColor" strokeWidth={1} />
-                    <Shield className="absolute text-amber-500/20" size={130} strokeWidth={2} />
+                    <Shield
+                      className="absolute text-slate-900 drop-shadow-[0_0_25px_rgba(251,191,36,0.4)]"
+                      size={130}
+                      fill="currentColor"
+                      strokeWidth={1}
+                    />
+                    <Shield
+                      className="absolute text-amber-500/20"
+                      size={130}
+                      strokeWidth={2}
+                    />
                     <div className="relative z-10 flex flex-col items-center mt-2">
-                      <span className="text-[10px] uppercase font-black text-amber-500 tracking-[0.3em] drop-shadow-md">Level</span>
-                      <span className="text-5xl font-black text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] leading-none mt-1">{levelData.level}</span>
+                      <span className="text-[10px] uppercase font-black text-amber-500 tracking-[0.3em] drop-shadow-md">
+                        Level
+                      </span>
+                      <span className="text-5xl font-black text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] leading-none mt-1">
+                        {levelData.level}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -2188,39 +2201,48 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                   <div className="flex justify-between items-end mb-3">
                     <div>
                       <h4 className="text-white font-black text-xl uppercase tracking-tight flex items-center gap-2">
-                        <Zap className="text-amber-400" size={20} /> Progresso de Liga
+                        <Zap className="text-amber-400" size={20} /> Progresso
+                        de Liga
                       </h4>
-                      <p className="text-slate-500 text-xs mt-0.5">Jogue partidas oficiais no formato MIX para evoluir de Nível.</p>
+                      <p className="text-slate-500 text-xs mt-0.5">
+                        Jogue partidas oficiais no formato MIX para evoluir de
+                        Nível.
+                      </p>
                     </div>
                     <div className="text-right hidden sm:block">
-                      <span className="text-amber-400 font-mono font-black text-2xl">{levelData.currentXp}</span>
-                      <span className="text-slate-500 text-xs font-bold uppercase tracking-wider"> / {levelData.nextLevelXp} XP</span>
+                      <span className="text-amber-400 font-mono font-black text-2xl">
+                        {levelData.currentXp}
+                      </span>
+                      <span className="text-slate-500 text-xs font-bold uppercase tracking-wider">
+                        {" "}
+                        / {levelData.nextLevelXp} XP
+                      </span>
                     </div>
                   </div>
 
-                  {/* A Barra Animada (Framer Motion) */}
+                  {/* A Barra de XP (CSS Nativo e Tailwind) */}
                   <div className="w-full h-5 bg-slate-900 rounded-full border border-slate-800 overflow-hidden relative shadow-inner">
-                    <motion.div 
-                      className="h-full bg-gradient-to-r from-amber-600 via-amber-400 to-yellow-300 relative shadow-[0_0_15px_rgba(251,191,36,0.6)]"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${levelData.progressPercent}%` }}
-                      transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
+                    <div 
+                      className="h-full bg-gradient-to-r from-amber-600 via-amber-400 to-yellow-300 relative shadow-[0_0_15px_rgba(251,191,36,0.6)] transition-all duration-1000 ease-out"
+                      style={{ width: `${levelData.progressPercent}%` }}
                     >
                       {/* Brilho "foguinho" na ponta da barra rodando */}
-                      <motion.div 
-                        className="absolute top-0 right-0 bottom-0 w-20 bg-gradient-to-l from-white/60 to-transparent"
-                        animate={{ opacity: [0.3, 1, 0.3] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      />
-                    </motion.div>
+                      <div className="absolute top-0 right-0 bottom-0 w-20 bg-gradient-to-l from-white/60 to-transparent animate-pulse" />
+                    </div>
                   </div>
-                  
+
                   {/* Status Abaixo da Barra */}
                   <div className="flex justify-between items-center mt-2">
-                    <span className="sm:hidden text-amber-400 font-mono font-black text-sm">{levelData.currentXp} / {levelData.nextLevelXp} XP</span>
+                    <span className="sm:hidden text-amber-400 font-mono font-black text-sm">
+                      {levelData.currentXp} / {levelData.nextLevelXp} XP
+                    </span>
                     {!levelData.isMaxLevel ? (
                       <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-auto">
-                        Faltam <span className="text-amber-400">{levelData.nextLevelXp - levelData.currentXp} XP</span> para o Nível {levelData.level + 1}
+                        Faltam{" "}
+                        <span className="text-amber-400">
+                          {levelData.nextLevelXp - levelData.currentXp} XP
+                        </span>{" "}
+                        para o Nível {levelData.level + 1}
                       </div>
                     ) : (
                       <div className="text-[10px] text-amber-400 font-black uppercase tracking-widest ml-auto animate-pulse">
@@ -2235,20 +2257,45 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
               {player.lastXpBreakdown && player.lastXpBreakdown.length > 0 && (
                 <div className="mt-8 pt-6 border-t border-slate-800/80">
                   <h5 className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-4 flex items-center gap-2">
-                    <Activity size={14} className="text-emerald-400" /> Rendimento do Último Jogo
+                    <Activity size={14} className="text-emerald-400" />{" "}
+                    Rendimento do Último Jogo
                   </h5>
                   <div className="flex flex-wrap gap-3 items-center">
                     {player.lastXpBreakdown.map((item, idx) => (
-                      <div key={idx} className="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm">
-                        <span className="text-xs font-bold text-slate-300">{item.reason}</span>
-                        <span className={`text-xs font-mono font-black ${item.amount > 0 ? "text-emerald-400" : "text-red-400"}`}>
+                      <div
+                        key={idx}
+                        className="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm"
+                      >
+                        <span className="text-xs font-bold text-slate-300">
+                          {item.reason}
+                        </span>
+                        <span
+                          className={`text-xs font-mono font-black ${
+                            item.amount > 0
+                              ? "text-emerald-400"
+                              : "text-red-400"
+                          }`}
+                        >
                           {item.amount > 0 ? `+${item.amount}` : item.amount} XP
                         </span>
                       </div>
                     ))}
-                    <div className={`ml-auto px-5 py-2 rounded-xl font-black text-xs uppercase border flex items-center gap-2 shadow-lg ${player.lastXpChange > 0 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" : "bg-red-500/10 text-red-400 border-red-500/30"}`}>
-                      {player.lastXpChange > 0 ? "Saldo Final" : "Saldo Negativo"}
-                      <span className="text-sm">{player.lastXpChange > 0 ? `+${player.lastXpChange}` : player.lastXpChange} XP</span>
+                    <div
+                      className={`ml-auto px-5 py-2 rounded-xl font-black text-xs uppercase border flex items-center gap-2 shadow-lg ${
+                        player.lastXpChange > 0
+                          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                          : "bg-red-500/10 text-red-400 border-red-500/30"
+                      }`}
+                    >
+                      {player.lastXpChange > 0
+                        ? "Saldo Final"
+                        : "Saldo Negativo"}
+                      <span className="text-sm">
+                        {player.lastXpChange > 0
+                          ? `+${player.lastXpChange}`
+                          : player.lastXpChange}{" "}
+                        XP
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -9605,8 +9652,12 @@ const App = () => {
           const player = db.players.find((p) => p.id === s.playerId);
           if (player) {
             // 1. Passa os dados do jogador pela nossa engrenagem GC Killer
-            const xpResult = LevelEngine.calculateMatchXP(s.mapWin, s.kills, s.deaths);
-            
+            const xpResult = LevelEngine.calculateMatchXP(
+              s.mapWin,
+              s.kills,
+              s.deaths
+            );
+
             // 2. Calcula o novo saldo de XP
             const currentXp = player.xp || 0;
             const newXp = Math.max(0, currentXp + xpResult.xpChange);
@@ -9615,19 +9666,18 @@ const App = () => {
             await updateDoc(doc(firebaseDb, "players", player.id), {
               xp: newXp,
               lastXpChange: xpResult.xpChange,
-              lastXpBreakdown: xpResult.breakdown
+              lastXpBreakdown: xpResult.breakdown,
             });
           }
         }
       }
       // --- FIM DO MOTOR DE XP ---
-
     } catch (e) {
       console.error("Erro ao salvar partida:", e);
     }
   };
 
-const deleteMatch = async (id) => {
+  const deleteMatch = async (id) => {
     try {
       // 1. Deleta a partida
       await deleteDoc(doc(firebaseDb, "matches", id));
