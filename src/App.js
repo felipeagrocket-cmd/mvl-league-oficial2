@@ -9513,10 +9513,11 @@ const App = () => {
         await setDoc(doc(firebaseDb, "stats", sid), { ...s, id: sid, matchId });
       }
 
-      // --- NOVO: MOTOR FINANCEIRO AUTOMATIZADO ---
-      // Só processa finanças se for uma partida NOVA (se não tiver "id" de edição)
+      // Descobre os dados do Split para usar no XP e no Financeiro
+      const split = db.splits.find((s) => s.id === info.splitId);
+
+      // --- MOTOR FINANCEIRO (SÓ SE FOR NOVA PARTIDA) ---
       if (!id) {
-        const split = db.splits.find((s) => s.id === info.splitId);
         const isCxC = split?.format === "cxc";
 
         const clanChanges = {};
@@ -9551,12 +9552,10 @@ const App = () => {
             if (player) {
               const salary = (player.marketValue || 10000000) * 0.005; // 0.5% do passe
 
-              // Adiciona na conta pessoal do jogador
               await updateDoc(doc(firebaseDb, "players", player.id), {
                 totalEarnings: (player.totalEarnings || 0) + salary,
               });
 
-              // Debita da conta do Clã
               if (player.clanId) {
                 initClanChange(player.clanId);
                 clanChanges[player.clanId].totalChange -= salary;
@@ -9597,37 +9596,36 @@ const App = () => {
           }
         }
       }
-    }
-  }
+      // --- FIM DO MOTOR FINANCEIRO ---
 
-  // --- NOVO: MOTOR DE XP PARA FORMATO MIX (A FASE 2) ---
-  const isMix = split?.format === "mix";
-  if (isMix) {
-    for (const s of stats) {
-      const player = db.players.find((p) => p.id === s.playerId);
-      if (player) {
-        // 1. Passa os dados do jogador pela nossa engrenagem GC Killer
-        const xpResult = LevelEngine.calculateMatchXP(s.mapWin, s.kills, s.deaths);
-        
-        // 2. Calcula o novo saldo de XP
-        const currentXp = player.xp || 0;
-        const newXp = Math.max(0, currentXp + xpResult.xpChange);
+      // --- NOVO: MOTOR DE XP PARA FORMATO MIX (A FASE 2) ---
+      const isMix = split?.format === "mix";
+      if (isMix) {
+        for (const s of stats) {
+          const player = db.players.find((p) => p.id === s.playerId);
+          if (player) {
+            // 1. Passa os dados do jogador pela nossa engrenagem GC Killer
+            const xpResult = LevelEngine.calculateMatchXP(s.mapWin, s.kills, s.deaths);
+            
+            // 2. Calcula o novo saldo de XP
+            const currentXp = player.xp || 0;
+            const newXp = Math.max(0, currentXp + xpResult.xpChange);
 
-        // 3. Salva no banco de dados o XP total e o extrato
-        await updateDoc(doc(firebaseDb, "players", player.id), {
-          xp: newXp,
-          lastXpChange: xpResult.xpChange,
-          lastXpBreakdown: xpResult.breakdown
-        });
+            // 3. Salva no banco de dados o XP total e o extrato
+            await updateDoc(doc(firebaseDb, "players", player.id), {
+              xp: newXp,
+              lastXpChange: xpResult.xpChange,
+              lastXpBreakdown: xpResult.breakdown
+            });
+          }
+        }
       }
+      // --- FIM DO MOTOR DE XP ---
+
+    } catch (e) {
+      console.error("Erro ao salvar partida:", e);
     }
-  }
-  // --- FIM DO MOTOR DE XP ---
-}
-} catch (e) {
-console.error(e);
-}
-};
+  };
 
 const deleteMatch = async (id) => {
     try {
