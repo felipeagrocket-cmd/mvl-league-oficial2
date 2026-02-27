@@ -1798,6 +1798,13 @@ const MatchDetailsModal = ({ matchId, data, onClose, highlightPlayerId }) => {
     .map((s) => {
       const p = data.players.find((pl) => pl.id === s.playerId);
       const clan = data.clans.find((c) => c.id === p?.clanId);
+
+      // Calcula o XP exato ganho nesta partida se for campeonato MIX
+      const matchXpChange =
+        split?.format === "mix"
+          ? LevelEngine.calculateMatchXP(s.mapWin, s.kills, s.deaths).xpChange
+          : null;
+
       return {
         ...s,
         nickname: p?.nickname || "Unknown",
@@ -1806,6 +1813,7 @@ const MatchDetailsModal = ({ matchId, data, onClose, highlightPlayerId }) => {
         kd: s.deaths === 0 ? s.kills : Number((s.kills / s.deaths).toFixed(2)),
         inventory: p?.inventory,
         xp: p?.xp || 0,
+        matchXpChange,
       };
     });
   const mvp = [...stats].sort((a, b) => b.kills - a.kills || b.kd - a.kd)[0]
@@ -1842,6 +1850,8 @@ const MatchDetailsModal = ({ matchId, data, onClose, highlightPlayerId }) => {
             <th className="p-3 text-center">K</th>
             <th className="p-3 text-center">D</th>
             <th className="p-3 text-center">KD</th>
+            {/* Coluna de XP (Só aparece em MIX) */}
+            {split?.format === "mix" && <th className="p-3 text-right">XP</th>}
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-800/50">
@@ -1920,6 +1930,23 @@ const MatchDetailsModal = ({ matchId, data, onClose, highlightPlayerId }) => {
               >
                 {p.kd.toFixed(2)}
               </td>
+              {/* Celula do XP (Exibe verde ou vermelho) */}
+              {split?.format === "mix" && (
+                <td className="p-3 text-right">
+                  <span
+                    className={`inline-block px-2 py-1 rounded text-[10px] font-black font-mono tracking-wider border ${
+                      p.matchXpChange > 0
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_8px_rgba(52,211,153,0.1)]"
+                        : "bg-red-500/10 text-red-400 border-red-500/20"
+                    }`}
+                  >
+                    {p.matchXpChange > 0
+                      ? `+${p.matchXpChange}`
+                      : p.matchXpChange}{" "}
+                    XP
+                  </span>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
