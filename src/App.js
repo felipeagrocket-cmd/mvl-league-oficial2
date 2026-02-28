@@ -9960,87 +9960,78 @@ const App = () => {
               {db.settings.siteName || "MVL"}
             </span>
           </div>
-          <div className="flex items-center gap-6 overflow-x-auto scrollbar-hide py-2">
+          {/* MENU DE NAVEGAÇÃO ORGANIZADO E PROFISSIONAL */}
+          <div className="flex items-center gap-1 sm:gap-4 py-2">
+            
+            {/* BOTÃO: INÍCIO */}
             <button
               onClick={() => setView("home")}
-              className={`flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 hover:scale-105 shrink-0 ${
+              className={`flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 px-3 py-2 rounded-lg shrink-0 ${
                 view === "home"
-                  ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]"
-                  : "text-slate-400 hover:text-white"
+                  ? "text-amber-400 bg-amber-400/10 shadow-[0_0_10px_rgba(251,191,36,0.1)]"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/50"
               }`}
             >
               <Home size={14} className="hidden sm:block" /> Início
             </button>
-            <button
-              onClick={() => setView("teams")}
-              className={`flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 hover:scale-105 shrink-0 ${
-                view === "teams"
-                  ? "text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <Shield size={14} className="hidden sm:block" /> Equipes
-            </button>
-            <button
-              onClick={() => setView("players")}
-              className={`flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 hover:scale-105 shrink-0 ${
-                view === "players"
-                  ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <Users size={14} className="hidden sm:block" /> Atletas
-            </button>
-            <button
-              onClick={() => setView("playoffs")}
-              className={`flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 hover:scale-105 shrink-0 ${
-                view === "playoffs"
-                  ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <Layers size={14} className="hidden sm:block" /> Playoffs
-            </button>
-            <button
-              onClick={() => setView("market")}
-              className={`flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 hover:scale-105 shrink-0 ${
-                view === "market"
-                  ? "text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <Briefcase size={14} className="hidden sm:block" /> Mercado
-            </button>
-            <button
-              onClick={() => setView("store")}
-              className={`flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 hover:scale-105 shrink-0 ${
-                view === "store"
-                  ? "text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <ShoppingCart size={14} className="hidden sm:block" /> Loja VIP
-            </button>
-            <button
-              onClick={() => setView("ranking")}
-              className={`flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 hover:scale-105 shrink-0 ${
-                view === "ranking"
-                  ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <TrendingUp size={14} className="hidden sm:block" /> Ranking
-            </button>
-            <button
-              onClick={() => setView("matches")}
-              className={`flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 hover:scale-105 shrink-0 ${
-                view === "matches"
-                  ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <HistoryIcon size={14} className="hidden sm:block" /> Partidas
-            </button>
+
+            {/* GRUPO 1: A LIGA */}
+            <div className="relative group">
+              <button className={`flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 px-3 py-2 rounded-lg shrink-0 ${["teams", "players"].includes(view) ? "text-amber-400 bg-amber-400/10 shadow-[0_0_10px_rgba(251,191,36,0.1)]" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}`}>
+                <Shield size={14} className="hidden md:block" /> A Liga
+              </button>
+              {/* Dropdown A Liga */}
+              <div className="absolute top-full left-0 sm:left-1/2 sm:-translate-x-1/2 pt-2 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 z-50">
+                <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 flex flex-col gap-1 w-40">
+                  <button onClick={() => setView("teams")} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest w-full text-left transition-colors ${view === "teams" ? "bg-slate-800 text-blue-400" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}`}>
+                    <Shield size={14} className={view === "teams" ? "text-blue-400" : ""} /> Equipes
+                  </button>
+                  <button onClick={() => setView("players")} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest w-full text-left transition-colors ${view === "players" ? "bg-slate-800 text-amber-400" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}`}>
+                    <Users size={14} className={view === "players" ? "text-amber-400" : ""} /> Atletas
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* GRUPO 2: COMPETIÇÃO */}
+            <div className="relative group">
+              <button className={`flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 px-3 py-2 rounded-lg shrink-0 ${["ranking", "matches", "playoffs"].includes(view) ? "text-amber-400 bg-amber-400/10 shadow-[0_0_10px_rgba(251,191,36,0.1)]" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}`}>
+                <Trophy size={14} className="hidden md:block" /> Competição
+              </button>
+              {/* Dropdown Competição */}
+              <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 z-50">
+                <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 flex flex-col gap-1 w-44">
+                  <button onClick={() => setView("ranking")} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest w-full text-left transition-colors ${view === "ranking" ? "bg-slate-800 text-amber-400" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}`}>
+                    <TrendingUp size={14} className={view === "ranking" ? "text-amber-400" : ""} /> Ranking
+                  </button>
+                  <button onClick={() => setView("matches")} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest w-full text-left transition-colors ${view === "matches" ? "bg-slate-800 text-amber-400" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}`}>
+                    <HistoryIcon size={14} className={view === "matches" ? "text-amber-400" : ""} /> Partidas
+                  </button>
+                  <button onClick={() => setView("playoffs")} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest w-full text-left transition-colors ${view === "playoffs" ? "bg-slate-800 text-amber-400" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}`}>
+                    <Layers size={14} className={view === "playoffs" ? "text-amber-400" : ""} /> Playoffs
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* GRUPO 3: ECONOMIA */}
+            <div className="relative group">
+              <button className={`flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 px-3 py-2 rounded-lg shrink-0 ${["market", "store"].includes(view) ? "text-amber-400 bg-amber-400/10 shadow-[0_0_10px_rgba(251,191,36,0.1)]" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}`}>
+                <Banknote size={14} className="hidden md:block" /> Economia
+              </button>
+              {/* Dropdown Economia */}
+              <div className="absolute top-full right-0 pt-2 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 z-50">
+                <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 flex flex-col gap-1 w-48">
+                  <button onClick={() => setView("market")} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest w-full text-left transition-colors ${view === "market" ? "bg-slate-800 text-green-400" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}`}>
+                    <Briefcase size={14} className={view === "market" ? "text-green-400" : ""} /> Mercado VIP
+                  </button>
+                  <button onClick={() => setView("store")} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest w-full text-left transition-colors ${view === "store" ? "bg-slate-800 text-blue-400" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}`}>
+                    <ShoppingCart size={14} className={view === "store" ? "text-blue-400" : ""} /> Loja Oficial
+                  </button>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </nav>
