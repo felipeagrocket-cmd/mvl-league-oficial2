@@ -997,37 +997,41 @@ const LiveTicker = ({ data, backend }) => {
   return (
     <div className="w-full bg-black border-b border-slate-800 flex items-center justify-center overflow-hidden py-3 px-4 relative z-20 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
       <style>{`
-        @keyframes cyberpunk-ticker {
-          0% { opacity: 0; filter: blur(4px); }
-          10% { opacity: 1; filter: blur(0); }
-          15% { opacity: 0; }
-          20% { opacity: 1; }
-          25% { opacity: 0; }
-          30% { opacity: 1; }
-          90% { opacity: 1; filter: blur(0); }
-          100% { opacity: 0; filter: blur(4px); }
+        @keyframes slide-fade-ticker {
+          0% { opacity: 0; transform: translateY(15px); filter: blur(4px); }
+          10% { opacity: 1; transform: translateY(0); filter: blur(0); }
+          90% { opacity: 1; transform: translateY(0); filter: blur(0); }
+          100% { opacity: 0; transform: translateY(-15px); filter: blur(4px); }
         }
-        .animate-ticker-fast {
-          animation: cyberpunk-ticker 4s forwards;
+        .animate-smooth-ticker {
+          animation: slide-fade-ticker 4s ease-in-out forwards;
         }
       `}</style>
 
       {/* Brilhos de fundo do letreiro para destacar */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 via-transparent to-blue-900/10 pointer-events-none"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-transparent to-blue-900/20 pointer-events-none"></div>
 
       <div
         key={key}
-        className="flex items-center gap-2 md:gap-3 text-[10px] md:text-sm uppercase tracking-[0.2em] font-black animate-ticker-fast text-center flex-wrap justify-center"
+        className="flex items-center gap-2 md:gap-3 text-[10px] md:text-xs uppercase tracking-[0.2em] font-black animate-smooth-ticker text-center flex-wrap justify-center w-full"
       >
-        <span className="text-white drop-shadow-md">{currentStat.prefix}</span>
+        {/* Bolinha vermelha de "AO VIVO / RADAR" */}
+        <span className="relative flex h-2 w-2 md:h-2.5 md:w-2.5 mr-1 md:mr-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 md:h-2.5 md:w-2.5 bg-red-600"></span>
+        </span>
 
-        {/* O NOME EM DEGRADÊ AZUL BRILHANTE */}
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.6)] text-sm md:text-lg">
+        <span className="text-slate-300 drop-shadow-md">
+          {currentStat.prefix}
+        </span>
+
+        {/* O NOME EM DEGRADÊ AZUL BRILHANTE E MAIOR */}
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-300 drop-shadow-[0_0_12px_rgba(59,130,246,0.8)] text-sm md:text-lg mx-1">
           {currentStat.name}
         </span>
 
-        <span className="text-white drop-shadow-md">
-          • {currentStat.suffix}
+        <span className="text-amber-400 drop-shadow-md">
+          | {currentStat.suffix}
         </span>
       </div>
     </div>
