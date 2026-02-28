@@ -9405,7 +9405,7 @@ const StartHerePage = ({ data, onPlayerClick }) => {
       <div className="pt-16 pb-8 border-t border-slate-800/80 overflow-hidden relative">
         <div className="text-center mb-8">
           <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-2">
-            Quem já está na arena
+            Quem já está na MVL
           </h3>
           <p className="text-slate-500 text-xs font-medium">
             Junte-se aos jogadores que já estão construindo seus legados.
