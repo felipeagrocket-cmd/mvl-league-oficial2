@@ -2947,7 +2947,7 @@ const StorePage = ({ items, players }) => {
         {[
           { id: "all", label: "Todos os Itens" },
           { id: "ingame", label: "Itens do Jogo" },
-          { id: "cosmetic", label: "Itens MVL" },
+          { id: "cosmetic", label: "Cosméticos de Perfil" },
           { id: "premium", label: "Premium" },
         ].map((tab) => (
           <button
@@ -3026,8 +3026,16 @@ const StorePage = ({ items, players }) => {
                   {item.name}
                 </h4>
               </div>
+
+              {/* NOVA DESCRIÇÃO RENDERIZADA AQUI */}
+              {item.description && (
+                <p className="text-slate-400 text-[10px] md:text-xs leading-relaxed mb-4 line-clamp-3">
+                  {item.description}
+                </p>
+              )}
+
               <span
-                className={`text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 rounded w-fit mb-4 ${
+                className={`text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 rounded w-fit mb-4 mt-auto ${
                   item.category === "premium"
                     ? "bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-[0_0_10px_rgba(251,191,36,0.2)]"
                     : item.category === "ingame"
@@ -3039,10 +3047,10 @@ const StorePage = ({ items, players }) => {
                   ? "Item Premium"
                   : item.category === "ingame"
                   ? "Item do Jogo"
-                  : "Item MVL"}
+                  : "Cosmético"}
               </span>
 
-              <div className="mt-auto pt-4 flex items-center justify-between">
+              <div className="pt-4 flex items-center justify-between border-t border-slate-800/50">
                 <div className="text-slate-500 text-[10px] uppercase font-bold">
                   Preço
                 </div>
@@ -5902,6 +5910,7 @@ const AdminPanel = ({
   const [newStoreItemPrice, setNewStoreItemPrice] = useState("");
   const [newStoreItemStock, setNewStoreItemStock] = useState("");
   const [newStoreItemIsPremium, setNewStoreItemIsPremium] = useState(false);
+  const [newStoreItemDescription, setNewStoreItemDescription] = useState("");
   const [newSponsorName, setNewSponsorName] = useState("");
   const [newSponsorLogo, setNewSponsorLogo] = useState("");
   const [newSponsorType, setNewSponsorType] = useState("victory");
@@ -8437,6 +8446,7 @@ const AdminPanel = ({
             )}
 
             {/* --- ABA DA LOJA VIP (ADMIN) --- */}
+            {/* --- ABA DA LOJA VIP (ADMIN) --- */}
             {activeTab === "store" && (
               <div className="animate-fadeIn">
                 <h3 className="text-xl font-black text-white mb-6 border-b border-slate-800 pb-4 tracking-tight">
@@ -8477,6 +8487,7 @@ const AdminPanel = ({
                           setNewStoreItemStock("");
                           setNewStoreItemImage("");
                           setNewStoreItemIsPremium(false);
+                          setNewStoreItemDescription("");
                         }}
                         className="text-slate-400 hover:text-white flex items-center gap-1.5 text-[10px] uppercase font-bold bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors"
                       >
@@ -8491,7 +8502,7 @@ const AdminPanel = ({
                       </label>
                       <input
                         type="text"
-                        placeholder="Ex: Faca Butterfly"
+                        placeholder="Ex: Contrato Blindado MAX"
                         className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3.5 text-white text-sm outline-none focus:border-blue-400"
                         value={newStoreItemName}
                         onChange={(e) => setNewStoreItemName(e.target.value)}
@@ -8508,8 +8519,8 @@ const AdminPanel = ({
                           setNewStoreItemCategory(e.target.value)
                         }
                       >
-                        <option value="ingame">Item do Jogo</option>
-                        <option value="cosmetic">Item MVL</option>
+                        <option value="ingame">Item do Jogo (Vantagens)</option>
+                        <option value="cosmetic">Cosmético de Perfil</option>
                       </select>
                     </div>
                     <div>
@@ -8536,6 +8547,23 @@ const AdminPanel = ({
                         onChange={(e) => setNewStoreItemStock(e.target.value)}
                       />
                     </div>
+
+                    {/* NOVO CAMPO: DESCRIÇÃO */}
+                    <div className="md:col-span-2">
+                      <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2">
+                        Descrição do Item
+                      </label>
+                      <textarea
+                        placeholder="Ex: Aumenta a proteção do seu jogador. Permite ao Manager configurar a Multa Rescisória para até 60% do valor do passe..."
+                        rows={2}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3.5 text-white text-sm outline-none focus:border-blue-400 resize-none"
+                        value={newStoreItemDescription}
+                        onChange={(e) =>
+                          setNewStoreItemDescription(e.target.value)
+                        }
+                      ></textarea>
+                    </div>
+
                     <div className="md:col-span-2 bg-slate-900/50 p-5 rounded-xl border border-slate-800 border-dashed">
                       <label className="block text-slate-400 text-[10px] uppercase font-bold mb-4 tracking-wider">
                         Imagem do Item (Upload)
@@ -8604,6 +8632,7 @@ const AdminPanel = ({
                           stock: parseInt(newStoreItemStock || 99),
                           imageUrl: newStoreItemImage,
                           isPremium: newStoreItemIsPremium,
+                          description: newStoreItemDescription, // Salva no banco!
                         };
 
                         if (editingStoreItemId) {
@@ -8621,6 +8650,7 @@ const AdminPanel = ({
                         setNewStoreItemStock("");
                         setNewStoreItemImage("");
                         setNewStoreItemIsPremium(false);
+                        setNewStoreItemDescription("");
                       } else {
                         alert("Nome e Imagem são obrigatórios.");
                       }
@@ -8735,6 +8765,7 @@ const AdminPanel = ({
                             setNewStoreItemStock(item.stock);
                             setNewStoreItemImage(item.imageUrl);
                             setNewStoreItemIsPremium(item.isPremium || false);
+                            setNewStoreItemDescription(item.description || "");
                             window.scrollTo({ top: 0, behavior: "smooth" });
                           }}
                           className="text-slate-500 hover:text-blue-400 hover:bg-blue-400/10 p-2 rounded-lg transition-colors"
