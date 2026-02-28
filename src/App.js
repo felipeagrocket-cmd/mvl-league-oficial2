@@ -60,6 +60,9 @@ import {
   Package,
   Tag,
   Wallet,
+  Rocket,
+  Smartphone,
+  Star,
 } from "lucide-react";
 
 import { db as firebaseDb, auth } from "./firebase";
@@ -9187,6 +9190,290 @@ const AdminPanel = ({
 // ============================================================================
 // COMPONENTE PRINCIPAL APP E CONEXÃO DE DADOS
 // ============================================================================
+
+// --- NOVA SEÇÃO: GUIA DE INTRODUÇÃO (COMECE AQUI) ---
+const StartHerePage = ({ data, onPlayerClick }) => {
+  const [roleView, setRoleView] = useState("player"); // 'player' ou 'manager'
+
+  // Prepara a lista de jogadores para o carrossel (triplicamos para dar o efeito de scroll infinito sem quebrar)
+  const activePlayers = data.players.filter((p) => !p.isPaused);
+  const carouselPlayers = [
+    ...activePlayers,
+    ...activePlayers,
+    ...activePlayers,
+  ];
+
+  return (
+    <div className="animate-fadeIn space-y-16 pb-16">
+      {/* 1. CABEÇALHO E TOGGLE (O PRIMEIRO IMPACTO) */}
+      <div className="relative text-center max-w-4xl mx-auto space-y-6 pt-8">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-amber-500/10 blur-[100px] pointer-events-none"></div>
+        <h1 className="relative z-10 text-4xl md:text-6xl font-black text-white uppercase tracking-tight drop-shadow-lg">
+          Sua habilidade, <span className="text-amber-400">seu legado.</span>
+        </h1>
+        <p className="relative z-10 text-slate-400 text-base md:text-lg leading-relaxed max-w-2xl mx-auto font-medium">
+          Esqueça as planilhas e a desorganização. A MVL é um sistema
+          inteligente que calcula tudo sozinho. Você só precisa se preocupar em
+          jogar bem.
+        </p>
+
+        {/* O Toggle de Navegação */}
+        <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-3 mt-10 bg-slate-900/60 p-2.5 rounded-2xl border border-slate-800 w-fit mx-auto shadow-inner backdrop-blur-sm">
+          <button
+            onClick={() => setRoleView("player")}
+            className={`px-8 py-4 rounded-xl font-black uppercase tracking-widest text-xs transition-all duration-300 flex items-center gap-3 ${
+              roleView === "player"
+                ? "bg-amber-400 text-black shadow-lg shadow-amber-400/20 scale-105"
+                : "text-slate-500 hover:text-white hover:bg-slate-800"
+            }`}
+          >
+            <span className="text-lg">🎮</span> Quero fazer história
+          </button>
+          <button
+            onClick={() => setRoleView("manager")}
+            className={`px-8 py-4 rounded-xl font-black uppercase tracking-widest text-xs transition-all duration-300 flex items-center gap-3 ${
+              roleView === "manager"
+                ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20 scale-105"
+                : "text-slate-500 hover:text-white hover:bg-slate-800"
+            }`}
+          >
+            <span className="text-lg">🛡️</span> Quero montar um Clã
+          </button>
+        </div>
+      </div>
+
+      {/* 2. VISÃO DO JOGADOR */}
+      {roleView === "player" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn relative z-10">
+          <div className="bg-slate-900/80 backdrop-blur-md p-8 rounded-3xl border border-slate-800 hover:border-amber-500/40 transition-colors shadow-xl group">
+            <div className="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center mb-6 border border-amber-500/20 group-hover:scale-110 transition-transform shadow-inner">
+              <UserCheck size={28} />
+            </div>
+            <h4 className="text-white font-black text-xl mb-3 uppercase tracking-tight group-hover:text-amber-400 transition-colors">
+              Seu Nome tem Peso
+            </h4>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Assim que você entra, ganha uma página de atleta. O sistema anota
+              sozinho suas vitórias, abates e K/D. É o fim da bagunça: sua ficha
+              técnica é atualizada em tempo real após cada jogo.
+            </p>
+          </div>
+
+          <div className="bg-slate-900/80 backdrop-blur-md p-8 rounded-3xl border border-slate-800 hover:border-amber-500/40 transition-colors shadow-xl group">
+            <div className="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center mb-6 border border-amber-500/20 group-hover:scale-110 transition-transform shadow-inner">
+              <Star size={28} />
+            </div>
+            <h4 className="text-white font-black text-xl mb-3 uppercase tracking-tight group-hover:text-amber-400 transition-colors">
+              Suba de Nível (XP)
+            </h4>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Jogue e vença para ganhar Experiência (XP). Comece no Nível 1 e
+              construa sua reputação até o cobiçado Nível 21. Mostre para todos
+              quem manda no servidor.
+            </p>
+          </div>
+
+          <div className="bg-slate-900/80 backdrop-blur-md p-8 rounded-3xl border border-slate-800 hover:border-amber-500/40 transition-colors shadow-xl group">
+            <div className="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center mb-6 border border-amber-500/20 group-hover:scale-110 transition-transform shadow-inner">
+              <TrendingUp size={28} />
+            </div>
+            <h4 className="text-white font-black text-xl mb-3 uppercase tracking-tight group-hover:text-amber-400 transition-colors">
+              O Mercado da Bala
+            </h4>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Seu talento vale dinheiro virtual. Se você joga bem, seu "Passe"
+              fica mais caro. Nos campeonatos oficiais, você recebe um{" "}
+              <strong>Salário</strong> por cada partida jogada. Quanto melhor
+              sua fase, mais os Clãs vão te disputar.
+            </p>
+          </div>
+
+          <div className="bg-slate-900/80 backdrop-blur-md p-8 rounded-3xl border border-slate-800 hover:border-amber-500/40 transition-colors shadow-xl group">
+            <div className="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center mb-6 border border-amber-500/20 group-hover:scale-110 transition-transform shadow-inner">
+              <ShoppingCart size={28} />
+            </div>
+            <h4 className="text-white font-black text-xl mb-3 uppercase tracking-tight group-hover:text-amber-400 transition-colors">
+              Aproveite seus Ganhos
+            </h4>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Acumulou salário? Visite nossa Loja Oficial. Compre itens visuais,
+              destaque seu perfil e exiba o resultado do seu esforço para toda a
+              comunidade.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 3. VISÃO DO DONO DE CLÃ */}
+      {roleView === "manager" && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fadeIn relative z-10">
+          <div className="bg-slate-900/80 backdrop-blur-md p-8 rounded-3xl border border-slate-800 hover:border-blue-500/40 transition-colors shadow-xl group">
+            <div className="w-14 h-14 bg-blue-500/10 text-blue-400 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20 group-hover:scale-110 transition-transform shadow-inner">
+              <Landmark size={28} />
+            </div>
+            <h4 className="text-white font-black text-xl mb-3 uppercase tracking-tight group-hover:text-blue-400 transition-colors">
+              Controle o Caixa
+            </h4>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Todo Clã recebe um orçamento milionário para começar. Você é o
+              presidente: administre esse dinheiro para pagar o salário dos seus
+              jogadores e manter o time motivado.
+            </p>
+          </div>
+
+          <div className="bg-slate-900/80 backdrop-blur-md p-8 rounded-3xl border border-slate-800 hover:border-blue-500/40 transition-colors shadow-xl group">
+            <div className="w-14 h-14 bg-blue-500/10 text-blue-400 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20 group-hover:scale-110 transition-transform shadow-inner">
+              <FileText size={28} />
+            </div>
+            <h4 className="text-white font-black text-xl mb-3 uppercase tracking-tight group-hover:text-blue-400 transition-colors">
+              Contratos e Multas
+            </h4>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Achou um talento? Contrate! Quer proteger o seu melhor atirador da
+              concorrência? Coloque uma <strong>Multa Rescisória</strong> pesada
+              no contrato dele. Se alguém quiser levá-lo, terá que pagar caro
+              pro seu caixa.
+            </p>
+          </div>
+
+          <div className="bg-slate-900/80 backdrop-blur-md p-8 rounded-3xl border border-slate-800 hover:border-blue-500/40 transition-colors shadow-xl group">
+            <div className="w-14 h-14 bg-blue-500/10 text-blue-400 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20 group-hover:scale-110 transition-transform shadow-inner">
+              <Handshake size={28} />
+            </div>
+            <h4 className="text-white font-black text-xl mb-3 uppercase tracking-tight group-hover:text-blue-400 transition-colors">
+              Marcas e Patrocínios
+            </h4>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Clãs que vencem chamam atenção. Assine com patrocinadores virtuais
+              que pagam bônus a cada vitória. Mas cuidado: uma sequência ruim de
+              derrotas pode fazer a marca romper o contrato!
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 4. BLOCO FICA TRANQUILO (QUEBRA DE OBJEÇÕES) */}
+      <div className="bg-gradient-to-br from-slate-900 to-slate-950 p-8 md:p-12 rounded-3xl border border-slate-800 shadow-2xl relative z-10 overflow-hidden mt-12">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-[80px] pointer-events-none"></div>
+        <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-8 text-center">
+          Tudo para facilitar o seu jogo
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-white mb-4 shadow-inner">
+              <Activity size={24} />
+            </div>
+            <h5 className="text-white font-bold uppercase text-sm mb-2">
+              100% Automático
+            </h5>
+            <p className="text-slate-500 text-xs leading-relaxed">
+              Acabou a partida? Pronto. O sistema já calculou o XP, pagou o
+              salário e atualizou o ranking sozinho.
+            </p>
+          </div>
+          <div className="flex flex-col items-center text-center">
+            <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-white mb-4 shadow-inner">
+              <Zap size={24} />
+            </div>
+            <h5 className="text-white font-bold uppercase text-sm mb-2">
+              Sempre Justo
+            </h5>
+            <p className="text-slate-500 text-xs leading-relaxed">
+              Quer jogar hoje mas seu clã não está online? Entre no MIX. O
+              sistema sorteia as equipes baseadas no K/D, garantindo jogos
+              equilibrados.
+            </p>
+          </div>
+          <div className="flex flex-col items-center text-center">
+            <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-white mb-4 shadow-inner">
+              <Smartphone size={24} />
+            </div>
+            <h5 className="text-white font-bold uppercase text-sm mb-2">
+              Na Palma da Mão
+            </h5>
+            <p className="text-slate-500 text-xs leading-relaxed">
+              Sem aplicativos pesados. Acesse o mercado, veja os contratos e o
+              ranking direto do navegador do seu celular.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 5. CARROSSEL DE PROVA SOCIAL */}
+      <div className="pt-16 pb-8 border-t border-slate-800/80 overflow-hidden relative">
+        <div className="text-center mb-8">
+          <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-2">
+            Quem já está na arena
+          </h3>
+          <p className="text-slate-500 text-xs font-medium">
+            Junte-se aos jogadores que já estão construindo seus legados.
+          </p>
+        </div>
+
+        {/* Máscara de degrade nas bordas para o carrossel sumir suavemente */}
+        <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-slate-950 to-transparent z-20 pointer-events-none mt-20"></div>
+        <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-slate-950 to-transparent z-20 pointer-events-none mt-20"></div>
+
+        <style>{`
+          @keyframes scroll-infinite {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(-180px * ${
+              activePlayers.length
+            })); }
+          }
+          .animate-carousel {
+            display: flex;
+            width: calc(180px * ${carouselPlayers.length});
+            animation: scroll-infinite ${
+              activePlayers.length * 4
+            }s linear infinite;
+          }
+          .animate-carousel:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
+
+        <div className="overflow-hidden w-full relative z-10">
+          <div className="animate-carousel gap-4 px-4">
+            {carouselPlayers.map((p, idx) => (
+              <div
+                key={`${p.id}-${idx}`}
+                onClick={() => onPlayerClick(p.id)}
+                className="w-[160px] shrink-0 cursor-pointer group"
+              >
+                <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-slate-900 border border-slate-800 mb-3 shadow-md group-hover:border-slate-600 transition-colors">
+                  <img
+                    src={p.avatarUrl}
+                    alt={p.nickname}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100"
+                  />
+                </div>
+                <div className="text-center">
+                  <span className="text-white font-bold text-sm truncate block group-hover:text-amber-400 transition-colors">
+                    {p.nickname}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* CTA FINAL WHATSAPP */}
+      <div className="text-center pt-8">
+        <a
+          href="https://wa.me/?text=Quero%20jogar%20na%20MVL"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-3 bg-amber-400 hover:bg-amber-300 text-black px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm transition-transform hover:-translate-y-1 shadow-[0_10px_30px_rgba(251,191,36,0.3)]"
+        >
+          <Rocket size={20} /> Entrar pra MVL
+        </a>
+      </div>
+    </div>
+  );
+};
+
 const App = () => {
   const [db, setDb] = useState({
     players: [],
@@ -10357,6 +10644,18 @@ const App = () => {
               <Home size={14} className="hidden sm:block" /> Início
             </button>
 
+            {/* NOVO BOTÃO: COMECE AQUI */}
+            <button
+              onClick={() => setView("start")}
+              className={`flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 px-3 py-2 rounded-lg shrink-0 ${
+                view === "start"
+                  ? "text-blue-400 bg-blue-400/10 shadow-[0_0_10px_rgba(59,130,246,0.1)]"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+              }`}
+            >
+              <Rocket size={14} className="hidden sm:block" /> Comece Aqui
+            </button>
+
             {/* GRUPO 1: A LIGA */}
             <div className="relative group">
               <button
@@ -10569,6 +10868,10 @@ const App = () => {
           </>
         )}
         <div className="max-w-7xl mx-auto px-6 py-12 w-full flex-grow">
+          {/* CHAMADA DA NOVA PÁGINA "COMECE AQUI" */}
+          {view === "start" && (
+            <StartHerePage data={db} onPlayerClick={goToProfile} />
+          )}
           {view === "home" && (
             <div className="space-y-16 animate-fadeIn pb-8">
               {/* Banner do Split Ativo Redesenhado */}
