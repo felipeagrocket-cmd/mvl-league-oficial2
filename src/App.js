@@ -8509,7 +8509,7 @@ const AdminPanel = ({
                         }
                       >
                         <option value="ingame">Item do Jogo</option>
-                        <option value="cosmetic">Cosmético de Perfil</option>
+                        <option value="cosmetic">Item MVL</option>
                       </select>
                     </div>
                     <div>
