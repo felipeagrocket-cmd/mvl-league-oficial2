@@ -784,6 +784,12 @@ class BackendController {
           splitName: sp?.name,
           splitId: sp?.id,
           matchKD: this.calculateKD(s.kills, s.deaths),
+          // NOVO: Calcula o XP dessa partida se for formato MIX
+          matchXpChange:
+            sp?.format === "mix"
+              ? LevelEngine.calculateMatchXP(s.mapWin, s.kills, s.deaths)
+                  .xpChange
+              : null,
         };
       })
       .sort((a, b) => new Date(b.matchDate) - new Date(a.matchDate));
@@ -2607,16 +2613,35 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                       {match.deaths}D
                     </span>
                   </div>
-                  <div className="col-span-3 text-right">
-                    {match.mapWin ? (
-                      <span className="inline-block px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-[9px] font-black uppercase rounded border border-emerald-500/20 tracking-wider mb-1">
-                        Vitória
-                      </span>
-                    ) : (
-                      <span className="inline-block px-2.5 py-1 bg-red-500/10 text-red-500 text-[9px] font-black uppercase rounded border border-red-500/20 tracking-wider mb-1">
-                        Derrota
-                      </span>
-                    )}
+                  <div className="col-span-3 flex flex-col items-end justify-center">
+                    <div className="flex items-center gap-2 mb-1">
+                      {/* ETIQUETA DE XP (Aparece ao lado da vitória/derrota se for MIX) */}
+                      {match.matchXpChange !== null &&
+                        match.matchXpChange !== undefined && (
+                          <span
+                            className={`inline-block px-2 py-1 rounded text-[9px] font-black font-mono tracking-wider border ${
+                              match.matchXpChange > 0
+                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_8px_rgba(52,211,153,0.1)]"
+                                : "bg-red-500/10 text-red-400 border-red-500/20"
+                            }`}
+                          >
+                            {match.matchXpChange > 0
+                              ? `+${match.matchXpChange}`
+                              : match.matchXpChange}{" "}
+                            XP
+                          </span>
+                        )}
+
+                      {match.mapWin ? (
+                        <span className="inline-block px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-[9px] font-black uppercase rounded border border-emerald-500/20 tracking-wider">
+                          Vitória
+                        </span>
+                      ) : (
+                        <span className="inline-block px-2.5 py-1 bg-red-500/10 text-red-500 text-[9px] font-black uppercase rounded border border-red-500/20 tracking-wider">
+                          Derrota
+                        </span>
+                      )}
+                    </div>
                     {match.scoreA !== undefined &&
                       match.scoreB !== undefined && (
                         <div className="text-[10px] font-mono mt-0.5 text-slate-400">
