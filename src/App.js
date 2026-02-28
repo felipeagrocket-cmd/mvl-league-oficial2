@@ -6488,12 +6488,13 @@ const AdminPanel = ({
                                 </div>
                                 <button
                                   disabled={selectedPlayersForMix.length < 10}
-                                  onClick={() => {
-                                    const result = onGenerateMixTournament(
-                                      selectedSplitId,
-                                      selectedPlayersForMix,
-                                      mixBestOf
-                                    );
+                                  onClick={async () => {
+                                    const result =
+                                      await onGenerateMixTournament(
+                                        selectedSplitId,
+                                        selectedPlayersForMix,
+                                        mixBestOf
+                                      );
                                     setMixSummary(result);
                                     setSelectedPlayersForMix([]);
                                     triggerFeedback(
@@ -10184,14 +10185,35 @@ const App = () => {
 
   const deleteMatch = async (id) => {
     try {
-      // 1. Deleta a partida
-      await deleteDoc(doc(firebaseDb, "matches", id));
+      const matchToDelete = db.matches.find((m) => m.id === id);
+      const split = db.splits.find((s) => s.id === matchToDelete?.splitId);
+      const isMix = split?.format === "mix";
 
-      // 2. Caça e deleta todas as "Estatísticas Órfãs" para não bagunçar o Ranking
       const orphanStats = db.stats.filter((s) => s.matchId === id);
+
       for (const s of orphanStats) {
+        // NOVO: Se a partida excluída for MIX, rouba de volta o XP que o cara ganhou
+        if (isMix) {
+          const player = db.players.find((p) => p.id === s.playerId);
+          if (player) {
+            const xpResult = LevelEngine.calculateMatchXP(
+              s.mapWin,
+              s.kills,
+              s.deaths
+            );
+            // Subtrai o XP da partida (sem deixar ficar menor que zero)
+            const newXp = Math.max(0, (player.xp || 0) - xpResult.xpChange);
+            await updateDoc(doc(firebaseDb, "players", player.id), {
+              xp: newXp,
+            });
+          }
+        }
+        // Deleta o status do jogador nessa partida
         await deleteDoc(doc(firebaseDb, "stats", s.id));
       }
+
+      // Finalmente, deleta a partida
+      await deleteDoc(doc(firebaseDb, "matches", id));
     } catch (e) {
       console.error(e);
     }
