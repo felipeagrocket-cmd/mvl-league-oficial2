@@ -5114,6 +5114,7 @@ const TournamentMD3Modal = ({
   onSaveMatch,
   onDeleteMatch,
   onUpdateSeries,
+  initialEditMatchId,
 }) => {
   const [isAddingMap, setIsAddingMap] = useState(false);
   const [editingMapId, setEditingMapId] = useState(null);
@@ -5204,6 +5205,14 @@ const TournamentMD3Modal = ({
     setLineupB(fillSlots(playersB));
     setIsAddingMap(true);
   };
+
+  // Efeito Mágico: Se abrir o modal vindo da Auditoria, já abre a edição direto!
+  useEffect(() => {
+    if (initialEditMatchId) {
+      const matchToEdit = data.matches.find((x) => x.id === initialEditMatchId);
+      if (matchToEdit) loadMapForEditing(matchToEdit);
+    }
+  }, []);
 
   const handleDeleteMap = (mapId) => {
     if (
@@ -5828,6 +5837,7 @@ const AdminPanel = ({
   const [feedback, setFeedback] = useState("");
   const [selectedSplitId, setSelectedSplitId] = useState("");
   const [activeMD3Series, setActiveMD3Series] = useState(null);
+  const [auditEditMatchId, setAuditEditMatchId] = useState(null); // O Gatilho de Edição Externa
   const [selectedPlayersForMix, setSelectedPlayersForMix] = useState([]);
   const [mixSummary, setMixSummary] = useState(null);
 
@@ -6042,14 +6052,18 @@ const AdminPanel = ({
           <TournamentMD3Modal
             series={activeMD3Series}
             data={data}
-            onClose={() => setActiveMD3Series(null)}
-            onSaveMatch={onSaveMatch}
-            onDeleteMatch={onDeleteMatch}
+            onClose={() => {
+              setActiveMD3Series(null);
+              setAuditEditMatchId(null); // Limpa a memória ao fechar
+            }}
+            onSaveMatch={saveMatch}
+            onDeleteMatch={deleteMatch}
             onUpdateSeries={(id, updates) => {
               onUpdateSeries(id, updates);
               const updatedSeries = { ...activeMD3Series, ...updates };
               setActiveMD3Series(updatedSeries);
             }}
+            initialEditMatchId={auditEditMatchId} // Passa a instrução de editar
           />
         )}
 
@@ -6666,7 +6680,6 @@ const AdminPanel = ({
                               })}
                             </div>
                           ) : (
-                      
                             <div className="text-center py-10 bg-slate-900 border border-dashed border-slate-800 rounded-xl text-slate-500">
                               {hasGroups
                                 ? "Fase de Grupos em andamento. Ao finalizar, gere os Playoffs."
@@ -6687,17 +6700,25 @@ const AdminPanel = ({
                                 Auditoria de Partidas
                               </h4>
                               <p className="text-[10px] text-slate-500 mt-1">
-                                Gerencie todos os mapas salvos neste Split. Ideal para apagar partidas soltas/órfãs que bugaram.
+                                Gerencie todos os mapas salvos neste Split.
+                                Ideal para apagar partidas soltas/órfãs que
+                                bugaram.
                               </p>
                             </div>
                           </div>
                           <div className="space-y-3 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-800">
                             {data.matches
                               .filter((m) => m.splitId === selectedSplitId)
-                              .sort((a, b) => new Date(b.date) - new Date(a.date))
+                              .sort(
+                                (a, b) => new Date(b.date) - new Date(a.date)
+                              )
                               .map((m) => {
-                                const clanA = data.clans.find(c => c.id === m.clanA_Id);
-                                const clanB = data.clans.find(c => c.id === m.clanB_Id);
+                                const clanA = data.clans.find(
+                                  (c) => c.id === m.clanA_Id
+                                );
+                                const clanB = data.clans.find(
+                                  (c) => c.id === m.clanB_Id
+                                );
                                 return (
                                   <div
                                     key={m.id}
@@ -6711,19 +6732,70 @@ const AdminPanel = ({
                                         </span>
                                       </div>
                                       <div className="text-xs font-mono mt-2 flex items-center gap-3">
-                                        <span className="text-slate-400 text-[10px]">{clanA?.tag || "Blue"}</span>
-                                        <span className={m.winnerSide === "A" ? "text-blue-400 font-bold text-sm" : "text-slate-500 text-sm"}>{m.scoreA}</span>
-                                        <span className="text-slate-700">x</span>
-                                        <span className={m.winnerSide === "B" ? "text-red-400 font-bold text-sm" : "text-slate-500 text-sm"}>{m.scoreB}</span>
-                                        <span className="text-slate-400 text-[10px]">{clanB?.tag || "Red"}</span>
+                                        <span className="text-slate-400 text-[10px]">
+                                          {clanA?.tag || "Blue"}
+                                        </span>
+                                        <span
+                                          className={
+                                            m.winnerSide === "A"
+                                              ? "text-blue-400 font-bold text-sm"
+                                              : "text-slate-500 text-sm"
+                                          }
+                                        >
+                                          {m.scoreA}
+                                        </span>
+                                        <span className="text-slate-700">
+                                          x
+                                        </span>
+                                        <span
+                                          className={
+                                            m.winnerSide === "B"
+                                              ? "text-red-400 font-bold text-sm"
+                                              : "text-slate-500 text-sm"
+                                          }
+                                        >
+                                          {m.scoreB}
+                                        </span>
+                                        <span className="text-slate-400 text-[10px]">
+                                          {clanB?.tag || "Red"}
+                                        </span>
                                       </div>
                                     </div>
                                     <div className="flex items-center gap-2">
                                       <button
                                         onClick={() => {
-                                          if (window.confirm("Excluir esta partida permanentemente? Todos os Kills, KDs e XPs ganhos nela serão removidos do Ranking.")) {
+                                          const linkedSeries = data.series.find(
+                                            (s) => s.matchIds?.includes(m.id)
+                                          );
+                                          if (linkedSeries) {
+                                            setAuditEditMatchId(m.id);
+                                            setActiveMD3Series(linkedSeries);
+                                            window.scrollTo({
+                                              top: 0,
+                                              behavior: "smooth",
+                                            });
+                                          } else {
+                                            alert(
+                                              "Erro: Esta partida não pertence a nenhuma série (Partida Órfã). Para corrigir sua estrutura, por favor exclua e lance-a novamente por dentro da Série correta."
+                                            );
+                                          }
+                                        }}
+                                        className="p-2.5 bg-slate-950 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg border border-slate-800 transition-colors"
+                                        title="Editar Partida"
+                                      >
+                                        <Pencil size={16} />
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          if (
+                                            window.confirm(
+                                              "Excluir esta partida permanentemente? Todos os Kills, KDs e XPs ganhos nela serão removidos do Ranking."
+                                            )
+                                          ) {
                                             onDeleteMatch(m.id);
-                                            triggerFeedback("Partida excluída com sucesso!");
+                                            triggerFeedback(
+                                              "Partida excluída com sucesso!"
+                                            );
                                           }
                                         }}
                                         className="p-2.5 bg-slate-950 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg border border-slate-800 transition-colors"
@@ -6735,7 +6807,9 @@ const AdminPanel = ({
                                   </div>
                                 );
                               })}
-                            {data.matches.filter((m) => m.splitId === selectedSplitId).length === 0 && (
+                            {data.matches.filter(
+                              (m) => m.splitId === selectedSplitId
+                            ).length === 0 && (
                               <div className="text-center py-8 text-slate-500 text-sm italic border border-dashed border-slate-800 rounded-xl">
                                 Nenhuma partida registrada neste Split.
                               </div>
