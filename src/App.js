@@ -1844,56 +1844,92 @@ const ClanStandingsTable = ({ data }) => (
   </div>
 );
 
-const NewsSection = ({ news }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-    {news.map((item, idx) => (
-      <div
-        key={item.id}
-        className={`group relative bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-800 hover:border-amber-500/30 hover:shadow-2xl hover:shadow-amber-500/5 transition-all duration-300 cursor-default ${
-          idx === 0 ? "md:col-span-2 md:flex" : ""
-        }`}
-      >
-        <div
-          className={`overflow-hidden relative ${
-            idx === 0 ? "md:w-2/3 h-64 md:h-auto" : "h-48"
-          }`}
-        >
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent z-10 opacity-60"></div>
-          <img
-            src={item.imageUrl}
-            alt={item.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
-          />
-        </div>
-        <div
-          className={`p-6 flex flex-col justify-center relative z-20 ${
-            idx === 0 ? "md:w-1/3 bg-slate-900 border-l border-slate-800" : ""
-          }`}
-        >
-          <div className="text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
-            <Calendar size={12} /> {item.date}
-          </div>
-          <h4
-            className={`${
-              idx === 0 ? "text-2xl" : "text-lg"
-            } text-white font-bold mb-3 leading-tight group-hover:text-amber-400 transition-colors line-clamp-2`}
+const NewsSection = ({ news }) => {
+  // Garante que a notícia mais nova seja sempre a Manchete Principal (índice 0)
+  const sortedNews = [...news].sort(
+    (a, b) => (b.timestamp || 0) - (a.timestamp || 0)
+  );
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {sortedNews.map((item, idx) => {
+        const isFeatured = idx === 0;
+
+        return (
+          <div
+            key={item.id}
+            className={`group relative rounded-3xl overflow-hidden border transition-all duration-500 shadow-xl cursor-default ${
+              isFeatured
+                ? "md:col-span-2 h-[450px] border-slate-800 hover:border-amber-500/50 hover:shadow-amber-500/10"
+                : "h-full flex flex-col bg-slate-900 border-slate-800 hover:border-slate-600 hover:shadow-2xl"
+            }`}
           >
-            {item.title}
-          </h4>
-          <p className="text-slate-400 text-sm line-clamp-3 leading-relaxed group-hover:text-slate-300 transition-colors">
-            {item.content}
+            {isFeatured ? (
+              /* --- MANCHETE PRINCIPAL (FULL BACKGROUND) --- */
+              <>
+                <div className="absolute inset-0 bg-slate-950 z-0">
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+                  />
+                </div>
+                {/* Degradê pesado embaixo para o texto brilhar */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent z-10 pointer-events-none"></div>
+
+                <div className="absolute bottom-0 left-0 w-full p-8 md:p-12 z-20 flex flex-col justify-end">
+                  <div className="text-amber-400 text-[10px] font-black uppercase tracking-[0.2em] mb-3 flex items-center gap-2 drop-shadow-md">
+                    <span className="flex h-2 w-2 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    </span>
+                    Destaque • {item.date}
+                  </div>
+                  <h4 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4 group-hover:text-amber-400 transition-colors drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] md:w-4/5">
+                    {item.title}
+                  </h4>
+                  <p className="text-slate-300 text-sm md:text-base line-clamp-2 md:line-clamp-3 leading-relaxed drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] md:w-3/4">
+                    {item.content}
+                  </p>
+                </div>
+              </>
+            ) : (
+              /* --- NOTÍCIAS SECUNDÁRIAS (CARDS NORMAIS) --- */
+              <>
+                <div className="relative h-56 overflow-hidden shrink-0 bg-slate-950 border-b border-slate-800">
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-transform duration-700"
+                  />
+                </div>
+                <div className="p-6 flex flex-col flex-grow relative z-20">
+                  <div className="text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <Calendar size={12} /> {item.date}
+                  </div>
+                  <h4 className="text-xl font-black text-white leading-tight mb-3 group-hover:text-amber-400 transition-colors line-clamp-2">
+                    {item.title}
+                  </h4>
+                  <p className="text-slate-400 text-sm line-clamp-3 leading-relaxed transition-colors flex-grow">
+                    {item.content}
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+        );
+      })}
+      {news.length === 0 && (
+        <div className="col-span-2 text-center py-20 bg-slate-900/50 border border-slate-800 rounded-3xl border-dashed text-slate-500">
+          <Newspaper size={48} className="mx-auto mb-4 opacity-20" />
+          <p className="text-sm font-bold uppercase tracking-widest">
+            Nenhuma notícia publicada.
           </p>
         </div>
-      </div>
-    ))}
-    {news.length === 0 && (
-      <div className="col-span-2 text-center py-16 bg-slate-900/50 border border-slate-800 rounded-2xl border-dashed text-slate-500 text-sm">
-        <Newspaper size={32} className="mx-auto mb-3 opacity-20" />
-        Nenhuma notícia publicada ainda.
-      </div>
-    )}
-  </div>
-);
+      )}
+    </div>
+  );
+};
 
 const TitleRace = ({ ranking, onPlayerClick }) => (
   <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl ring-1 ring-white/5">
@@ -5905,7 +5941,7 @@ const AdminPanel = ({
   const handleDragEnd = () => {
     setDraggedItemIndex(null);
   };
-  const handleImageUpload = (e, setter) => {
+  const handleImageUpload = (e, setter, customMaxWidth = 400) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -5916,7 +5952,8 @@ const AdminPanel = ({
       img.onload = () => {
         const canvas = document.createElement("canvas");
 
-        const MAX_WIDTH = 400;
+        // Agora ele respeita se pedirmos resolução maior!
+        const MAX_WIDTH = customMaxWidth;
         const scaleSize = MAX_WIDTH / img.width;
 
         if (img.width < MAX_WIDTH) {
@@ -8912,22 +8949,29 @@ const AdminPanel = ({
                       onChange={(e) => setNewsContent(e.target.value)}
                     ></textarea>
                     <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 border-dashed">
-                      <label className="block text-slate-400 text-[10px] uppercase font-bold mb-4 tracking-wider">
-                        Imagem de Capa
+                      <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
+                        Imagem de Capa (Banner)
                       </label>
+                      <p className="text-[10px] text-slate-500 mb-4 flex items-center gap-1">
+                        <AlertCircle size={10} /> Recomendado: 1920x1080px (Alta
+                        Qualidade). Posição horizontal.
+                      </p>
                       <div className="flex items-center gap-6">
                         <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-3 px-6 rounded-lg border border-slate-600 transition-colors flex items-center gap-2 shadow-lg">
-                          <Upload size={16} /> Upload{" "}
+                          <Upload size={16} /> Fazer Upload{" "}
                           <input
                             type="file"
                             className="hidden"
                             accept="image/*"
-                            onChange={(e) => handleImageUpload(e, setNewsImage)}
+                            onChange={(e) =>
+                              handleImageUpload(e, setNewsImage, 1200)
+                            }
                           />
                         </label>
                         {newsImage && (
                           <span className="text-green-400 text-xs flex items-center gap-1.5 font-bold">
-                            <CheckCircle size={14} /> Imagem carregada
+                            <CheckCircle size={14} /> Imagem carregada com
+                            sucesso
                           </span>
                         )}
                       </div>
