@@ -6056,8 +6056,8 @@ const AdminPanel = ({
               setActiveMD3Series(null);
               setAuditEditMatchId(null); // Limpa a memória ao fechar
             }}
-            onSaveMatch={saveMatch}
-            onDeleteMatch={deleteMatch}
+            onSaveMatch={onSaveMatch}
+            onDeleteMatch={onDeleteMatch}
             onUpdateSeries={(id, updates) => {
               onUpdateSeries(id, updates);
               const updatedSeries = { ...activeMD3Series, ...updates };
