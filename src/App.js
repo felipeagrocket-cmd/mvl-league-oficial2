@@ -903,7 +903,10 @@ class BackendController {
 // --- SISTEMA DE ACESSIBILIDADE E TRADUÇÃO (TOOLTIPS) ---
 const Tooltip = ({ text }) => (
   <div className="group relative inline-flex items-center ml-1.5 cursor-help align-middle">
-    <Info size={13} className="text-slate-500 group-hover:text-amber-400 transition-colors" />
+    <Info
+      size={13}
+      className="text-slate-500 group-hover:text-amber-400 transition-colors"
+    />
     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2.5 bg-slate-800 text-white text-[10px] rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 shadow-2xl z-50 text-center font-normal leading-relaxed border border-slate-700 pointer-events-none drop-shadow-xl">
       {text}
       {/* Setinha apontando para baixo */}
@@ -911,6 +914,9 @@ const Tooltip = ({ text }) => (
     </div>
   </div>
 );
+
+// --- UI COMPONENTS ---
+const Hero = ({ champion, settings }) => (
   <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden flex items-end justify-center bg-slate-900 border-b border-slate-800">
     {settings.heroBackgroundUrl ? (
       <img
@@ -2385,9 +2391,10 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
             {/* ------------------------------------------------------------- */}
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-8">
-            <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
                 <div className="text-slate-500 text-[9px] font-bold uppercase mb-1 tracking-wider flex items-center">
-                  KD Geral <Tooltip text="Kill/Death Ratio. Média de abates por morte. Ter KD positivo valoriza seu passe!" />
+                  KD Geral{" "}
+                  <Tooltip text="Kill/Death Ratio. Média de abates por morte. Ter KD positivo valoriza seu passe!" />
                 </div>
                 <div
                   className={`text-2xl font-mono font-bold ${
@@ -6620,7 +6627,7 @@ const AdminPanel = ({
                     </div>
                     <div>
                       <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider flex items-center">
-                        Valor da Transação 
+                        Valor da Transação
                         <Tooltip text="Soma do passe do jogador + multa rescisória (se houver quebra de contrato)." />
                         {isHostilePossible && !isFriendlyAgreement && (
                           <span className="text-red-400 animate-pulse ml-1">
