@@ -916,6 +916,124 @@ const Tooltip = ({ text }) => (
 );
 
 // --- UI COMPONENTS ---
+
+// --- LETREIRO DE NOTÍCIAS (DOPAMINA NA HOME) ---
+const LiveTicker = ({ data, backend }) => {
+  const stats = useMemo(() => {
+    if (!data || !data.players) return [];
+    const ranking = backend.getGlobalRanking();
+
+    // Calcula os destaques
+    const mostExpensive = [...data.players].sort(
+      (a, b) => (b.marketValue || 0) - (a.marketValue || 0)
+    )[0];
+    const bestKDPlayer = [...ranking].sort((a, b) => b.kd - a.kd)[0];
+    const biggestTransfer =
+      data.transfers && data.transfers.length > 0
+        ? [...data.transfers].sort((a, b) => b.value - a.value)[0]
+        : null;
+    const highestLevelPlayer = [...data.players].sort(
+      (a, b) => (b.xp || 0) - (a.xp || 0)
+    )[0];
+    const richestPlayer = [...data.players].sort(
+      (a, b) => (b.totalEarnings || 0) - (a.totalEarnings || 0)
+    )[0];
+
+    const items = [];
+    if (mostExpensive && mostExpensive.marketValue > 0)
+      items.push({
+        prefix: "💰 Passe Mais Valioso:",
+        name: mostExpensive.nickname,
+        suffix: formatCurrency(mostExpensive.marketValue),
+      });
+    if (bestKDPlayer && bestKDPlayer.kd > 0)
+      items.push({
+        prefix: "🎯 Maior K/D da Liga:",
+        name: bestKDPlayer.nickname,
+        suffix: `${bestKDPlayer.kd.toFixed(2)} KD`,
+      });
+    if (highestLevelPlayer && highestLevelPlayer.xp > 0)
+      items.push({
+        prefix: "⚡ Maior Nível (XP):",
+        name: highestLevelPlayer.nickname,
+        suffix: `Level ${
+          LevelEngine.getLevelData(highestLevelPlayer.xp).level
+        }`,
+      });
+    if (richestPlayer && richestPlayer.totalEarnings > 0)
+      items.push({
+        prefix: "🏦 Jogador Mais Rico:",
+        name: richestPlayer.nickname,
+        suffix: formatCurrency(richestPlayer.totalEarnings),
+      });
+    if (biggestTransfer)
+      items.push({
+        prefix: "🤝 Maior Transferência:",
+        name: biggestTransfer.playerName,
+        suffix: formatCurrency(biggestTransfer.value),
+      });
+
+    return items.length > 0
+      ? items
+      : [{ prefix: "🚨", name: "MVL", suffix: "A NOVA ERA DOS ESPORTS" }];
+  }, [data, backend]);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [key, setKey] = useState(0);
+
+  useEffect(() => {
+    // Troca a informação exatamente a cada 4 segundos
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % stats.length);
+      setKey((k) => k + 1); // Força a animação de piscar a reiniciar
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [stats.length]);
+
+  if (stats.length === 0) return null;
+
+  const currentStat = stats[currentIndex];
+
+  return (
+    <div className="w-full bg-black border-b border-slate-800 flex items-center justify-center overflow-hidden py-3 px-4 relative z-20 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+      <style>{`
+        @keyframes cyberpunk-ticker {
+          0% { opacity: 0; filter: blur(4px); }
+          10% { opacity: 1; filter: blur(0); }
+          15% { opacity: 0; }
+          20% { opacity: 1; }
+          25% { opacity: 0; }
+          30% { opacity: 1; }
+          90% { opacity: 1; filter: blur(0); }
+          100% { opacity: 0; filter: blur(4px); }
+        }
+        .animate-ticker-fast {
+          animation: cyberpunk-ticker 4s forwards;
+        }
+      `}</style>
+
+      {/* Brilhos de fundo do letreiro para destacar */}
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 via-transparent to-blue-900/10 pointer-events-none"></div>
+
+      <div
+        key={key}
+        className="flex items-center gap-2 md:gap-3 text-[10px] md:text-sm uppercase tracking-[0.2em] font-black animate-ticker-fast text-center flex-wrap justify-center"
+      >
+        <span className="text-white drop-shadow-md">{currentStat.prefix}</span>
+
+        {/* O NOME EM DEGRADÊ AZUL BRILHANTE */}
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.6)] text-sm md:text-lg">
+          {currentStat.name}
+        </span>
+
+        <span className="text-white drop-shadow-md">
+          • {currentStat.suffix}
+        </span>
+      </div>
+    </div>
+  );
+};
+
 const Hero = ({ champion, settings }) => (
   <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden flex items-end justify-center bg-slate-900 border-b border-slate-800">
     {settings.heroBackgroundUrl ? (
@@ -10177,7 +10295,14 @@ const App = () => {
       )}
 
       <div className="pt-20 flex-grow flex flex-col">
-        {view === "home" && <Hero champion={champion} settings={db.settings} />}
+        {view === "home" && (
+          <>
+            {/* O Banner Principal */}
+            <Hero champion={champion} settings={db.settings} />
+            {/* O Novo Letreiro da Bolsa de Valores da Liga */}
+            <LiveTicker data={db} backend={backend} />
+          </>
+        )}
         <div className="max-w-7xl mx-auto px-6 py-12 w-full flex-grow">
           {view === "home" && (
             <div className="space-y-16 animate-fadeIn pb-8">
