@@ -3612,38 +3612,40 @@ const RankingTable = ({
   return (
     <>
       <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-full ring-1 ring-white/5">
-        <div className="bg-slate-900/50 p-5 border-b border-slate-800 flex justify-between items-center shrink-0 backdrop-blur-sm">
-          <h3 className="text-lg font-black text-white uppercase flex items-center gap-3 tracking-tight">
+        <div className="bg-slate-900/50 p-4 md:p-5 border-b border-slate-800 flex justify-between items-center shrink-0 backdrop-blur-sm">
+          <h3 className="text-base md:text-lg font-black text-white uppercase flex items-center gap-2 md:gap-3 tracking-tight">
             <div className="p-1.5 bg-slate-800 rounded-lg border border-slate-700">
               {isGlobal ? (
-                <TrendingUp className="text-amber-400" size={18} />
+                <TrendingUp className="text-amber-400" size={16} />
               ) : (
-                <Swords className="text-amber-400" size={18} />
+                <Swords className="text-amber-400" size={16} />
               )}
             </div>
             {title}
           </h3>
           {isGlobal && (
-            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800/50">
+            <span className="text-[9px] md:text-[10px] text-slate-500 uppercase font-bold tracking-wider bg-slate-950 px-2.5 md:px-3 py-1.5 rounded-lg border border-slate-800/50">
               Histórico Completo
             </span>
           )}
         </div>
         <div className="overflow-x-auto grow scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-slate-950/50 text-[10px] md:text-xs text-slate-500 uppercase font-bold tracking-wider sticky top-0 z-10 backdrop-blur-sm">
+          <table className="w-full text-left border-collapse whitespace-nowrap">
+            <thead className="bg-slate-950/50 text-[9px] md:text-xs text-slate-500 uppercase font-bold tracking-wider sticky top-0 z-10 backdrop-blur-sm">
               <tr>
-                <th className="p-4 font-bold border-b border-slate-800">Pos</th>
-                <th className="p-4 font-bold border-b border-slate-800">
+                <th className="px-3 py-3 md:p-4 font-bold border-b border-slate-800 text-center">
+                  Pos
+                </th>
+                <th className="px-3 py-3 md:p-4 font-bold border-b border-slate-800">
                   Player
                 </th>
-                <th className="p-4 text-center text-amber-500 bg-amber-500/5 border-b border-amber-500/10">
+                <th className="px-3 py-3 md:p-4 text-center text-amber-500 bg-amber-500/5 border-b border-amber-500/10">
                   PTS
                 </th>
-                <th className="p-4 text-center border-b border-slate-800">
+                <th className="px-3 py-3 md:p-4 text-center border-b border-slate-800">
                   KD
                 </th>
-                <th className="p-4 text-center hidden sm:table-cell border-b border-slate-800">
+                <th className="px-3 py-3 md:p-4 text-center hidden sm:table-cell border-b border-slate-800">
                   Passe Atual
                 </th>
               </tr>
@@ -3659,29 +3661,29 @@ const RankingTable = ({
                   } ${player.isPaused ? "opacity-50 grayscale" : ""}`}
                 >
                   <td
-                    className="p-4 font-mono text-slate-500 font-bold w-16 text-center group-hover:text-white transition-colors cursor-pointer"
+                    className="px-3 py-3 md:p-4 font-mono text-slate-500 font-bold w-10 md:w-16 text-center group-hover:text-white transition-colors cursor-pointer"
                     onClick={() => onPlayerClick(player.playerId)}
                   >
                     {index === 0 ? (
-                      <span className="text-xl">🥇</span>
+                      <span className="text-lg md:text-xl">🥇</span>
                     ) : index === 1 ? (
-                      <span className="text-xl">🥈</span>
+                      <span className="text-lg md:text-xl">🥈</span>
                     ) : index === 2 ? (
-                      <span className="text-xl">🥉</span>
+                      <span className="text-lg md:text-xl">🥉</span>
                     ) : (
-                      <span className="text-sm">#{index + 1}</span>
+                      <span className="text-xs md:text-sm">#{index + 1}</span>
                     )}
                   </td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-4">
+                  <td className="px-3 py-3 md:p-4">
+                    <div className="flex items-center gap-3 md:gap-4">
                       <div
-                        className="relative cursor-pointer"
+                        className="relative cursor-pointer shrink-0"
                         onClick={() => onPlayerClick(player.playerId)}
                       >
                         <img
                           src={player.avatarUrl}
                           alt={player.nickname}
-                          className={`w-10 h-10 rounded-lg bg-slate-800 object-cover border-2 shadow-sm ${
+                          className={`w-8 h-8 md:w-10 md:h-10 rounded-lg bg-slate-800 object-cover border-2 shadow-sm ${
                             index === 0
                               ? "border-amber-400 shadow-amber-400/20"
                               : "border-slate-700"
@@ -3689,7 +3691,7 @@ const RankingTable = ({
                         />
                         {player.isPaused && (
                           <div className="absolute -top-1 -right-1 bg-amber-500 text-black rounded-full p-0.5 shadow-sm">
-                            <Ban size={10} />
+                            <Ban size={8} className="md:w-2.5 md:h-2.5" />
                           </div>
                         )}
                       </div>
@@ -3697,7 +3699,7 @@ const RankingTable = ({
                         <div className="flex items-center gap-2">
                           <span
                             onClick={() => onPlayerClick(player.playerId)}
-                            className={`cursor-pointer font-bold text-sm leading-tight flex items-center gap-1.5 transition-colors ${
+                            className={`cursor-pointer font-bold text-xs md:text-sm leading-tight flex items-center gap-1.5 transition-colors ${
                               checkCosmetics(player).isPremium
                                 ? checkCosmetics(player).nameClass
                                 : index === 0
@@ -3706,7 +3708,7 @@ const RankingTable = ({
                             }`}
                           >
                             {player.clanTag && (
-                              <span className="text-amber-500 text-xs font-mono tracking-tight opacity-90">
+                              <span className="text-amber-500 text-[10px] md:text-xs font-mono tracking-tight opacity-90 hidden sm:inline-block">
                                 [{player.clanTag}]
                               </span>
                             )}
@@ -3719,71 +3721,72 @@ const RankingTable = ({
 
                             {/* ESCUDO DE LEVEL NO RANKING */}
                             <div
-                              className="relative flex items-center justify-center w-5 h-6 shrink-0"
+                              className="relative flex items-center justify-center w-4 h-5 md:w-5 md:h-6 shrink-0"
                               title={`Level ${
                                 LevelEngine.getLevelData(player.xp || 0).level
                               }`}
                             >
                               <Shield
-                                className="absolute text-slate-950 drop-shadow-md"
-                                size={20}
+                                className="absolute text-slate-950 drop-shadow-md w-full h-full"
                                 fill="currentColor"
                                 strokeWidth={1}
                               />
                               <Shield
-                                className="absolute text-amber-500/60"
-                                size={20}
+                                className="absolute text-amber-500/60 w-full h-full"
                                 strokeWidth={1.5}
                               />
-                              <span className="relative z-10 text-[8px] font-black text-amber-400 leading-none mt-px">
+                              <span className="relative z-10 text-[7px] md:text-[8px] font-black text-amber-400 leading-none mt-px">
                                 {LevelEngine.getLevelData(player.xp || 0).level}
                               </span>
                             </div>
 
-                            <span className="truncate">{player.nickname}</span>
-                          </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedBreakdown(player);
-                            }}
-                            className="text-slate-600 hover:text-amber-400 transition-colors p-1 rounded hover:bg-slate-800"
-                            title="Ver detalhes dos pontos"
-                          >
-                            <Info size={14} />
-                          </button>
-
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedPricing(player);
-                            }}
-                            className="text-slate-600 hover:text-green-400 transition-colors p-1 rounded hover:bg-slate-800 ml-1"
-                            title="Ver Relatório de Precificação"
-                          >
-                            <DollarSign size={14} />
-                          </button>
-
-                          {player.isPaused && (
-                            <span className="text-[9px] ml-1 text-amber-500 font-normal uppercase border border-amber-500/50 px-1.5 py-0.5 rounded bg-amber-900/20">
-                              Pausado
+                            <span className="truncate max-w-[80px] sm:max-w-none">
+                              {player.nickname}
                             </span>
-                          )}
+                          </span>
+
+                          <div className="flex items-center gap-0.5 ml-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedBreakdown(player);
+                              }}
+                              className="text-slate-600 hover:text-amber-400 transition-colors p-1.5 rounded hover:bg-slate-800"
+                              title="Ver detalhes dos pontos"
+                            >
+                              <Info size={14} />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedPricing(player);
+                              }}
+                              className="text-slate-600 hover:text-green-400 transition-colors p-1.5 rounded hover:bg-slate-800"
+                              title="Ver Relatório de Precificação"
+                            >
+                              <DollarSign size={14} />
+                            </button>
+                          </div>
                         </div>
+                        {player.clanTag && (
+                          <span className="text-amber-500 text-[9px] font-mono tracking-tight opacity-90 sm:hidden block mt-0.5">
+                            [{player.clanTag}]
+                          </span>
+                        )}
                       </div>
                     </div>
                   </td>
-                  <td className="p-4 text-center font-black text-lg text-white bg-slate-800/20 border-x border-slate-800/30 group-hover:bg-slate-800/40 transition-colors">
+                  <td className="px-3 py-3 md:p-4 text-center font-black text-base md:text-lg text-white bg-slate-800/20 border-x border-slate-800/30 group-hover:bg-slate-800/40 transition-colors">
                     {player.points}
                   </td>
                   <td
-                    className={`p-4 text-center font-mono font-bold text-sm ${
+                    className={`px-3 py-3 md:p-4 text-center font-mono font-bold text-xs md:text-sm ${
                       player.kd >= 1 ? "text-emerald-400" : "text-red-400"
                     }`}
                   >
                     {player.kd.toFixed(2)}
                   </td>
-                  <td className="p-4 text-center text-green-400 text-xs font-mono font-bold hidden sm:table-cell">
+                  <td className="px-3 py-3 md:p-4 text-center text-green-400 text-[10px] md:text-xs font-mono font-bold hidden sm:table-cell">
                     {formatCurrency(player.marketValue || 10000000)}
                   </td>
                 </tr>
@@ -3791,8 +3794,8 @@ const RankingTable = ({
               {data.length === 0 && (
                 <tr>
                   <td
-                    colSpan={6}
-                    className="p-12 text-center text-slate-500 text-sm italic"
+                    colSpan={5}
+                    className="p-8 md:p-12 text-center text-slate-500 text-xs md:text-sm italic"
                   >
                     Ainda sem dados para exibir.
                   </td>
