@@ -2947,7 +2947,7 @@ const StorePage = ({ items, players }) => {
         {[
           { id: "all", label: "Todos os Itens" },
           { id: "ingame", label: "Itens do Jogo" },
-          { id: "cosmetic", label: "Cosméticos de Perfil" },
+          { id: "cosmetic", label: "Itens MVL" },
           { id: "premium", label: "Premium" },
         ].map((tab) => (
           <button
