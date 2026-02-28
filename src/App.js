@@ -2784,8 +2784,8 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
           </div>
         </div>
         <div className="lg:col-span-2">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
-            <h3 className="text-white font-black uppercase text-xs mb-6 flex items-center gap-2 tracking-widest border-b border-slate-800 pb-3">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-lg">
+            <h3 className="text-white font-black uppercase text-xs mb-4 md:mb-6 flex items-center gap-2 tracking-widest border-b border-slate-800 pb-3">
               <Swords size={14} className="text-amber-400" /> Histórico de
               Partidas
             </h3>
@@ -2794,17 +2794,20 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                 <div
                   key={match.id}
                   onClick={() => setSelectedMatchId(match.matchId)}
-                  className="grid grid-cols-12 gap-4 items-center p-4 bg-slate-950/50 rounded-xl border border-slate-800 hover:border-amber-500/30 hover:bg-slate-900 hover:shadow-lg transition-all cursor-pointer group"
+                  className="flex flex-col md:grid md:grid-cols-12 gap-3 md:gap-4 md:items-center p-4 bg-slate-950/50 rounded-xl border border-slate-800 hover:border-amber-500/30 hover:bg-slate-900 hover:shadow-lg transition-all cursor-pointer group"
                 >
-                  <div className="col-span-3 text-xs text-slate-500">
-                    <div className="font-bold text-slate-300 group-hover:text-amber-400 transition-colors">
+                  {/* MOBILE: Top Row (Split + Date) -> Desktop: Col 1 */}
+                  <div className="md:col-span-3 flex justify-between md:flex-col md:justify-center border-b border-slate-800/50 md:border-none pb-2 md:pb-0">
+                    <div className="font-bold text-xs text-slate-300 group-hover:text-amber-400 transition-colors">
                       {match.splitName}
                     </div>
-                    <div className="text-[10px] opacity-70 mt-0.5">
+                    <div className="text-[10px] text-slate-500 md:opacity-70 md:mt-0.5">
                       {new Date(match.matchDate).toLocaleDateString()}
                     </div>
                   </div>
-                  <div className="col-span-3">
+
+                  {/* MOBILE: Map Name + Group -> Desktop: Col 2 */}
+                  <div className="md:col-span-3 flex justify-between md:flex-col md:justify-center items-center md:items-start">
                     <div className="text-xs font-bold text-white group-hover:text-amber-100 transition-colors uppercase tracking-tight">
                       {match.mapName}
                     </div>
@@ -2812,7 +2815,9 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                       {match.md3GroupId}
                     </div>
                   </div>
-                  <div className="col-span-3 flex flex-col items-center">
+
+                  {/* MOBILE: K/D Block -> Desktop: Col 3 */}
+                  <div className="md:col-span-3 flex items-center justify-between md:justify-center md:flex-col bg-slate-900/50 md:bg-transparent p-2 md:p-0 rounded-lg">
                     <span
                       className={`text-sm font-mono font-bold ${
                         match.matchKD >= 1 ? "text-emerald-400" : "text-red-400"
@@ -2820,15 +2825,17 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                     >
                       {match.matchKD.toFixed(2)} KD
                     </span>
-                    <span className="text-[10px] font-bold text-white mt-1 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                    <span className="text-[10px] font-bold text-white md:mt-1 bg-slate-800 md:bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
                       {match.kills}K{" "}
                       <span className="text-slate-600 mx-0.5">/</span>{" "}
                       {match.deaths}D
                     </span>
                   </div>
-                  <div className="col-span-3 flex flex-col items-end justify-center">
-                    <div className="flex items-center gap-2 mb-1">
-                      {/* ETIQUETA DE XP (Aparece ao lado da vitória/derrota se for MIX) */}
+
+                  {/* MOBILE: Result & Score -> Desktop: Col 4 */}
+                  <div className="md:col-span-3 flex items-center justify-between md:flex-col md:items-end md:justify-center mt-1 md:mt-0">
+                    <div className="flex items-center gap-2 md:mb-1">
+                      {/* ETIQUETA DE XP */}
                       {match.matchXpChange !== null &&
                         match.matchXpChange !== undefined && (
                           <span
@@ -2857,7 +2864,7 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                     </div>
                     {match.scoreA !== undefined &&
                       match.scoreB !== undefined && (
-                        <div className="text-[10px] font-mono mt-0.5 text-slate-400">
+                        <div className="text-[10px] md:text-xs font-mono md:mt-0.5 text-slate-400 flex items-center gap-1.5 bg-slate-900 md:bg-transparent px-2 md:px-0 py-1 md:py-0 rounded-md">
                           {match.winnerSide === "A" ? (
                             <span className="text-emerald-400 font-bold">
                               {match.scoreA}
@@ -2865,7 +2872,7 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                           ) : (
                             <span>{match.scoreA}</span>
                           )}
-                          <span className="mx-1 text-slate-600">-</span>
+                          <span className="text-slate-600">-</span>
                           {match.winnerSide === "B" ? (
                             <span className="text-emerald-400 font-bold">
                               {match.scoreB}
