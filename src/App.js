@@ -918,75 +918,43 @@ const Tooltip = ({ text }) => (
 // --- UI COMPONENTS ---
 
 // --- LETREIRO DE NOTÍCIAS (DOPAMINA NA HOME) ---
+// --- LETREIRO DE NOTÍCIAS (DOPAMINA NA HOME) ---
 const LiveTicker = ({ data, backend }) => {
   const stats = useMemo(() => {
     if (!data || !data.players) return [];
     const ranking = backend.getGlobalRanking();
-
+    
     // Calcula os destaques
-    const mostExpensive = [...data.players].sort(
-      (a, b) => (b.marketValue || 0) - (a.marketValue || 0)
-    )[0];
-    const bestKDPlayer = [...ranking].sort((a, b) => b.kd - a.kd)[0];
-    const biggestTransfer =
-      data.transfers && data.transfers.length > 0
-        ? [...data.transfers].sort((a, b) => b.value - a.value)[0]
-        : null;
-    const highestLevelPlayer = [...data.players].sort(
-      (a, b) => (b.xp || 0) - (a.xp || 0)
-    )[0];
-    const richestPlayer = [...data.players].sort(
-      (a, b) => (b.totalEarnings || 0) - (a.totalEarnings || 0)
-    )[0];
+    const mostExpensive = [...data.players].sort((a,b) => (b.marketValue || 0) - (a.marketValue || 0))[0];
+    const bestKDPlayer = [...ranking].sort((a,b) => b.kd - a.kd)[0];
+    const biggestTransfer = data.transfers && data.transfers.length > 0 ? [...data.transfers].sort((a,b) => b.value - a.value)[0] : null;
+    const highestLevelPlayer = [...data.players].sort((a,b) => (b.xp || 0) - (a.xp || 0))[0];
+    const richestPlayer = [...data.players].sort((a,b) => (b.totalEarnings || 0) - (a.totalEarnings || 0))[0];
 
     const items = [];
-    if (mostExpensive && mostExpensive.marketValue > 0)
-      items.push({
-        prefix: "💰 Passe Mais Valioso:",
-        name: mostExpensive.nickname,
-        suffix: formatCurrency(mostExpensive.marketValue),
-      });
-    if (bestKDPlayer && bestKDPlayer.kd > 0)
-      items.push({
-        prefix: "🎯 Maior K/D da Liga:",
-        name: bestKDPlayer.nickname,
-        suffix: `${bestKDPlayer.kd.toFixed(2)} KD`,
-      });
-    if (highestLevelPlayer && highestLevelPlayer.xp > 0)
-      items.push({
-        prefix: "⚡ Maior Nível (XP):",
-        name: highestLevelPlayer.nickname,
-        suffix: `Level ${
-          LevelEngine.getLevelData(highestLevelPlayer.xp).level
-        }`,
-      });
-    if (richestPlayer && richestPlayer.totalEarnings > 0)
-      items.push({
-        prefix: "🏦 Jogador Mais Rico:",
-        name: richestPlayer.nickname,
-        suffix: formatCurrency(richestPlayer.totalEarnings),
-      });
-    if (biggestTransfer)
-      items.push({
-        prefix: "🤝 Maior Transferência:",
-        name: biggestTransfer.playerName,
-        suffix: formatCurrency(biggestTransfer.value),
-      });
+    if (mostExpensive && mostExpensive.marketValue > 0) 
+      items.push({ prefix: "💰 Passe Mais Valioso:", name: mostExpensive.nickname, suffix: formatCurrency(mostExpensive.marketValue) });
+    if (bestKDPlayer && bestKDPlayer.kd > 0) 
+      items.push({ prefix: "🎯 Maior K/D da Liga:", name: bestKDPlayer.nickname, suffix: `${bestKDPlayer.kd.toFixed(2)} KD` });
+    if (highestLevelPlayer && highestLevelPlayer.xp > 0) 
+      items.push({ prefix: "⚡ Maior Nível (XP):", name: highestLevelPlayer.nickname, suffix: `Level ${LevelEngine.getLevelData(highestLevelPlayer.xp).level}` });
+    if (richestPlayer && richestPlayer.totalEarnings > 0) 
+      items.push({ prefix: "🏦 Jogador Mais Rico:", name: richestPlayer.nickname, suffix: formatCurrency(richestPlayer.totalEarnings) });
+    if (biggestTransfer) 
+      items.push({ prefix: "🤝 Maior Transferência:", name: biggestTransfer.playerName, suffix: formatCurrency(biggestTransfer.value) });
 
-    return items.length > 0
-      ? items
-      : [{ prefix: "🚨", name: "MVL", suffix: "A NOVA ERA DOS ESPORTS" }];
+    return items.length > 0 ? items : [{ prefix: "🚨", name: "MVL", suffix: "A NOVA ERA DOS ESPORTS" }];
   }, [data, backend]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [key, setKey] = useState(0);
 
   useEffect(() => {
-    // Troca a informação exatamente a cada 4 segundos
+    // TEMPO AUMENTADO: 7 Segundos para leitura super confortável
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % stats.length);
-      setKey((k) => k + 1); // Força a animação de piscar a reiniciar
-    }, 4000);
+      setKey(k => k + 1); 
+    }, 7000); 
     return () => clearInterval(interval);
   }, [stats.length]);
 
@@ -995,44 +963,77 @@ const LiveTicker = ({ data, backend }) => {
   const currentStat = stats[currentIndex];
 
   return (
-    <div className="w-full bg-black border-b border-slate-800 flex items-center justify-center overflow-hidden py-3 px-4 relative z-20 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+    <div className="w-full bg-black border-b border-slate-800 flex items-center justify-center overflow-hidden py-3.5 px-4 relative z-20 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
       <style>{`
-        @keyframes slide-fade-ticker {
-          0% { opacity: 0; transform: translateY(15px); filter: blur(4px); }
-          10% { opacity: 1; transform: translateY(0); filter: blur(0); }
-          90% { opacity: 1; transform: translateY(0); filter: blur(0); }
-          100% { opacity: 0; transform: translateY(-15px); filter: blur(4px); }
+        /* Efeito visual da máquina de escrever cortando a máscara */
+        @keyframes type-reveal {
+          0% { clip-path: inset(0 100% 0 0); }
+          100% { clip-path: inset(0 0 0 0); }
         }
-        .animate-smooth-ticker {
-          animation: slide-fade-ticker 4s ease-in-out forwards;
+        /* O cursor do terminal piscando */
+        @keyframes blink-cursor {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+        /* Desmanche suave após os 7 segundos para entrar o próximo */
+        @keyframes ticker-fade-out {
+          0% { opacity: 1; filter: blur(0); }
+          85% { opacity: 1; filter: blur(0); }
+          100% { opacity: 0; filter: blur(4px); transform: translateX(-10px); }
+        }
+        
+        .animate-typewriter {
+          display: inline-flex;
+          align-items: center;
+          white-space: nowrap; /* Não quebra linha, garantindo o efeito */
+          animation: 
+            type-reveal 1.5s cubic-bezier(0.2, 0.6, 0.2, 1) forwards,
+            ticker-fade-out 7s ease-in forwards;
+        }
+
+        .typing-cursor {
+          display: inline-block;
+          width: 6px;
+          height: 18px;
+          background-color: #60a5fa; /* Azul claro para combinar com o nome */
+          animation: blink-cursor 0.8s step-end infinite;
+          margin-left: 6px;
+          border-radius: 2px;
+        }
+
+        /* Oculta o scroll no celular se a frase for muito grande */
+        .hide-scroll::-webkit-scrollbar {
+          display: none;
         }
       `}</style>
-
-      {/* Brilhos de fundo do letreiro para destacar */}
+      
+      {/* Reflexo de vidro escuro no fundo */}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-transparent to-blue-900/20 pointer-events-none"></div>
+      
+      <div className="max-w-full overflow-x-auto hide-scroll text-center flex justify-center w-full">
+        <div key={key} className="animate-typewriter text-[10px] md:text-xs uppercase tracking-[0.15em] font-black items-center">
+          
+          {/* Botão de Ao Vivo (Recuo para a animação não engolir) */}
+          <span className="relative flex h-2 w-2 md:h-2.5 md:w-2.5 mr-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 md:h-2.5 md:w-2.5 bg-red-600"></span>
+          </span>
 
-      <div
-        key={key}
-        className="flex items-center gap-2 md:gap-3 text-[10px] md:text-xs uppercase tracking-[0.2em] font-black animate-smooth-ticker text-center flex-wrap justify-center w-full"
-      >
-        {/* Bolinha vermelha de "AO VIVO / RADAR" */}
-        <span className="relative flex h-2 w-2 md:h-2.5 md:w-2.5 mr-1 md:mr-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 md:h-2.5 md:w-2.5 bg-red-600"></span>
-        </span>
+          <span className="text-white drop-shadow-md">{currentStat.prefix}</span>
+          
+          {/* NOME EM EVIDÊNCIA AZUL NEON */}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-300 drop-shadow-[0_0_12px_rgba(59,130,246,0.8)] text-sm md:text-lg mx-1.5 font-extrabold">
+            {currentStat.name}
+          </span>
+          
+          {/* VALOR EM BRANCO CONFORME VOCÊ PEDIU */}
+          <span className="text-white drop-shadow-md tracking-widest font-mono">
+            | {currentStat.suffix}
+          </span>
 
-        <span className="text-slate-300 drop-shadow-md">
-          {currentStat.prefix}
-        </span>
-
-        {/* O NOME EM DEGRADÊ AZUL BRILHANTE E MAIOR */}
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-300 drop-shadow-[0_0_12px_rgba(59,130,246,0.8)] text-sm md:text-lg mx-1">
-          {currentStat.name}
-        </span>
-
-        <span className="text-amber-400 drop-shadow-md">
-          | {currentStat.suffix}
-        </span>
+          {/* O BLOQUINHO DO CURSOR DO TERMINAL */}
+          <span className="typing-cursor align-middle"></span>
+        </div>
       </div>
     </div>
   );
