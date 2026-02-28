@@ -2295,9 +2295,9 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
             <Ban size={12} /> Suspenso
           </div>
         )}
-        <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-10">
+        <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-10">
           {/* Container Principal - O gatilho do mouse (group) */}
-          <div className="relative group cursor-pointer z-10">
+          <div className="relative group cursor-pointer z-10 shrink-0">
             {/* O FOGO ATRÁS (Fica parado ou move muito pouco para dar base) */}
             <div
               className={`${cosmetics.fireProfile} transition-all duration-500 group-hover:scale-105`}
@@ -2306,16 +2306,15 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
             {/* COROA - Camada da frente: Move mais rápido, gira e sobe mais alto */}
             {cosmetics.isPremium && (
               <Crown
-                className="absolute -top-7 -left-7 text-amber-400 w-14 h-14 -rotate-12 drop-shadow-[0_10px_20px_rgba(251,191,36,0.8)] z-30 
+                className="absolute -top-6 -left-6 md:-top-7 md:-left-7 text-amber-400 w-12 h-12 md:w-14 md:h-14 -rotate-12 drop-shadow-[0_10px_20px_rgba(251,191,36,0.8)] z-30 
               transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] 
               group-hover:scale-[1.3] group-hover:rotate-[25deg] group-hover:-translate-y-6 group-hover:-translate-x-2"
               />
             )}
 
             {/* MOLDURA (O Aro) - Camada do meio: Sobe um pouco */}
-            {/* Criei essa div para segurar a moldura separada da imagem */}
             <div
-              className={`relative z-20 w-32 h-32 md:w-40 md:h-40 rounded-2xl ${cosmetics.avatarRing} shadow-2xl overflow-hidden
+              className={`relative z-20 w-28 h-28 md:w-40 md:h-40 rounded-2xl ${cosmetics.avatarRing} shadow-2xl overflow-hidden
               transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
               group-hover:-translate-y-2 group-hover:scale-105 group-hover:shadow-[0_25px_60px_rgba(250,204,21,0.6)]`}
             >
@@ -2330,35 +2329,43 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
               />
             </div>
           </div>
+
           <div className="text-center md:text-left flex-1 w-full">
-            <div className="flex flex-col md:flex-row justify-between items-start w-full gap-6">
-              <div>
+            <div className="flex flex-col md:flex-row justify-between items-center md:items-start w-full gap-6">
+              <div className="flex flex-col items-center md:items-start">
                 <h2
-                  className={`text-4xl md:text-5xl font-black uppercase tracking-tighter mb-3 flex flex-wrap items-center justify-center md:justify-start gap-4 ${cosmetics.nameClass}`}
+                  className={`text-3xl md:text-5xl font-black uppercase tracking-tighter mb-3 flex flex-wrap items-center justify-center md:justify-start gap-3 md:gap-4 ${cosmetics.nameClass}`}
                 >
                   {cosmetics.isPremium && (
-                    <Crown size={32} className="text-amber-400 shrink-0" />
+                    <Crown
+                      size={24}
+                      className="text-amber-400 shrink-0 md:w-[32px] md:h-[32px]"
+                    />
                   )}
-                  {player.nickname}
+                  <span className="truncate max-w-[280px] md:max-w-none">
+                    {player.nickname}
+                  </span>
+
                   {player.clanLogo && (
-                    <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+                    <div className="flex items-center gap-1.5 md:gap-2 bg-slate-950 px-2.5 py-1 md:px-3 md:py-1.5 rounded-lg md:rounded-xl border border-slate-800 shrink-0">
                       <img
                         src={player.clanLogo}
-                        className="w-6 h-6 object-contain"
+                        className="w-4 h-4 md:w-6 md:h-6 object-contain"
                       />
-                      <span className="text-sm text-slate-300 font-black uppercase tracking-widest">
+                      <span className="text-xs md:text-sm text-slate-300 font-black uppercase tracking-widest">
                         {player.clanTag}
                       </span>
                     </div>
                   )}
                 </h2>
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-4">
-                  <span className="inline-block bg-slate-950 text-slate-400 px-4 py-1.5 rounded-lg text-xs font-mono border border-slate-800 tracking-wide">
+
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-3 mb-4">
+                  <span className="inline-block bg-slate-950 text-slate-400 px-3 py-1 md:px-4 md:py-1.5 rounded-lg text-[10px] md:text-xs font-mono border border-slate-800 tracking-wide">
                     {player.gameId}
                   </span>
-                  <span className="inline-flex items-center gap-1.5 bg-green-500/10 text-green-400 px-4 py-1.5 rounded-lg text-xs font-mono font-bold border border-green-500/20 tracking-wide shadow-[0_0_10px_rgba(74,222,128,0.1)]">
-                    <DollarSign size={14} /> Passe:{" "}
-                    {formatCurrency(player.marketValue || 10000000)}
+                  <span className="inline-flex items-center gap-1.5 bg-green-500/10 text-green-400 px-3 py-1 md:px-4 md:py-1.5 rounded-lg text-[10px] md:text-xs font-mono font-bold border border-green-500/20 tracking-wide shadow-[0_0_10px_rgba(74,222,128,0.1)]">
+                    <DollarSign size={12} className="md:w-[14px] md:h-[14px]" />{" "}
+                    Passe: {formatCurrency(player.marketValue || 10000000)}
                     <Tooltip text="Valor de mercado do atleta. Aumenta ou diminui com base no K/D e histórico de vitórias." />
                   </span>
                 </div>
@@ -2366,14 +2373,14 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                 {/* BLOCO DO PATRIMÔNIO */}
                 {/* INVENTÁRIO DO JOGADOR (A MOCHILA) */}
                 {player.inventory && player.inventory.length > 0 && (
-                  <div className="bg-slate-950/80 p-4 rounded-2xl border border-white/5 mb-8 text-left w-full md:max-w-sm mt-4">
-                    <div className="flex items-center gap-2 text-blue-400 mb-3 border-b border-slate-800/80 pb-2">
-                      <Package size={16} />
+                  <div className="bg-slate-950/80 p-4 rounded-2xl border border-white/5 mb-6 md:mb-8 text-left w-full md:max-w-sm mt-2 md:mt-4">
+                    <div className="flex items-center justify-center md:justify-start gap-2 text-blue-400 mb-3 border-b border-slate-800/80 pb-2">
+                      <Package size={14} className="md:w-[16px] md:h-[16px]" />
                       <span className="text-[10px] font-black uppercase tracking-widest">
                         Mochila / Inventário
                       </span>
                     </div>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap justify-center md:justify-start gap-3">
                       {player.inventory.map((item, idx) => (
                         <div
                           key={idx}
@@ -2381,7 +2388,7 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                           title={item.name}
                         >
                           <div
-                            className={`w-12 h-12 rounded-xl p-1.5 flex items-center justify-center border shadow-inner ${
+                            className={`w-10 h-10 md:w-12 md:h-12 rounded-xl p-1.5 flex items-center justify-center border shadow-inner ${
                               item.isPremium
                                 ? "bg-gradient-to-br from-amber-500/20 to-amber-700/20 border-amber-500/50"
                                 : "bg-slate-900 border-slate-700"
@@ -2398,45 +2405,47 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                     </div>
                   </div>
                 )}
-                <div className="bg-slate-950/80 p-4 rounded-2xl border border-white/5 mb-8 text-left max-w-sm mx-auto md:mx-0">
-                  <div className="flex items-center gap-2 text-emerald-400 mb-1">
-                    <TrendingUp size={16} />
+
+                <div className="bg-slate-950/80 p-4 rounded-2xl border border-white/5 mb-8 text-center md:text-left w-full md:max-w-sm mx-auto md:mx-0">
+                  <div className="flex items-center justify-center md:justify-start gap-2 text-emerald-400 mb-1">
+                    <TrendingUp size={14} className="md:w-[16px] md:h-[16px]" />
                     <span className="text-[10px] font-black uppercase tracking-widest">
                       💰 Patrimônio de Carreira
                     </span>
                   </div>
-                  <div className="text-xl font-mono font-black text-white">
+                  <div className="text-lg md:text-xl font-mono font-black text-white">
                     {formatCurrency(player?.totalEarnings || 0)}
                   </div>
-                  <p className="text-[9px] text-slate-500 mt-1 uppercase">
+                  <p className="text-[8px] md:text-[9px] text-slate-500 mt-1 uppercase">
                     Soma de todos os salários recebidos na liga
                   </p>
                 </div>
               </div>
-              <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800 w-full md:w-auto min-w-[240px]">
-                <h4 className="text-amber-500 text-[10px] font-bold uppercase mb-4 flex items-center gap-2 pb-2 border-b border-slate-800/50 tracking-widest">
+
+              <div className="bg-slate-950/60 p-4 md:p-5 rounded-2xl border border-slate-800 w-full md:w-auto min-w-[200px] md:min-w-[240px]">
+                <h4 className="text-amber-500 text-[10px] font-bold uppercase mb-4 flex items-center justify-center md:justify-start gap-2 pb-2 border-b border-slate-800/50 tracking-widest">
                   <Crown size={14} /> Galeria de Títulos
                 </h4>
-                <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-800">
+                <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-800 justify-center md:justify-start">
                   {titles.map((title, idx) => (
                     <div
                       key={idx}
-                      className="flex flex-col items-center group relative min-w-[70px]"
+                      className="flex flex-col items-center group relative min-w-[60px] md:min-w-[70px]"
                     >
                       <img
                         src={title.trophyUrl}
-                        className="w-12 h-12 mb-3 object-contain drop-shadow-lg"
+                        className="w-10 h-10 md:w-12 md:h-12 mb-2 md:mb-3 object-contain drop-shadow-lg"
                       />
-                      <div className="text-[10px] text-white font-bold text-center leading-tight mb-0.5">
+                      <div className="text-[9px] md:text-[10px] text-white font-bold text-center leading-tight mb-0.5">
                         {title.championshipName}
                       </div>
-                      <div className="text-[9px] text-slate-600 font-mono">
+                      <div className="text-[8px] md:text-[9px] text-slate-600 font-mono">
                         {title.splitName}
                       </div>
                     </div>
                   ))}
                   {titles.length === 0 && (
-                    <div className="text-slate-600 text-[10px] italic py-3 w-full text-center">
+                    <div className="text-slate-600 text-[10px] italic py-2 md:py-3 w-full text-center">
                       Nenhum título conquistado.
                     </div>
                   )}
@@ -2445,30 +2454,28 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
             </div>
 
             {/* --- MOTOR DE VÍCIO: CARD DE LEVEL E XP (DOPAMINA) --- */}
-            <div className="mt-10 mb-8 bg-slate-950/80 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+            <div className="mt-8 md:mt-10 mb-8 bg-slate-950/80 border border-slate-800 rounded-2xl md:rounded-3xl p-5 md:p-8 shadow-2xl relative overflow-hidden">
               {/* Brilho de fundo do card */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-full bg-amber-500/5 blur-[80px] pointer-events-none"></div>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full md:w-[600px] h-full bg-amber-500/5 blur-[60px] md:blur-[80px] pointer-events-none"></div>
 
-              <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-10">
+              <div className="relative z-10 flex flex-col md:flex-row items-center gap-5 md:gap-10">
                 {/* Escudo Gigante do Nível */}
                 <div className="flex flex-col items-center justify-center shrink-0 group">
-                  <div className="relative flex items-center justify-center w-28 h-32 group-hover:scale-110 transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
+                  <div className="relative flex items-center justify-center w-24 h-28 md:w-28 md:h-32 group-hover:scale-110 transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
                     <Shield
-                      className="absolute text-slate-900 drop-shadow-[0_0_25px_rgba(251,191,36,0.4)]"
-                      size={130}
+                      className="absolute text-slate-900 drop-shadow-[0_0_25px_rgba(251,191,36,0.4)] w-full h-full"
                       fill="currentColor"
                       strokeWidth={1}
                     />
                     <Shield
-                      className="absolute text-amber-500/20"
-                      size={130}
+                      className="absolute text-amber-500/20 w-full h-full"
                       strokeWidth={2}
                     />
-                    <div className="relative z-10 flex flex-col items-center mt-2">
-                      <span className="text-[10px] uppercase font-black text-amber-500 tracking-[0.3em] drop-shadow-md">
+                    <div className="relative z-10 flex flex-col items-center mt-1 md:mt-2">
+                      <span className="text-[8px] md:text-[10px] uppercase font-black text-amber-500 tracking-[0.2em] md:tracking-[0.3em] drop-shadow-md">
                         Level
                       </span>
-                      <span className="text-5xl font-black text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] leading-none mt-1">
+                      <span className="text-4xl md:text-5xl font-black text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] leading-none mt-0.5 md:mt-1">
                         {levelData.level}
                       </span>
                     </div>
@@ -2476,19 +2483,18 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                 </div>
 
                 {/* Barra de XP e Informações */}
-                <div className="flex-1 w-full">
-                  <div className="flex justify-between items-end mb-3">
+                <div className="flex-1 w-full text-center md:text-left">
+                  <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-4 md:mb-3 gap-2 md:gap-0">
                     <div>
-                      <h4 className="text-white font-black text-xl uppercase tracking-tight flex items-center gap-2">
-                        <Zap className="text-amber-400" size={20} /> Progresso
+                      <h4 className="text-white font-black text-lg md:text-xl uppercase tracking-tight flex items-center justify-center md:justify-start gap-2">
+                        <Zap className="text-amber-400" size={18} /> Progresso
                         de Liga
                       </h4>
-                      <p className="text-slate-500 text-xs mt-0.5">
-                        Jogue partidas oficiais no formato MIX para evoluir de
-                        Nível.
+                      <p className="text-slate-500 text-[10px] md:text-xs mt-0.5 max-w-[250px] md:max-w-none mx-auto md:mx-0 leading-tight">
+                        Jogue partidas no formato MIX para evoluir.
                       </p>
                     </div>
-                    <div className="text-right hidden sm:block">
+                    <div className="hidden md:block text-right">
                       <span className="text-amber-400 font-mono font-black text-2xl">
                         {levelData.currentXp}
                       </span>
@@ -2500,7 +2506,7 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                   </div>
 
                   {/* A Barra Animada (Dopamina Pura) */}
-                  <div className="w-full h-7 bg-slate-950/80 rounded-full border border-slate-800 overflow-hidden relative shadow-inner p-[2px]">
+                  <div className="w-full h-5 md:h-7 bg-slate-950/80 rounded-full border border-slate-800 overflow-hidden relative shadow-inner p-[2px]">
                     <div
                       className="h-full bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-300 rounded-full relative transition-all duration-[2000ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] shadow-[0_0_20px_rgba(251,191,36,0.8)]"
                       style={{ width: `${barWidth}%` }}
@@ -2509,17 +2515,17 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                       <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent rounded-t-full" />
 
                       {/* O Núcleo do Fogo na ponta da barra piscando forte */}
-                      <div className="absolute top-0 right-0 bottom-0 w-16 bg-gradient-to-l from-white/90 to-transparent rounded-r-full animate-pulse blur-[1px]" />
+                      <div className="absolute top-0 right-0 bottom-0 w-12 md:w-16 bg-gradient-to-l from-white/90 to-transparent rounded-r-full animate-pulse blur-[1px]" />
                     </div>
                   </div>
 
                   {/* Status Abaixo da Barra */}
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="sm:hidden text-amber-400 font-mono font-black text-sm">
+                  <div className="flex flex-col md:flex-row justify-between items-center mt-2 md:mt-3 gap-1 md:gap-0">
+                    <span className="md:hidden text-amber-400 font-mono font-black text-sm">
                       {levelData.currentXp} / {levelData.nextLevelXp} XP
                     </span>
                     {!levelData.isMaxLevel ? (
-                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-auto">
+                      <div className="text-[9px] md:text-[10px] text-slate-500 font-bold uppercase tracking-widest md:ml-auto text-center md:text-right">
                         Faltam{" "}
                         <span className="text-amber-400">
                           {levelData.nextLevelXp - levelData.currentXp} XP
@@ -2527,7 +2533,7 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                         para o Nível {levelData.level + 1}
                       </div>
                     ) : (
-                      <div className="text-[10px] text-amber-400 font-black uppercase tracking-widest ml-auto animate-pulse">
+                      <div className="text-[9px] md:text-[10px] text-amber-400 font-black uppercase tracking-widest md:ml-auto animate-pulse text-center md:text-right">
                         Nível Máximo Atingido! O Olimpo da MVL.
                       </div>
                     )}
@@ -2537,22 +2543,22 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
 
               {/* Relatório Imediato da Última Partida (Extrato de Transparência) */}
               {player.lastXpBreakdown && player.lastXpBreakdown.length > 0 && (
-                <div className="mt-8 pt-6 border-t border-slate-800/80">
-                  <h5 className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-4 flex items-center gap-2">
+                <div className="mt-6 md:mt-8 pt-5 md:pt-6 border-t border-slate-800/80">
+                  <h5 className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-4 flex items-center justify-center md:justify-start gap-2">
                     <Activity size={14} className="text-emerald-400" />{" "}
                     Rendimento do Último Jogo
                   </h5>
-                  <div className="flex flex-wrap gap-3 items-center">
+                  <div className="flex flex-col md:flex-row flex-wrap gap-2 md:gap-3 items-center justify-center md:justify-start">
                     {player.lastXpBreakdown.map((item, idx) => (
                       <div
                         key={idx}
-                        className="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm"
+                        className="bg-slate-900 border border-slate-800 px-3 py-2 md:px-4 md:py-2 rounded-lg md:rounded-xl flex items-center justify-between w-full md:w-auto shadow-sm"
                       >
-                        <span className="text-xs font-bold text-slate-300">
+                        <span className="text-[10px] md:text-xs font-bold text-slate-300">
                           {item.reason}
                         </span>
                         <span
-                          className={`text-xs font-mono font-black ${
+                          className={`text-[10px] md:text-xs font-mono font-black ml-4 md:ml-2 ${
                             item.amount > 0
                               ? "text-emerald-400"
                               : "text-red-400"
@@ -2563,7 +2569,7 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                       </div>
                     ))}
                     <div
-                      className={`ml-auto px-5 py-2 rounded-xl font-black text-xs uppercase border flex items-center gap-2 shadow-lg ${
+                      className={`w-full md:w-auto md:ml-auto px-4 py-2.5 md:px-5 md:py-2 rounded-lg md:rounded-xl font-black text-[10px] md:text-xs uppercase border flex items-center justify-between md:justify-start gap-2 shadow-lg mt-2 md:mt-0 ${
                         player.lastXpChange > 0
                           ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
                           : "bg-red-500/10 text-red-400 border-red-500/30"
@@ -2572,7 +2578,7 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                       {player.lastXpChange > 0
                         ? "Saldo Final"
                         : "Saldo Negativo"}
-                      <span className="text-sm">
+                      <span className="text-xs md:text-sm">
                         {player.lastXpChange > 0
                           ? `+${player.lastXpChange}`
                           : player.lastXpChange}{" "}
