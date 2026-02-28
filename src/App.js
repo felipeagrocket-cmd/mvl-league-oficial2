@@ -6495,11 +6495,13 @@ const AdminPanel = ({
                                         selectedPlayersForMix,
                                         mixBestOf
                                       );
-                                    setMixSummary(result);
-                                    setSelectedPlayersForMix([]);
-                                    triggerFeedback(
-                                      "Torneio MIX gerado e balanceado!"
-                                    );
+                                    if (result) {
+                                      setMixSummary(result);
+                                      setSelectedPlayersForMix([]);
+                                      triggerFeedback(
+                                        "Torneio MIX gerado e balanceado!"
+                                      );
+                                    }
                                   }}
                                   className="w-full bg-blue-500 hover:bg-blue-400 disabled:opacity-30 disabled:cursor-not-allowed text-white font-black uppercase py-4 rounded-2xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3"
                                 >
@@ -9380,12 +9382,9 @@ const App = () => {
         }
       }
     }
-
-    setDb((prev) => ({
-      ...prev,
-      series: [...(prev.series || []), ...newSeries],
-    }));
+    // Removido o setDb local para evitar "Race Condition" e duplicação na UI
   };
+
   const handleUndoGroupStage = async (splitId) => {
     if (
       window.confirm(
@@ -9403,13 +9402,7 @@ const App = () => {
           console.error(e);
         }
       }
-
-      setDb((prev) => ({
-        ...prev,
-        series: prev.series.filter(
-          (s) => !(s.splitId === splitId && s.stage === "Fase de Grupos")
-        ),
-      }));
+      // Removido o setDb local, o Firebase resolve automático
     }
   };
 
@@ -9444,42 +9437,58 @@ const App = () => {
         clanB_Id: standings[3].id,
         matchIds: [],
         date: new Date().toISOString(),
-        bestOf: bestOf, // <--- ADICIONE AQUI
+        bestOf: bestOf,
       },
       {
         id: generateId(),
         splitId,
         label: "Semifinal 2",
-        // ... (resto do código da semi 2) ...
+        stage: "Playoffs",
+        teamA: standings[1].name,
+        teamB: standings[2].name,
+        clanA_Id: standings[1].id,
+        clanB_Id: standings[2].id,
         matchIds: [],
         date: new Date().toISOString(),
-        bestOf: bestOf, // <--- ADICIONE AQUI TAMBÉM
+        bestOf: bestOf,
       },
       {
         id: generateId(),
         splitId,
         label: "Grande Final",
-        // ... (resto do código da final) ...
+        stage: "Playoffs",
+        teamA: "Vencedor Semi 1",
+        teamB: "Vencedor Semi 2",
+        clanA_Id: null,
+        clanB_Id: null,
         matchIds: [],
         date: new Date().toISOString(),
-        bestOf: bestOf, // <--- ADICIONE AQUI TAMBÉM
+        bestOf: bestOf,
       },
     ];
 
     for (const s of newSeries) {
       await salvarNoFirebase("series", s);
     }
-
-    setDb((prev) => ({
-      ...prev,
-      series: [...(prev.series || []), ...newSeries],
-    }));
+    // Removido o setDb local
   };
+
   const handleGenerateMixTournament = async (
     splitId,
     playerIds,
     bestOf = 3
   ) => {
+    // NOVO: CHECAGEM DE SEGURANÇA (TRAVA O BOTÃO DUPLO)
+    const existing = db.series.filter(
+      (s) => s.splitId === splitId && s.stage === "Playoffs"
+    );
+    if (existing.length > 0) {
+      alert(
+        "As chaves já foram geradas! Desfaça os Playoffs caso queira re-sortear."
+      );
+      return null;
+    }
+
     const b = new BackendController(db);
     const teamNames = [
       "Alfa",
@@ -9527,7 +9536,7 @@ const App = () => {
       newSeries.push({
         id: generateId(),
         splitId,
-        label: "Grande Final", // (ou Semifinal 1, Semifinal 2...)
+        label: "Grande Final",
         stage: "Playoffs",
         teamA: teams[0].name,
         teamB: teams[1].name,
@@ -9535,7 +9544,7 @@ const App = () => {
         clanB_Id: null,
         matchIds: [],
         date: new Date().toISOString(),
-        bestOf: bestOf, // <--- ADICIONE AQUI DENTRO DO PUSH
+        bestOf: bestOf,
         mixPlayersA: teams[0].players.map((p) => p.id),
         mixPlayersB: teams[1].players.map((p) => p.id),
       });
@@ -9588,11 +9597,8 @@ const App = () => {
     for (const s of newSeries) {
       await salvarNoFirebase("series", s);
     }
+    // Removido o setDb local
 
-    setDb((prev) => ({
-      ...prev,
-      series: [...(prev.series || []), ...newSeries],
-    }));
     return { teams, precision };
   };
 
@@ -9612,13 +9618,7 @@ const App = () => {
           console.error(e);
         }
       }
-
-      setDb((prev) => ({
-        ...prev,
-        series: prev.series.filter(
-          (s) => !(s.splitId === splitId && s.stage === "Playoffs")
-        ),
-      }));
+      // Removido o setDb local
     }
   };
 
