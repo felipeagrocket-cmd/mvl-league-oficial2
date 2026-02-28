@@ -2033,7 +2033,6 @@ const MatchDetailsModal = ({ matchId, data, onClose, highlightPlayerId }) => {
       const p = data.players.find((pl) => pl.id === s.playerId);
       const clan = data.clans.find((c) => c.id === p?.clanId);
 
-      // Calcula o XP exato ganho nesta partida se for campeonato MIX
       const matchXpChange =
         split?.format === "mix"
           ? LevelEngine.calculateMatchXP(s.mapWin, s.kills, s.deaths).xpChange
@@ -2066,182 +2065,165 @@ const MatchDetailsModal = ({ matchId, data, onClose, highlightPlayerId }) => {
       : stats.slice(5);
   const renderTable = (ts, tName, isW) => (
     <div
-      className={`flex-1 bg-slate-900 rounded-xl overflow-hidden border ${
+      className={`flex-1 bg-slate-900 rounded-xl overflow-hidden border flex flex-col ${
         isW ? "border-amber-400/30" : "border-slate-800"
       }`}
     >
       <div
-        className={`p-3 text-center font-bold uppercase text-xs tracking-wider ${
+        className={`p-3 text-center font-bold uppercase text-xs tracking-wider shrink-0 ${
           isW ? "bg-amber-400/90 text-black" : "bg-slate-800/80 text-slate-400"
         }`}
       >
-        {tName} {isW && <Crown size={14} />}
+        {tName}{" "}
+        {isW && <Crown size={14} className="inline-block ml-1 mb-0.5" />}
       </div>
-      <table className="w-full text-left">
-        <thead className="bg-slate-950/50 text-[10px] text-slate-500 uppercase border-b border-slate-800">
-          <tr>
-            <th className="p-3">Jogador</th>
-            <th className="p-3 text-center">K</th>
-            <th className="p-3 text-center">D</th>
-            <th className="p-3 text-center">KD</th>
-            {/* Coluna de XP (Só aparece em MIX) */}
-            {split?.format === "mix" && <th className="p-3 text-right">XP</th>}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-800/50">
-          {ts.map((p) => (
-            <tr
-              key={p.id}
-              className={`${
-                highlightPlayerId === p.playerId ? "bg-amber-500/5" : ""
-              } ${
-                !highlightPlayerId && p.playerId === mvp ? "bg-amber-400/5" : ""
-              }`}
-            >
-              <td className="p-3 flex items-center gap-3">
-                <img
-                  src={p.avatarUrl}
-                  className="w-8 h-8 rounded-lg bg-slate-800"
-                />
-                <div className="flex flex-col">
-                  <span
-                    className={`text-xs font-bold flex items-center gap-1 ${
-                      checkCosmetics(p).isPremium
-                        ? checkCosmetics(p).nameClass
-                        : highlightPlayerId === p.playerId
-                        ? "text-white"
-                        : p.playerId === mvp
-                        ? "text-amber-300"
-                        : "text-slate-300"
-                    }`}
-                  >
-                    {p.clanTag && (
-                      <span className="text-amber-500 font-mono text-[10px] shrink-0">
-                        [{p.clanTag}]
-                      </span>
-                    )}
-
-                    {/* ESCUDO DE LEVEL NO HISTÓRICO DE PARTIDAS */}
-                    <div
-                      className="relative flex items-center justify-center w-5 h-6 shrink-0"
-                      title={`Level ${
-                        LevelEngine.getLevelData(p.xp || 0).level
-                      }`}
-                    >
-                      <Shield
-                        className="absolute text-slate-950 drop-shadow-md"
-                        size={18}
-                        fill="currentColor"
-                        strokeWidth={1}
-                      />
-                      <Shield
-                        className="absolute text-amber-500/60"
-                        size={18}
-                        strokeWidth={1.5}
-                      />
-                      <span className="relative z-10 text-[8px] font-black text-amber-400 leading-none mt-px">
-                        {LevelEngine.getLevelData(p.xp || 0).level}
-                      </span>
-                    </div>
-
-                    {checkCosmetics(p).isPremium && (
-                      <Crown size={10} className="text-amber-400 shrink-0" />
-                    )}
-                    <span className="truncate">{p.nickname}</span>
-                  </span>
-                </div>
-              </td>
-              <td className="p-3 text-center font-bold text-sm text-slate-300">
-                {p.kills}
-              </td>
-              <td className="p-3 text-center text-slate-500 text-sm">
-                {p.deaths}
-              </td>
-              <td
-                className={`p-3 text-center font-mono text-xs font-bold ${
-                  p.kd >= 1 ? "text-emerald-400" : "text-red-400"
-                }`}
-              >
-                {p.kd.toFixed(2)}
-              </td>
-              {/* Celula do XP (Exibe verde ou vermelho) */}
+      <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-700">
+        <table className="w-full text-left whitespace-nowrap">
+          <thead className="bg-slate-950/50 text-[10px] text-slate-500 uppercase border-b border-slate-800">
+            <tr>
+              <th className="p-3">Jogador</th>
+              <th className="p-3 text-center">K</th>
+              <th className="p-3 text-center">D</th>
+              <th className="p-3 text-center">KD</th>
               {split?.format === "mix" && (
-                <td className="p-3 text-right">
-                  <span
-                    className={`inline-block px-2 py-1 rounded text-[10px] font-black font-mono tracking-wider border ${
-                      p.matchXpChange > 0
-                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_8px_rgba(52,211,153,0.1)]"
-                        : "bg-red-500/10 text-red-400 border-red-500/20"
-                    }`}
-                  >
-                    {p.matchXpChange > 0
-                      ? `+${p.matchXpChange}`
-                      : p.matchXpChange}{" "}
-                    XP
-                  </span>
-                </td>
+                <th className="p-3 text-right">XP</th>
               )}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-slate-800/50">
+            {ts.map((p) => (
+              <tr
+                key={p.id}
+                className={`${
+                  highlightPlayerId === p.playerId ? "bg-amber-500/5" : ""
+                } ${
+                  !highlightPlayerId && p.playerId === mvp
+                    ? "bg-amber-400/5"
+                    : ""
+                }`}
+              >
+                <td className="p-3 flex items-center gap-3">
+                  <img
+                    src={p.avatarUrl}
+                    className="w-8 h-8 rounded-lg bg-slate-800 shrink-0"
+                  />
+                  <div className="flex flex-col">
+                    <span
+                      className={`text-xs font-bold flex items-center gap-1 ${
+                        checkCosmetics(p).isPremium
+                          ? checkCosmetics(p).nameClass
+                          : highlightPlayerId === p.playerId
+                          ? "text-white"
+                          : p.playerId === mvp
+                          ? "text-amber-300"
+                          : "text-slate-300"
+                      }`}
+                    >
+                      {p.clanTag && (
+                        <span className="text-amber-500 font-mono text-[10px] shrink-0">
+                          [{p.clanTag}]
+                        </span>
+                      )}
+                      {checkCosmetics(p).isPremium && (
+                        <Crown size={10} className="text-amber-400 shrink-0" />
+                      )}
+                      <span className="truncate">{p.nickname}</span>
+                    </span>
+                  </div>
+                </td>
+                <td className="p-3 text-center font-bold text-sm text-slate-300">
+                  {p.kills}
+                </td>
+                <td className="p-3 text-center text-slate-500 text-sm">
+                  {p.deaths}
+                </td>
+                <td
+                  className={`p-3 text-center font-mono text-xs font-bold ${
+                    p.kd >= 1 ? "text-emerald-400" : "text-red-400"
+                  }`}
+                >
+                  {p.kd.toFixed(2)}
+                </td>
+                {split?.format === "mix" && (
+                  <td className="p-3 text-right">
+                    <span
+                      className={`inline-block px-2 py-1 rounded text-[10px] font-black font-mono tracking-wider border ${
+                        p.matchXpChange > 0
+                          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_8px_rgba(52,211,153,0.1)]"
+                          : "bg-red-500/10 text-red-400 border-red-500/20"
+                      }`}
+                    >
+                      {p.matchXpChange > 0
+                        ? `+${p.matchXpChange}`
+                        : p.matchXpChange}{" "}
+                      XP
+                    </span>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn overflow-y-auto">
-      <div className="w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl relative flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-2 md:p-4 animate-fadeIn overflow-y-auto">
+      <div className="w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl relative flex flex-col max-h-[95vh] md:max-h-[90vh]">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-500 hover:text-white p-2 bg-slate-800/50 rounded-full hover:bg-slate-700 transition-colors z-10"
+          className="absolute top-3 right-3 md:top-4 md:right-4 text-slate-500 hover:text-white p-2 bg-slate-800/50 rounded-full hover:bg-slate-700 transition-colors z-10"
         >
           <X size={20} />
         </button>
-        <div className="p-8 pb-4 text-center border-b border-slate-800 bg-gradient-to-b from-slate-900 to-slate-900/50">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <span className="text-xs font-bold uppercase text-slate-500 bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700/50">
+        <div className="p-6 md:p-8 pb-4 text-center border-b border-slate-800 bg-gradient-to-b from-slate-900 to-slate-900/50 shrink-0">
+          <div className="flex items-center justify-center gap-2 md:gap-3 mb-3 md:mb-4">
+            <span className="text-[10px] md:text-xs font-bold uppercase text-slate-500 bg-slate-800/50 px-2 md:px-3 py-1 rounded-full border border-slate-700/50">
               {split?.name}
             </span>
-            <span className="text-xs font-bold uppercase text-slate-500 bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700/50">
+            <span className="text-[10px] md:text-xs font-bold uppercase text-slate-500 bg-slate-800/50 px-2 md:px-3 py-1 rounded-full border border-slate-700/50">
               {match.md3GroupId}
             </span>
           </div>
-          <h2 className="text-3xl md:text-5xl font-black text-white uppercase mb-8">
+          <h2 className="text-2xl md:text-5xl font-black text-white uppercase mb-6 md:mb-8">
             {match.mapName}
           </h2>
-          <div className="flex items-center justify-center gap-8 md:gap-20">
+          <div className="flex items-center justify-center gap-6 md:gap-20">
             <div
               className={`flex flex-col items-center ${
                 match.winnerSide === "A" ? "scale-110" : "opacity-50 blur-[1px]"
               }`}
             >
-              <span className="text-blue-400 font-bold uppercase text-xs mb-2">
-                Time Blue{" "}
+              <span className="text-blue-400 font-bold uppercase text-[10px] md:text-xs mb-1 md:mb-2">
+                Blue{" "}
                 {match.clanA_Id && match.clanA_Id !== "tempA"
                   ? `[${data.clans.find((c) => c.id === match.clanA_Id)?.tag}]`
                   : ""}
               </span>
               <span
-                className={`text-6xl md:text-8xl font-mono font-black ${
+                className={`text-5xl md:text-8xl font-mono font-black ${
                   match.winnerSide === "A" ? "text-blue-400" : "text-white"
                 }`}
               >
                 {match.scoreA || 0}
               </span>
             </div>
-            <span className="text-slate-700 font-black text-2xl">VS</span>
+            <span className="text-slate-700 font-black text-xl md:text-2xl">
+              VS
+            </span>
             <div
               className={`flex flex-col items-center ${
                 match.winnerSide === "B" ? "scale-110" : "opacity-50 blur-[1px]"
               }`}
             >
-              <span className="text-red-400 font-bold uppercase text-xs mb-2">
-                Time Red{" "}
+              <span className="text-red-400 font-bold uppercase text-[10px] md:text-xs mb-1 md:mb-2">
+                Red{" "}
                 {match.clanB_Id && match.clanB_Id !== "tempB"
                   ? `[${data.clans.find((c) => c.id === match.clanB_Id)?.tag}]`
                   : ""}
               </span>
               <span
-                className={`text-6xl md:text-8xl font-mono font-black ${
+                className={`text-5xl md:text-8xl font-mono font-black ${
                   match.winnerSide === "B" ? "text-red-400" : "text-white"
                 }`}
               >
@@ -2250,8 +2232,8 @@ const MatchDetailsModal = ({ matchId, data, onClose, highlightPlayerId }) => {
             </div>
           </div>
         </div>
-        <div className="p-6 md:p-8 overflow-y-auto">
-          <div className="flex flex-col lg:flex-row gap-6">
+        <div className="p-4 md:p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+          <div className="flex flex-col lg:flex-row gap-4 md:gap-6">
             {renderTable(teamA, "Time Blue", match.winnerSide === "A")}
             {renderTable(teamB, "Time Red", match.winnerSide === "B")}
           </div>
@@ -3082,29 +3064,28 @@ const MatchHistorySection = ({ data }) => {
     <div className="animate-fadeIn">
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 border-b border-slate-800 pb-6">
         <h2 className="text-2xl font-black text-white uppercase flex items-center gap-3 tracking-tight">
-          <HistoryIcon className="text-amber-400" size={28} /> Histórico de
-          Partidas
+          <HistoryIcon className="text-amber-400" size={28} /> Histórico
         </h2>
-        <div className="flex bg-slate-900 p-1.5 rounded-xl border border-slate-800">
+        <div className="flex bg-slate-900 p-1.5 rounded-xl border border-slate-800 w-full md:w-auto">
           <button
             onClick={() => setViewMode("series")}
-            className={`px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+            className={`flex-1 md:flex-none px-4 md:px-5 py-2.5 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
               viewMode === "series"
                 ? "bg-amber-400 text-black shadow-lg shadow-amber-400/20 scale-105"
                 : "text-slate-500 hover:text-white hover:bg-white/5"
             }`}
           >
-            Visão por Séries
+            Séries
           </button>
           <button
             onClick={() => setViewMode("matches")}
-            className={`px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+            className={`flex-1 md:flex-none px-4 md:px-5 py-2.5 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
               viewMode === "matches"
                 ? "bg-amber-400 text-black shadow-lg shadow-amber-400/20 scale-105"
                 : "text-slate-500 hover:text-white hover:bg-white/5"
             }`}
           >
-            Todas as Partidas
+            Partidas
           </button>
         </div>
       </div>
@@ -3114,14 +3095,14 @@ const MatchHistorySection = ({ data }) => {
             processedSeries.map((s) => (
               <div
                 key={s.id}
-                className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 hover:border-slate-700 rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl hover:shadow-black/20"
+                className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 hover:border-slate-700 rounded-2xl overflow-hidden shadow-lg transition-all duration-300"
               >
-                <div className="bg-slate-900/80 p-4 border-b border-slate-800 flex justify-between items-center">
-                  <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest flex items-center gap-2">
+                <div className="bg-slate-900/80 p-3 md:p-4 border-b border-slate-800 flex justify-between items-center">
+                  <span className="text-slate-400 font-bold uppercase text-[9px] md:text-[10px] tracking-widest flex items-center gap-2">
                     <Layers size={12} className="text-amber-500" /> {s.label}
                   </span>
                   <span
-                    className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded-full border ${
+                    className={`text-[9px] md:text-[10px] uppercase font-bold px-2 py-1 rounded-full border ${
                       s.status === "Finalizada"
                         ? "bg-slate-800 border-slate-700 text-slate-400"
                         : "bg-green-500/10 border-green-500/20 text-green-400"
@@ -3130,33 +3111,31 @@ const MatchHistorySection = ({ data }) => {
                     {s.status}
                   </span>
                 </div>
-                <div className="p-8 flex flex-col md:flex-row items-center justify-between gap-8 bg-gradient-to-b from-slate-900/30 to-transparent">
+                <div className="p-5 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 bg-gradient-to-b from-slate-900/30 to-transparent">
                   <div
                     className={`flex-1 text-center md:text-right transition-all duration-500 ${
-                      s.finalWinner === "A"
-                        ? "opacity-100 translate-x-0"
-                        : "opacity-40"
+                      s.finalWinner === "A" ? "opacity-100" : "opacity-40"
                     }`}
                   >
                     <h3
-                      className={`text-3xl font-black uppercase tracking-tight ${
+                      className={`text-xl md:text-3xl font-black uppercase tracking-tight ${
                         s.finalWinner === "A" ? "text-white" : "text-slate-300"
                       }`}
                     >
                       {s.teamA}
                     </h3>
                     {s.finalWinner === "A" && (
-                      <span className="inline-block mt-2 text-blue-400 text-[10px] font-bold uppercase tracking-widest border border-blue-400/20 px-2 py-0.5 rounded bg-blue-400/5">
+                      <span className="inline-block mt-1 md:mt-2 text-blue-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest border border-blue-400/20 px-2 py-0.5 rounded bg-blue-400/5">
                         Vencedor
                       </span>
                     )}
                   </div>
                   <div className="flex flex-col items-center shrink-0">
-                    <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-2xl relative">
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-800 text-slate-400 text-[9px] font-bold uppercase px-2 py-0.5 rounded border border-slate-700">
+                    <div className="bg-slate-950 p-4 md:p-6 rounded-2xl border border-slate-800 shadow-2xl relative">
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-800 text-slate-400 text-[8px] md:text-[9px] font-bold uppercase px-2 py-0.5 rounded border border-slate-700">
                         Placar
                       </div>
-                      <span className="text-5xl font-mono font-black text-white leading-none tracking-tighter flex items-center gap-4">
+                      <span className="text-4xl md:text-5xl font-mono font-black text-white leading-none tracking-tighter flex items-center gap-3 md:gap-4">
                         <span
                           className={
                             s.finalWinner === "A"
@@ -3166,7 +3145,7 @@ const MatchHistorySection = ({ data }) => {
                         >
                           {s.winsA}
                         </span>
-                        <span className="w-px h-10 bg-slate-800"></span>
+                        <span className="w-px h-8 md:h-10 bg-slate-800"></span>
                         <span
                           className={
                             s.finalWinner === "B"
@@ -3181,41 +3160,39 @@ const MatchHistorySection = ({ data }) => {
                   </div>
                   <div
                     className={`flex-1 text-center md:text-left transition-all duration-500 ${
-                      s.finalWinner === "B"
-                        ? "opacity-100 translate-x-0"
-                        : "opacity-40"
+                      s.finalWinner === "B" ? "opacity-100" : "opacity-40"
                     }`}
                   >
                     <h3
-                      className={`text-3xl font-black uppercase tracking-tight ${
+                      className={`text-xl md:text-3xl font-black uppercase tracking-tight ${
                         s.finalWinner === "B" ? "text-white" : "text-slate-300"
                       }`}
                     >
                       {s.teamB}
                     </h3>
                     {s.finalWinner === "B" && (
-                      <span className="inline-block mt-2 text-red-400 text-[10px] font-bold uppercase tracking-widest border border-red-400/20 px-2 py-0.5 rounded bg-red-400/5">
+                      <span className="inline-block mt-1 md:mt-2 text-red-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest border border-red-400/20 px-2 py-0.5 rounded bg-red-400/5">
                         Vencedor
                       </span>
                     )}
                   </div>
                 </div>
                 {s.matches.length > 0 && (
-                  <div className="bg-slate-950/30 p-4 border-t border-slate-800">
-                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide justify-center">
+                  <div className="bg-slate-950/30 p-3 md:p-4 border-t border-slate-800">
+                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide md:justify-center px-2">
                       {s.matches.map((m, i) => (
                         <div
                           key={m.id}
                           onClick={() => setSelectedMatchId(m.id)}
-                          className="shrink-0 w-32 bg-slate-900 border border-slate-800 rounded-lg p-3 text-center cursor-pointer hover:border-amber-400/50 hover:bg-slate-800 transition-all duration-200 group"
+                          className="shrink-0 w-28 md:w-32 bg-slate-900 border border-slate-800 rounded-lg p-2.5 md:p-3 text-center cursor-pointer hover:border-amber-400/50 hover:bg-slate-800 transition-all duration-200 group"
                         >
-                          <div className="text-[9px] text-slate-500 uppercase font-bold mb-1 tracking-wider group-hover:text-amber-400">
+                          <div className="text-[8px] md:text-[9px] text-slate-500 uppercase font-bold mb-1 tracking-wider group-hover:text-amber-400">
                             Mapa {i + 1}
                           </div>
-                          <div className="text-xs font-bold text-white mb-2 truncate group-hover:text-amber-100">
+                          <div className="text-[10px] md:text-xs font-bold text-white mb-2 truncate group-hover:text-amber-100">
                             {m.mapName}
                           </div>
-                          <div className="text-[10px] font-mono bg-slate-950 rounded py-1 border border-slate-800">
+                          <div className="text-[9px] md:text-[10px] font-mono bg-slate-950 rounded py-1 border border-slate-800">
                             <span
                               className={
                                 m.winnerSide === "A"
@@ -3244,9 +3221,11 @@ const MatchHistorySection = ({ data }) => {
               </div>
             ))
           ) : (
-            <div className="text-center py-20 bg-slate-900/50 rounded-2xl border border-slate-800 border-dashed text-slate-500">
-              <Layers size={48} className="mx-auto mb-4 opacity-20" />
-              <p className="text-sm">Nenhuma série registrada.</p>
+            <div className="text-center py-16 md:py-20 bg-slate-900/50 rounded-2xl border border-slate-800 border-dashed text-slate-500">
+              <Layers size={40} className="mx-auto mb-4 opacity-20" />
+              <p className="text-xs md:text-sm font-medium uppercase tracking-widest">
+                Nenhuma série registrada.
+              </p>
             </div>
           )}
         </div>
@@ -3261,7 +3240,7 @@ const MatchHistorySection = ({ data }) => {
                   ? "Vitória Blue"
                   : match.winnerSide === "B"
                   ? "Vitória Red"
-                  : "Empate/Indefinido";
+                  : "Empate";
               const winnerColor =
                 match.winnerSide === "A"
                   ? "text-blue-400"
@@ -3278,53 +3257,55 @@ const MatchHistorySection = ({ data }) => {
                 <div
                   key={match.id}
                   onClick={() => setSelectedMatchId(match.id)}
-                  className={`bg-slate-900/80 backdrop-blur border border-slate-800 rounded-xl p-5 flex flex-col md:flex-row items-center justify-between cursor-pointer hover:bg-slate-800 transition-all group shadow-sm hover:shadow-lg ${winnerBorder} border-l-[6px] hover:translate-x-1`}
+                  className={`bg-slate-900/80 backdrop-blur border border-slate-800 rounded-xl p-4 md:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between cursor-pointer hover:bg-slate-800 transition-all group shadow-sm hover:shadow-lg ${winnerBorder} border-l-[4px] md:border-l-[6px] hover:translate-x-1 gap-4 sm:gap-0`}
                 >
-                  <div className="flex items-center gap-6 w-full md:w-auto">
-                    <div className="hidden md:flex flex-col items-center justify-center w-14 h-14 bg-slate-950 rounded-lg border border-slate-800/50 group-hover:border-slate-700 transition-colors">
+                  <div className="flex items-center gap-4 w-full sm:w-auto">
+                    <div className="hidden md:flex flex-col items-center justify-center w-12 h-12 bg-slate-950 rounded-lg border border-slate-800/50 group-hover:border-slate-700 transition-colors">
                       <Swords
-                        size={20}
+                        size={18}
                         className="text-slate-600 group-hover:text-white transition-colors"
                       />
                     </div>
                     <div>
-                      <div className="flex items-center gap-3 mb-1.5">
-                        <span className="text-white font-black text-lg uppercase tracking-tight group-hover:text-amber-400 transition-colors">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="text-white font-black text-sm md:text-lg uppercase tracking-tight group-hover:text-amber-400 transition-colors">
                           {match.mapName}
                         </span>
-                        <span className="text-[10px] font-bold bg-slate-950 text-slate-400 px-2 py-0.5 rounded border border-slate-800 uppercase tracking-wide">
+                        <span className="text-[8px] md:text-[10px] font-bold bg-slate-950 text-slate-400 px-2 py-0.5 rounded border border-slate-800 uppercase tracking-wide">
                           {match.md3GroupId}
                         </span>
                       </div>
-                      <div className="text-xs text-slate-500 flex flex-col sm:flex-row gap-1 sm:gap-4 font-medium">
+                      <div className="text-[10px] md:text-xs text-slate-500 flex flex-col sm:flex-row gap-1 sm:gap-4 font-medium">
                         <span className="flex items-center gap-1.5">
-                          <Calendar size={12} />{" "}
+                          <Calendar size={10} />{" "}
                           {new Date(match.date).toLocaleDateString()}
                         </span>
                         <span className="flex items-center gap-1.5">
-                          <Trophy size={12} className="text-amber-500/50" />{" "}
+                          <Trophy size={10} className="text-amber-500/50" />{" "}
                           {split?.name || "Split Arquivado"}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-8 mt-4 md:mt-0 w-full md:w-auto justify-between md:justify-end bg-slate-950/50 md:bg-transparent p-3 md:p-0 rounded-lg">
-                    <div className="text-right">
-                      <div className="text-2xl font-mono font-black text-white leading-none flex items-center gap-3 justify-end">
+                  <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto bg-slate-950/50 sm:bg-transparent p-3 sm:p-0 rounded-lg border border-slate-800 sm:border-none gap-4">
+                    <div className="text-left sm:text-right flex items-center sm:block gap-4">
+                      <div className="text-lg md:text-2xl font-mono font-black text-white leading-none flex items-center gap-2 justify-end">
                         <span
                           className={
                             match.winnerSide === "A"
-                              ? "text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                              ? "text-blue-400"
                               : "text-slate-600"
                           }
                         >
                           {match.scoreA || 0}
                         </span>
-                        <span className="text-slate-800 text-lg">:</span>
+                        <span className="text-slate-800 text-sm md:text-lg">
+                          :
+                        </span>
                         <span
                           className={
                             match.winnerSide === "B"
-                              ? "text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+                              ? "text-red-400"
                               : "text-slate-600"
                           }
                         >
@@ -3332,21 +3313,23 @@ const MatchHistorySection = ({ data }) => {
                         </span>
                       </div>
                       <div
-                        className={`text-[9px] font-bold uppercase mt-1 tracking-widest ${winnerColor}`}
+                        className={`text-[9px] font-bold uppercase sm:mt-1 tracking-widest ${winnerColor}`}
                       >
                         {winnerText}
                       </div>
                     </div>
-                    <ChevronRight className="text-slate-700 group-hover:text-amber-400 transition-colors hidden md:block" />
+                    <ChevronRight className="text-slate-700 group-hover:text-amber-400 transition-colors hidden sm:block" />
                   </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="text-center py-20 bg-slate-900/50 rounded-2xl border border-slate-800 border-dashed text-slate-500">
-            <Swords size={48} className="mx-auto mb-4 opacity-20" />
-            <p className="text-sm">Nenhuma partida registrada no histórico.</p>
+          <div className="text-center py-16 md:py-20 bg-slate-900/50 rounded-2xl border border-slate-800 border-dashed text-slate-500">
+            <Swords size={40} className="mx-auto mb-4 opacity-20" />
+            <p className="text-xs md:text-sm font-medium uppercase tracking-widest">
+              Nenhuma partida registrada no histórico.
+            </p>
           </div>
         ))}
       {selectedMatchId && (
