@@ -4669,8 +4669,135 @@ const MarketPage = ({ data, onPlayerClick }) => {
 
       {/* ABA 3: VITRINE DE MARCAS (O GRANDE CHARME COM PRESTÍGIO TOTAL) */}
       {marketTab === "sponsors" && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl p-6 md:p-10 animate-fadeIn">
-          {/* ... */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl p-5 md:p-10 animate-fadeIn">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-6 md:mb-10 border-b border-slate-800 pb-4 md:pb-6">
+            <div>
+              <h3 className="text-xl md:text-2xl font-black text-white uppercase flex items-center gap-2 md:gap-3 tracking-tight">
+                <Handshake className="text-blue-400" size={24} /> Vitrine de
+                Marcas
+              </h3>
+              <p className="text-slate-400 text-[10px] md:text-xs mt-1 font-medium">
+                Bata as metas, atraia visibilidade e assine contratos
+                milionários para seu Clã.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {data.sponsors?.map((sponsor) => {
+              const clan = data.clans.find((c) => c.id === sponsor.clanId);
+              const isAvailable = !clan;
+
+              return (
+                <div
+                  key={sponsor.id}
+                  className={`relative bg-slate-950 p-4 md:p-6 rounded-2xl border flex flex-col gap-4 overflow-hidden transition-all duration-300 hover:-translate-y-1 ${
+                    isAvailable
+                      ? "border-emerald-500/30 hover:border-emerald-500/60 shadow-[0_0_15px_rgba(16,185,129,0.05)]"
+                      : "border-blue-500/30 hover:border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.05)]"
+                  }`}
+                >
+                  {sponsor.isPremium && (
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-amber-600"></div>
+                  )}
+
+                  <div className="flex items-center gap-3 md:gap-4">
+                    <div
+                      className={`w-12 h-12 md:w-16 md:h-16 bg-white rounded-xl p-1.5 md:p-2 flex items-center justify-center shadow-inner shrink-0 ${
+                        sponsor.isPremium ? "ring-2 ring-amber-400" : ""
+                      }`}
+                    >
+                      <img
+                        src={sponsor.logoUrl}
+                        className="max-w-full max-h-full object-contain drop-shadow-sm"
+                        alt={sponsor.name}
+                      />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-black text-base md:text-xl uppercase tracking-tight leading-tight line-clamp-1">
+                        {sponsor.name}
+                      </h4>
+                      {sponsor.isPremium && (
+                        <span className="text-[8px] md:text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-gradient-to-r from-amber-400 to-amber-600 text-black shadow-md flex items-center gap-1 w-fit mt-1 md:mt-1.5">
+                          <Crown
+                            size={10}
+                            className="md:w-[12px] md:h-[12px]"
+                          />{" "}
+                          Premium
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-900 rounded-xl p-4 md:p-5 border border-slate-800 flex-1 flex flex-col justify-center relative shadow-inner">
+                    <div className="text-center mb-3 md:mb-4">
+                      <div className="text-slate-500 text-[9px] md:text-[10px] uppercase font-bold tracking-widest mb-1">
+                        {sponsor.type === "victory"
+                          ? "Bônus por Vitória"
+                          : "Cota por Mapa Jogado"}
+                      </div>
+                      <div className="text-xl md:text-2xl font-mono font-black text-amber-400">
+                        {formatCurrency(sponsor.amount)}
+                      </div>
+                    </div>
+
+                    {!sponsor.isPremium && (
+                      <div className="flex flex-wrap justify-center gap-1.5 md:gap-2 mt-2 pt-3 md:pt-4 border-t border-slate-800/50">
+                        {sponsor.cost > 0 && (
+                          <span className="text-[8px] md:text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-slate-950 text-slate-300 border border-slate-700">
+                            Luvas: {formatCurrency(sponsor.cost)}
+                          </span>
+                        )}
+                        {sponsor.reqTitles > 0 && (
+                          <span className="text-[8px] md:text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-slate-950 text-slate-300 border border-slate-700 flex items-center gap-1">
+                            <Trophy size={10} /> {sponsor.reqTitles} Títulos
+                          </span>
+                        )}
+                        {sponsor.tolerance > 0 && (
+                          <span className="text-[8px] md:text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-slate-950 text-red-400 border border-red-900/30 flex items-center gap-1">
+                            <AlertTriangle size={10} /> Tolera{" "}
+                            {sponsor.tolerance} Derrotas
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {sponsor.isPremium && (
+                      <div className="text-center mt-2 pt-3 md:pt-4 border-t border-slate-800/50 text-[9px] md:text-[10px] text-amber-500/70 font-bold uppercase tracking-widest">
+                        Vitalício • Sem Custos
+                      </div>
+                    )}
+                  </div>
+
+                  {isAvailable ? (
+                    <div className="flex items-center justify-center gap-2 py-2 md:py-2.5 px-3 rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest border transition-colors bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+                      <span className="leading-none text-xs md:text-sm mt-px">
+                        ✅
+                      </span>
+                      <span className="truncate">Aguardando Proposta</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2 py-2 md:py-2.5 px-3 rounded-lg text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-widest border transition-colors bg-blue-500/10 text-blue-400 border-blue-500/30">
+                      <span className="leading-none text-xs md:text-sm mt-px">
+                        🤝
+                      </span>
+                      <span className="truncate">Patrocina: {clan.name}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {(!data.sponsors || data.sponsors.length === 0) && (
+              <div className="col-span-full py-12 md:py-16 text-center border border-dashed border-slate-800 rounded-2xl text-slate-500">
+                <Handshake
+                  size={40}
+                  className="mx-auto mb-3 md:mb-4 opacity-20 md:w-[48px] md:h-[48px]"
+                />
+                <p className="text-xs md:text-sm">
+                  Nenhum patrocinador oficial cadastrado na liga ainda.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
