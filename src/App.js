@@ -6666,12 +6666,81 @@ const AdminPanel = ({
                               })}
                             </div>
                           ) : (
+                      
                             <div className="text-center py-10 bg-slate-900 border border-dashed border-slate-800 rounded-xl text-slate-500">
                               {hasGroups
                                 ? "Fase de Grupos em andamento. Ao finalizar, gere os Playoffs."
                                 : "Gere a Fase de Grupos primeiro."}
                             </div>
                           )}
+                        </div>
+
+                        {/* PASSO 5: AUDITORIA DE PARTIDAS (LIXEIRA GLOBAL DO SPLIT) */}
+                        <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-lg relative overflow-hidden mt-6">
+                          <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
+                          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-800/50">
+                            <div className="w-8 h-8 rounded-full bg-red-500 text-white font-black flex items-center justify-center text-sm shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+                              5
+                            </div>
+                            <div>
+                              <h4 className="text-white font-bold uppercase tracking-tight">
+                                Auditoria de Partidas
+                              </h4>
+                              <p className="text-[10px] text-slate-500 mt-1">
+                                Gerencie todos os mapas salvos neste Split. Ideal para apagar partidas soltas/órfãs que bugaram.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="space-y-3 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-800">
+                            {data.matches
+                              .filter((m) => m.splitId === selectedSplitId)
+                              .sort((a, b) => new Date(b.date) - new Date(a.date))
+                              .map((m) => {
+                                const clanA = data.clans.find(c => c.id === m.clanA_Id);
+                                const clanB = data.clans.find(c => c.id === m.clanB_Id);
+                                return (
+                                  <div
+                                    key={m.id}
+                                    className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex justify-between items-center hover:border-slate-700 transition-colors"
+                                  >
+                                    <div>
+                                      <div className="text-white font-bold text-sm uppercase flex items-center gap-2">
+                                        {m.mapName}
+                                        <span className="text-slate-500 text-[10px] bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+                                          {m.md3GroupId}
+                                        </span>
+                                      </div>
+                                      <div className="text-xs font-mono mt-2 flex items-center gap-3">
+                                        <span className="text-slate-400 text-[10px]">{clanA?.tag || "Blue"}</span>
+                                        <span className={m.winnerSide === "A" ? "text-blue-400 font-bold text-sm" : "text-slate-500 text-sm"}>{m.scoreA}</span>
+                                        <span className="text-slate-700">x</span>
+                                        <span className={m.winnerSide === "B" ? "text-red-400 font-bold text-sm" : "text-slate-500 text-sm"}>{m.scoreB}</span>
+                                        <span className="text-slate-400 text-[10px]">{clanB?.tag || "Red"}</span>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        onClick={() => {
+                                          if (window.confirm("Excluir esta partida permanentemente? Todos os Kills, KDs e XPs ganhos nela serão removidos do Ranking.")) {
+                                            onDeleteMatch(m.id);
+                                            triggerFeedback("Partida excluída com sucesso!");
+                                          }
+                                        }}
+                                        className="p-2.5 bg-slate-950 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg border border-slate-800 transition-colors"
+                                        title="Excluir Partida"
+                                      >
+                                        <Trash2 size={16} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            {data.matches.filter((m) => m.splitId === selectedSplitId).length === 0 && (
+                              <div className="text-center py-8 text-slate-500 text-sm italic border border-dashed border-slate-800 rounded-xl">
+                                Nenhuma partida registrada neste Split.
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </>
                     );
