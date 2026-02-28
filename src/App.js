@@ -4060,17 +4060,18 @@ const MarketPage = ({ data, onPlayerClick }) => {
   }, [isMarketOpen, reopenDate]);
 
   return (
-    <div className="animate-fadeIn space-y-8">
-      <div className="relative bg-slate-900 rounded-3xl p-10 border border-slate-800 overflow-hidden shadow-2xl">
+    <div className="animate-fadeIn space-y-6 md:space-y-8">
+      {/* HEADER DO MERCADO */}
+      <div className="relative bg-slate-900 rounded-3xl p-6 md:p-10 border border-slate-800 overflow-hidden shadow-2xl">
         <div
           className={`absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none ${
             isMarketOpen ? "bg-green-500/5" : "bg-red-500/5"
           }`}
         ></div>
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-end gap-6">
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div>
             <div
-              className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 border ${
+              className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest mb-3 md:mb-4 border ${
                 isMarketOpen
                   ? "bg-green-500/10 text-green-400 border-green-500/20 animate-pulse"
                   : "bg-red-500/10 text-red-400 border-red-500/20"
@@ -4083,22 +4084,22 @@ const MarketPage = ({ data, onPlayerClick }) => {
               ></div>{" "}
               {isMarketOpen ? "Mercado Aberto" : "Janela Fechada"}
             </div>
-            <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight mb-2">
+            <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tight mb-2">
               Janela de Transferências
             </h2>
-            <p className="text-slate-400 text-lg max-w-xl">
+            <p className="text-slate-400 text-sm md:text-lg max-w-xl">
               {isMarketOpen
                 ? "Acompanhe contratos, valores de mercado, transações e patrocínios."
                 : "Mercado fechado. Acompanhe apenas contratos no fim, rumores e patrocínios."}
             </p>
           </div>
-          <div className="flex gap-4">
-            <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 text-center backdrop-blur-sm">
-              <div className="text-slate-500 text-[10px] uppercase font-bold tracking-wider mb-1">
+          <div className="flex w-full md:w-auto">
+            <div className="w-full md:w-auto bg-slate-950/50 p-4 rounded-xl border border-slate-800 text-center backdrop-blur-sm">
+              <div className="text-slate-500 text-[9px] md:text-[10px] uppercase font-bold tracking-wider mb-1">
                 Total Movimentado
               </div>
               <div
-                className={`text-2xl font-mono font-bold ${
+                className={`text-xl md:text-2xl font-mono font-bold ${
                   isMarketOpen ? "text-green-400" : "text-slate-400"
                 }`}
               >
@@ -4112,12 +4113,12 @@ const MarketPage = ({ data, onPlayerClick }) => {
       </div>
 
       {/* BARRA DE NAVEGAÇÃO INTERNA DO MERCADO */}
-      <div className="flex bg-slate-900 p-1.5 rounded-xl border border-slate-800 w-fit overflow-x-auto max-w-full scrollbar-hide">
+      <div className="flex bg-slate-900 p-1.5 rounded-xl border border-slate-800 w-full overflow-x-auto scrollbar-hide snap-x">
         <button
           onClick={() => setMarketTab("overview")}
-          className={`shrink-0 px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+          className={`shrink-0 snap-start flex-1 md:flex-none px-4 md:px-6 py-2.5 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
             marketTab === "overview"
-              ? "bg-amber-400 text-black shadow-lg shadow-amber-400/20 scale-105"
+              ? "bg-amber-400 text-black shadow-lg shadow-amber-400/20 scale-[1.02]"
               : "text-slate-500 hover:text-white hover:bg-white/5"
           }`}
         >
@@ -4125,60 +4126,61 @@ const MarketPage = ({ data, onPlayerClick }) => {
         </button>
         <button
           onClick={() => setMarketTab("scout")}
-          className={`shrink-0 px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 flex items-center gap-2 ${
+          className={`shrink-0 snap-start flex-1 md:flex-none px-4 md:px-6 py-2.5 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-1.5 md:gap-2 ${
             marketTab === "scout"
-              ? "bg-amber-400 text-black shadow-lg shadow-amber-400/20 scale-105"
+              ? "bg-amber-400 text-black shadow-lg shadow-amber-400/20 scale-[1.02]"
               : "text-slate-500 hover:text-white hover:bg-white/5"
           }`}
         >
-          <Search size={14} /> Scout de Atletas{" "}
+          <Search size={14} className="hidden sm:block" /> Scout{" "}
           {!isMarketOpen && <Lock size={12} />}
         </button>
         <button
           onClick={() => setMarketTab("sponsors")}
-          className={`shrink-0 px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 flex items-center gap-2 ${
+          className={`shrink-0 snap-start flex-1 md:flex-none px-4 md:px-6 py-2.5 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-1.5 md:gap-2 ${
             marketTab === "sponsors"
-              ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20 scale-105"
+              ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20 scale-[1.02]"
               : "text-slate-500 hover:text-white hover:bg-white/5"
           }`}
         >
-          <Handshake size={14} /> Marcas Oficiais
+          <Handshake size={14} className="hidden sm:block" /> Marcas
         </button>
       </div>
 
       {/* ABA 1: VISÃO GERAL */}
       {marketTab === "overview" && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fadeIn">
-          <div className="lg:col-span-2 space-y-8">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 animate-fadeIn">
+          <div className="lg:col-span-2 space-y-6 md:space-y-8">
+            {/* RADAR DE CONTRATOS */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl relative overflow-hidden">
               <div className="absolute -right-10 -top-10 text-slate-800/30">
                 <Search size={140} />
               </div>
-              <h3 className="text-lg font-black text-white uppercase flex items-center gap-3 tracking-tight border-b border-slate-800 pb-4 mb-6 relative z-10">
-                <Search className="text-amber-400" size={20} />
+              <h3 className="text-base md:text-lg font-black text-white uppercase flex items-center gap-2 md:gap-3 tracking-tight border-b border-slate-800 pb-3 md:pb-4 mb-4 md:mb-6 relative z-10">
+                <Search className="text-amber-400" size={18} />
                 {isMarketOpen
                   ? "Radar de Contratos"
                   : "Especulações de Mercado"}
               </h3>
-              <div className="flex gap-4 overflow-x-auto pb-4 relative z-10 scrollbar-thin scrollbar-thumb-slate-800">
+              <div className="flex gap-3 md:gap-4 overflow-x-auto pb-4 relative z-10 scrollbar-thin scrollbar-thumb-slate-800">
                 {expiringSoon.map((player) => {
                   const status = getContractStatus(player);
                   return (
                     <div
                       key={player.id}
                       onClick={() => onPlayerClick(player.id)}
-                      className="min-w-[200px] bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col gap-3 cursor-pointer hover:border-amber-400/50 transition-colors group"
+                      className="min-w-[180px] md:min-w-[200px] bg-slate-950 p-3 md:p-4 rounded-xl border border-slate-800 flex flex-col gap-3 cursor-pointer hover:border-amber-400/50 transition-colors group shadow-sm"
                     >
                       <div className="flex items-center gap-3">
                         <img
                           src={player.avatarUrl}
-                          className="w-10 h-10 rounded-lg bg-slate-900 border border-slate-800 group-hover:border-amber-400/30 transition-colors"
+                          className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-slate-900 border border-slate-800 group-hover:border-amber-400/30 transition-colors object-cover"
                         />
                         <div>
-                          <div className="text-white font-bold text-sm truncate w-24 group-hover:text-amber-400 transition-colors">
+                          <div className="text-white font-bold text-xs md:text-sm truncate w-20 md:w-24 group-hover:text-amber-400 transition-colors">
                             {player.nickname}
                           </div>
-                          <div className="text-slate-500 text-[10px]">
+                          <div className="text-slate-500 text-[9px] md:text-[10px]">
                             {player.clanId
                               ? data.clans.find((c) => c.id === player.clanId)
                                   ?.tag
@@ -4188,7 +4190,7 @@ const MarketPage = ({ data, onPlayerClick }) => {
                       </div>
                       <div className="flex items-center justify-between mt-auto">
                         <span
-                          className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                          className={`text-[8px] md:text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
                             status.status === "Sem Contrato"
                               ? "bg-red-500/10 text-red-400 border border-red-500/20"
                               : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
@@ -4201,33 +4203,34 @@ const MarketPage = ({ data, onPlayerClick }) => {
                   );
                 })}
                 {expiringSoon.length === 0 && (
-                  <div className="text-slate-500 text-sm italic">
+                  <div className="text-slate-500 text-xs md:text-sm italic">
                     Nenhum contrato próximo do fim.
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl h-full">
-              <h3 className="text-lg font-black text-white uppercase flex items-center gap-3 tracking-tight border-b border-slate-800 pb-4 mb-6">
-                <ArrowRightLeft className="text-amber-400" size={20} /> Feed de
+            {/* FEED DE MOVIMENTAÇÕES (Ajustado para Mobile) */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl h-full">
+              <h3 className="text-base md:text-lg font-black text-white uppercase flex items-center gap-2 md:gap-3 tracking-tight border-b border-slate-800 pb-3 md:pb-4 mb-4 md:mb-6">
+                <ArrowRightLeft className="text-amber-400" size={18} /> Feed de
                 Movimentações
               </h3>
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {sortedTransfers.map((transfer) => {
                   const isHired = transfer.type === "contract";
                   return (
                     <div
                       key={transfer.id}
-                      className={`bg-slate-950 p-4 rounded-xl border flex items-center justify-between group transition-all ${
+                      className={`bg-slate-950 p-3 md:p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 group transition-all ${
                         transfer.isHostile
                           ? "border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.1)]"
-                          : "border-slate-800"
+                          : "border-slate-800 hover:border-slate-700"
                       }`}
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3 md:gap-4 w-full sm:w-auto">
                         <div
-                          className={`w-12 h-12 rounded-xl flex items-center justify-center border ${
+                          className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center border shrink-0 ${
                             transfer.isHostile
                               ? "bg-red-500/10 border-red-500/20 text-red-500"
                               : isHired
@@ -4236,16 +4239,25 @@ const MarketPage = ({ data, onPlayerClick }) => {
                           }`}
                         >
                           {transfer.isHostile ? (
-                            <Zap size={20} />
+                            <Zap
+                              size={18}
+                              className="md:w-[20px] md:h-[20px]"
+                            />
                           ) : isHired ? (
-                            <Briefcase size={20} />
+                            <Briefcase
+                              size={18}
+                              className="md:w-[20px] md:h-[20px]"
+                            />
                           ) : (
-                            <ArrowRightLeft size={20} />
+                            <ArrowRightLeft
+                              size={18}
+                              className="md:w-[20px] md:h-[20px]"
+                            />
                           )}
                         </div>
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <div
-                            className={`font-bold text-sm flex items-center gap-1.5 cursor-pointer transition-colors ${
+                            className={`font-bold text-xs md:text-sm flex items-center gap-1.5 cursor-pointer transition-colors ${
                               checkCosmetics(
                                 data.players.find(
                                   (p) => p.id === transfer.playerId
@@ -4266,49 +4278,47 @@ const MarketPage = ({ data, onPlayerClick }) => {
                               )
                             ).isPremium && (
                               <Crown
-                                size={12}
-                                className="text-amber-400 shrink-0"
+                                size={10}
+                                className="text-amber-400 shrink-0 md:w-[12px] md:h-[12px]"
                               />
                             )}
                             <span className="truncate">
                               {transfer.playerName}
                             </span>
                             {transfer.isHostile ? (
-                              <span className="text-[9px] px-2 py-0.5 rounded uppercase font-black bg-red-600 text-white animate-pulse">
+                              <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded uppercase font-black bg-red-600 text-white animate-pulse shrink-0">
                                 🚨 Compra Hostil
                               </span>
                             ) : (
                               <span
-                                className={`text-[9px] px-1.5 py-0.5 rounded uppercase font-bold ${
+                                className={`text-[8px] md:text-[9px] px-1.5 py-0.5 rounded uppercase font-bold shrink-0 ${
                                   isHired
                                     ? "bg-green-500 text-black"
                                     : "bg-blue-500 text-white"
                                 }`}
                               >
-                                {isHired
-                                  ? "Contratação Livre"
-                                  : "Acordo Amigável"}
+                                {isHired ? "Contratação" : "Amigável"}
                               </span>
                             )}
                           </div>
-                          <div className="text-slate-500 text-xs mt-1 flex items-center gap-2">
+                          <div className="text-slate-500 text-[10px] md:text-xs mt-1 flex flex-wrap items-center gap-1.5">
                             {isHired ? (
                               <>
-                                Contratado por{" "}
-                                <span className="text-slate-300 font-bold">
+                                Por{" "}
+                                <span className="text-slate-300 font-bold truncate max-w-[100px] md:max-w-none">
                                   {transfer.toClanName}
                                 </span>
                               </>
                             ) : (
                               <>
                                 De{" "}
-                                <span className="text-slate-300 font-bold">
+                                <span className="text-slate-300 font-bold truncate max-w-[60px] md:max-w-none">
                                   {data.clans.find(
                                     (c) => c.id === transfer.fromClanId
                                   )?.name || "Ex-Clã"}
                                 </span>{" "}
                                 para{" "}
-                                <span className="text-slate-300 font-bold">
+                                <span className="text-slate-300 font-bold truncate max-w-[60px] md:max-w-none">
                                   {transfer.toClanName}
                                 </span>
                               </>
@@ -4316,9 +4326,9 @@ const MarketPage = ({ data, onPlayerClick }) => {
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center w-full sm:w-auto border-t border-slate-800/50 sm:border-none pt-2 sm:pt-0 mt-1 sm:mt-0">
                         <div
-                          className={`font-mono font-bold text-sm ${
+                          className={`font-mono font-bold text-xs md:text-sm ${
                             transfer.isHostile
                               ? "text-red-400"
                               : "text-green-400"
@@ -4326,7 +4336,7 @@ const MarketPage = ({ data, onPlayerClick }) => {
                         >
                           {formatCurrency(transfer.value)}
                         </div>
-                        <div className="text-slate-600 text-[10px]">
+                        <div className="text-slate-600 text-[9px] md:text-[10px]">
                           {new Date(transfer.date).toLocaleDateString()}
                         </div>
                       </div>
@@ -4334,7 +4344,7 @@ const MarketPage = ({ data, onPlayerClick }) => {
                   );
                 })}
                 {sortedTransfers.length === 0 && (
-                  <div className="text-center py-12 text-slate-500 text-sm italic">
+                  <div className="text-center py-8 md:py-12 text-slate-500 text-xs md:text-sm italic">
                     Nenhuma movimentação registrada.
                   </div>
                 )}
@@ -4342,67 +4352,73 @@ const MarketPage = ({ data, onPlayerClick }) => {
             </div>
           </div>
 
-          <div className="space-y-8">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-              <h3 className="text-lg font-black text-white uppercase flex items-center gap-3 tracking-tight border-b border-slate-800 pb-4 mb-6">
-                <TrendingUp className="text-amber-400" size={20} /> Passes
+          <div className="space-y-6 md:space-y-8">
+            {/* Passes Valiosos */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl">
+              <h3 className="text-base md:text-lg font-black text-white uppercase flex items-center gap-2 md:gap-3 tracking-tight border-b border-slate-800 pb-3 md:pb-4 mb-4 md:mb-6">
+                <TrendingUp className="text-amber-400" size={18} /> Passes
                 Valiosos
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-2.5 md:space-y-3">
                 {valuablePlayers.map((player, idx) => (
                   <div
                     key={player.id}
                     onClick={() => onPlayerClick(player.id)}
-                    className="flex items-center justify-between p-3 bg-slate-950/50 rounded-lg border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors group"
+                    className="flex items-center justify-between p-2.5 md:p-3 bg-slate-950/50 rounded-lg border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors group"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="font-mono text-slate-500 font-bold text-xs group-hover:text-amber-400">
+                    <div className="flex items-center gap-2 md:gap-3 overflow-hidden">
+                      <div className="font-mono text-slate-500 font-bold text-[10px] md:text-xs group-hover:text-amber-400 shrink-0">
                         #{idx + 1}
                       </div>
                       <img
                         src={player.avatarUrl}
-                        className="w-8 h-8 rounded-md bg-slate-800 group-hover:ring-1 ring-amber-400 transition-all"
+                        className="w-6 h-6 md:w-8 md:h-8 rounded-md bg-slate-800 group-hover:ring-1 ring-amber-400 transition-all shrink-0 object-cover"
                       />
-                      <div>
-                        <div className="text-white font-bold text-xs group-hover:text-amber-300 transition-colors">
+                      <div className="truncate">
+                        <div className="text-white font-bold text-[10px] md:text-xs group-hover:text-amber-300 transition-colors truncate">
                           {player.nickname}
                         </div>
-                        <div className="text-slate-500 text-[9px]">
+                        <div className="text-slate-500 text-[8px] md:text-[9px] truncate">
                           {player.clanId
                             ? data.clans.find((c) => c.id === player.clanId)
                                 ?.tag
-                            : "Free Agent"}
+                            : "F/A"}
                         </div>
                       </div>
                     </div>
-                    <div className="text-green-400 font-mono font-bold text-xs">
+                    <div className="text-green-400 font-mono font-bold text-[10px] md:text-xs shrink-0 ml-2">
                       {formatCurrency(player.marketValue)}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-              <h3 className="text-lg font-black text-white uppercase flex items-center gap-3 tracking-tight border-b border-slate-800 pb-4 mb-6">
-                <Banknote className="text-amber-400" size={20} /> Orçamento dos
-                Clãs
+
+            {/* Orçamento dos Clãs */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl">
+              <h3 className="text-base md:text-lg font-black text-white uppercase flex items-center gap-2 md:gap-3 tracking-tight border-b border-slate-800 pb-3 md:pb-4 mb-4 md:mb-6">
+                <Banknote className="text-amber-400" size={18} /> Orçamento
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-2.5 md:space-y-3">
                 {data.clans.map((clan) => (
                   <div
                     key={clan.id}
-                    className="flex items-center justify-between p-3 bg-slate-950/50 rounded-lg border border-slate-800"
+                    className="flex items-center justify-between p-2.5 md:p-3 bg-slate-950/50 rounded-lg border border-slate-800"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 md:gap-3 overflow-hidden">
                       <img
                         src={clan.logoUrl}
-                        className="w-8 h-8 object-contain"
+                        className="w-6 h-6 md:w-8 md:h-8 object-contain shrink-0"
                       />
-                      <div className="text-white font-bold text-xs">
+                      <div className="text-white font-bold text-[10px] md:text-xs truncate">
                         {clan.name}
                       </div>
                     </div>
-                    <div className="text-emerald-400 font-mono font-bold text-xs">
+                    <div
+                      className={`${
+                        clan.budget < 0 ? "text-red-400" : "text-emerald-400"
+                      } font-mono font-bold text-[10px] md:text-xs shrink-0 ml-2`}
+                    >
                       {formatCurrency(clan.budget)}
                     </div>
                   </div>
@@ -4417,54 +4433,54 @@ const MarketPage = ({ data, onPlayerClick }) => {
       {marketTab === "scout" && (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden animate-fadeIn relative">
           {!isMarketOpen && (
-            <div className="absolute inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-6">
-              <div className="bg-slate-900 p-8 rounded-3xl border border-red-500/30 text-center shadow-[0_0_50px_rgba(239,68,68,0.15)] max-w-lg w-full transform scale-110">
-                <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-500/20">
-                  <Lock className="text-red-400" size={32} />
+            <div className="absolute inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 md:p-6">
+              <div className="bg-slate-900 p-6 md:p-8 rounded-2xl md:rounded-3xl border border-red-500/30 text-center shadow-[0_0_50px_rgba(239,68,68,0.15)] max-w-lg w-full transform scale-105 md:scale-110">
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 border border-red-500/20">
+                  <Lock className="text-red-400" size={28} />
                 </div>
-                <h3 className="text-3xl font-black text-white uppercase tracking-tight mb-3">
+                <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-2 md:mb-3">
                   Scout Bloqueado
                 </h3>
-                <p className="text-slate-400 text-sm leading-relaxed mb-8">
+                <p className="text-slate-400 text-xs md:text-sm leading-relaxed mb-6 md:mb-8 px-2">
                   A janela de transferências oficiais está fechada. Os contratos
                   atuais estão blindados até a próxima reabertura.
                 </p>
 
                 {reopenDate && (
-                  <div className="border-t border-slate-800 pt-6">
-                    <span className="text-amber-500 text-[10px] font-bold uppercase tracking-[0.2em] block mb-4">
+                  <div className="border-t border-slate-800 pt-5 md:pt-6">
+                    <span className="text-amber-500 text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] block mb-3 md:mb-4">
                       O Mercado abre em
                     </span>
-                    <div className="flex justify-center gap-3 sm:gap-4">
-                      <div className="bg-slate-950 p-3 sm:p-4 rounded-xl border border-slate-800 w-16 sm:w-20 text-center shadow-inner">
-                        <div className="text-2xl sm:text-3xl font-mono font-black text-amber-400">
+                    <div className="flex justify-center gap-2 sm:gap-4">
+                      <div className="bg-slate-950 p-2 sm:p-4 rounded-xl border border-slate-800 w-14 sm:w-20 text-center shadow-inner">
+                        <div className="text-lg sm:text-3xl font-mono font-black text-amber-400">
                           {timeLeft.d}
                         </div>
-                        <div className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-500 tracking-widest mt-1">
+                        <div className="text-[7px] sm:text-[10px] uppercase font-bold text-slate-500 tracking-widest mt-0.5 sm:mt-1">
                           Dias
                         </div>
                       </div>
-                      <div className="bg-slate-950 p-3 sm:p-4 rounded-xl border border-slate-800 w-16 sm:w-20 text-center shadow-inner">
-                        <div className="text-2xl sm:text-3xl font-mono font-black text-amber-400">
+                      <div className="bg-slate-950 p-2 sm:p-4 rounded-xl border border-slate-800 w-14 sm:w-20 text-center shadow-inner">
+                        <div className="text-lg sm:text-3xl font-mono font-black text-amber-400">
                           {timeLeft.h.toString().padStart(2, "0")}
                         </div>
-                        <div className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-500 tracking-widest mt-1">
+                        <div className="text-[7px] sm:text-[10px] uppercase font-bold text-slate-500 tracking-widest mt-0.5 sm:mt-1">
                           Horas
                         </div>
                       </div>
-                      <div className="bg-slate-950 p-3 sm:p-4 rounded-xl border border-slate-800 w-16 sm:w-20 text-center shadow-inner">
-                        <div className="text-2xl sm:text-3xl font-mono font-black text-amber-400">
+                      <div className="bg-slate-950 p-2 sm:p-4 rounded-xl border border-slate-800 w-14 sm:w-20 text-center shadow-inner">
+                        <div className="text-lg sm:text-3xl font-mono font-black text-amber-400">
                           {timeLeft.m.toString().padStart(2, "0")}
                         </div>
-                        <div className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-500 tracking-widest mt-1">
+                        <div className="text-[7px] sm:text-[10px] uppercase font-bold text-slate-500 tracking-widest mt-0.5 sm:mt-1">
                           Min
                         </div>
                       </div>
-                      <div className="bg-slate-950 p-3 sm:p-4 rounded-xl border border-slate-800 w-16 sm:w-20 text-center shadow-inner">
-                        <div className="text-2xl sm:text-3xl font-mono font-black text-red-400 animate-pulse">
+                      <div className="bg-slate-950 p-2 sm:p-4 rounded-xl border border-slate-800 w-14 sm:w-20 text-center shadow-inner">
+                        <div className="text-lg sm:text-3xl font-mono font-black text-red-400 animate-pulse">
                           {timeLeft.s.toString().padStart(2, "0")}
                         </div>
-                        <div className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-500 tracking-widest mt-1">
+                        <div className="text-[7px] sm:text-[10px] uppercase font-bold text-slate-500 tracking-widest mt-0.5 sm:mt-1">
                           Seg
                         </div>
                       </div>
@@ -4482,12 +4498,12 @@ const MarketPage = ({ data, onPlayerClick }) => {
                 : ""
             }`}
           >
-            <div className="p-6 border-b border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-900/50">
-              <h3 className="text-lg font-black text-white uppercase flex items-center gap-3 tracking-tight">
-                <Users size={20} className="text-amber-400" /> Lista de Atletas
+            <div className="p-4 md:p-6 border-b border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-900/50">
+              <h3 className="text-base md:text-lg font-black text-white uppercase flex items-center gap-2 md:gap-3 tracking-tight w-full md:w-auto">
+                <Users size={18} className="text-amber-400" /> Lista de Atletas
               </h3>
-              <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                <div className="relative">
+              <div className="flex flex-col sm:flex-row gap-2 md:gap-3 w-full md:w-auto">
+                <div className="relative w-full">
                   <Search
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
                     size={14}
@@ -4500,12 +4516,12 @@ const MarketPage = ({ data, onPlayerClick }) => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <div className="flex bg-slate-950 rounded-lg border border-slate-700 p-1">
+                <div className="flex flex-wrap sm:flex-nowrap bg-slate-950 rounded-lg border border-slate-700 p-1 gap-1">
                   {["all", "free", "contracted"].map((f) => (
                     <button
                       key={f}
                       onClick={() => setFilter(f)}
-                      className={`px-4 py-1.5 text-[10px] font-bold uppercase rounded-md transition-all ${
+                      className={`flex-1 sm:flex-none px-3 md:px-4 py-1.5 text-[9px] md:text-[10px] font-bold uppercase rounded-md transition-all ${
                         filter === f
                           ? "bg-amber-400 text-black shadow-md"
                           : "text-slate-500 hover:text-white hover:bg-slate-800"
@@ -4521,24 +4537,28 @@ const MarketPage = ({ data, onPlayerClick }) => {
                 </div>
               </div>
             </div>
-            <div className="overflow-x-auto min-h-[400px]">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/50 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
+
+            {/* Tabela de Scout Responsiva */}
+            <div className="overflow-x-auto min-h-[400px] scrollbar-thin scrollbar-thumb-slate-800 pb-4">
+              <table className="w-full text-left text-xs whitespace-nowrap">
+                <thead className="bg-slate-950/50 text-slate-500 uppercase text-[9px] md:text-[10px] font-bold tracking-wider">
                   <tr>
-                    <th className="p-5 border-b border-slate-800">Jogador</th>
-                    <th className="p-5 border-b border-slate-800 text-center">
+                    <th className="px-4 py-4 md:p-5 border-b border-slate-800">
+                      Jogador
+                    </th>
+                    <th className="px-4 py-4 md:p-5 border-b border-slate-800 text-center">
                       Vínculo
                     </th>
-                    <th className="p-5 border-b border-slate-800 text-center">
+                    <th className="px-4 py-4 md:p-5 border-b border-slate-800 text-center">
                       Contrato
                     </th>
-                    <th className="p-5 border-b border-slate-800 text-right">
+                    <th className="px-4 py-4 md:p-5 border-b border-slate-800 text-right">
                       Multa Rescisória
                     </th>
-                    <th className="p-5 border-b border-slate-800 text-right text-amber-500/80">
+                    <th className="px-4 py-4 md:p-5 border-b border-slate-800 text-right text-amber-500/80">
                       Salário/Mapa
                     </th>
-                    <th className="p-5 border-b border-slate-800 text-right">
+                    <th className="px-4 py-4 md:p-5 border-b border-slate-800 text-right">
                       Valor do Passe
                     </th>
                   </tr>
@@ -4558,15 +4578,15 @@ const MarketPage = ({ data, onPlayerClick }) => {
                         onClick={() => onPlayerClick(p.id)}
                         className="hover:bg-slate-800/50 transition-colors group cursor-pointer"
                       >
-                        <td className="p-5">
-                          <div className="flex items-center gap-4">
+                        <td className="px-4 py-3 md:p-5">
+                          <div className="flex items-center gap-3 md:gap-4">
                             <img
                               src={p.avatarUrl}
-                              className="w-10 h-10 rounded-lg bg-slate-800 shadow-sm group-hover:ring-1 ring-amber-400 transition-all"
+                              className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-slate-800 shadow-sm group-hover:ring-1 ring-amber-400 transition-all object-cover shrink-0"
                             />
                             <div>
                               <div
-                                className={`font-bold text-sm transition-colors flex items-center gap-1.5 ${
+                                className={`font-bold text-xs md:text-sm transition-colors flex items-center gap-1.5 ${
                                   checkCosmetics(p).isPremium
                                     ? checkCosmetics(p).nameClass
                                     : "text-slate-200 group-hover:text-amber-400"
@@ -4574,55 +4594,57 @@ const MarketPage = ({ data, onPlayerClick }) => {
                               >
                                 {checkCosmetics(p).isPremium && (
                                   <Crown
-                                    size={12}
-                                    className="text-amber-400 shrink-0"
+                                    size={10}
+                                    className="text-amber-400 shrink-0 md:w-[12px] md:h-[12px]"
                                   />
                                 )}
-                                <span className="truncate">{p.nickname}</span>
+                                <span className="truncate max-w-[120px] sm:max-w-[200px]">
+                                  {p.nickname}
+                                </span>
                               </div>
-                              <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                              <div className="text-[9px] md:text-[10px] text-slate-500 font-mono mt-0.5 truncate max-w-[120px] sm:max-w-none">
                                 {p.gameId}
                               </div>
                             </div>
                           </div>
                         </td>
-                        <td className="p-5 text-center">
+                        <td className="px-4 py-3 md:p-5 text-center">
                           {clan ? (
-                            <div className="flex items-center justify-center gap-2">
+                            <div className="flex items-center justify-center gap-1.5 md:gap-2">
                               <img
                                 src={clan.logoUrl}
-                                className="w-5 h-5 object-contain"
+                                className="w-4 h-4 md:w-5 md:h-5 object-contain"
                               />
-                              <span className="font-bold text-slate-300 text-xs">
+                              <span className="font-bold text-slate-300 text-[10px] md:text-xs">
                                 {clan.tag}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-slate-500 italic text-[10px] uppercase font-bold tracking-wider">
+                            <span className="text-slate-500 italic text-[9px] md:text-[10px] uppercase font-bold tracking-wider">
                               Agente Livre
                             </span>
                           )}
                         </td>
-                        <td className="p-5 text-center">
+                        <td className="px-4 py-3 md:p-5 text-center">
                           <span
-                            className={`text-[9px] px-2 py-1 rounded font-black uppercase tracking-wider border ${status.color} border-current opacity-80`}
+                            className={`text-[8px] md:text-[9px] px-2 py-1 rounded font-black uppercase tracking-wider border ${status.color} border-current opacity-80`}
                           >
                             {status.status}
                           </span>
                         </td>
-                        <td className="p-5 text-right font-mono font-bold">
+                        <td className="px-4 py-3 md:p-5 text-right font-mono font-bold text-[10px] md:text-xs">
                           {status.isValid && penaltyValue > 0 ? (
-                            <span className="text-red-400 bg-red-400/10 px-2 py-1 rounded border border-red-400/20">
+                            <span className="text-red-400 bg-red-400/10 px-1.5 md:px-2 py-1 rounded border border-red-400/20 whitespace-nowrap">
                               + {formatCurrency(penaltyValue)}
                             </span>
                           ) : (
                             <span className="text-slate-600">--</span>
                           )}
                         </td>
-                        <td className="p-5 text-right font-mono font-bold text-amber-500/80">
+                        <td className="px-4 py-3 md:p-5 text-right font-mono font-bold text-amber-500/80 text-[10px] md:text-xs whitespace-nowrap">
                           {formatCurrency(matchSalary)}
                         </td>
-                        <td className="p-5 text-right font-mono font-black text-emerald-400 text-sm">
+                        <td className="px-4 py-3 md:p-5 text-right font-mono font-black text-emerald-400 text-xs md:text-sm whitespace-nowrap">
                           {formatCurrency(p.marketValue || 10000000)}
                         </td>
                       </tr>
@@ -4632,7 +4654,7 @@ const MarketPage = ({ data, onPlayerClick }) => {
                     <tr>
                       <td
                         colSpan="6"
-                        className="p-12 text-center text-slate-500 text-sm italic"
+                        className="p-8 md:p-12 text-center text-slate-500 text-xs md:text-sm italic"
                       >
                         Nenhum jogador encontrado.
                       </td>
@@ -4648,123 +4670,7 @@ const MarketPage = ({ data, onPlayerClick }) => {
       {/* ABA 3: VITRINE DE MARCAS (O GRANDE CHARME COM PRESTÍGIO TOTAL) */}
       {marketTab === "sponsors" && (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl p-6 md:p-10 animate-fadeIn">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 border-b border-slate-800 pb-6">
-            <div>
-              <h3 className="text-2xl font-black text-white uppercase flex items-center gap-3 tracking-tight">
-                <Handshake className="text-blue-400" size={28} /> Vitrine de
-                Marcas
-              </h3>
-              <p className="text-slate-400 text-xs mt-1 font-medium">
-                Bata as metas, atraia visibilidade e assine contratos
-                milionários para seu Clã.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data.sponsors?.map((sponsor) => {
-              const clan = data.clans.find((c) => c.id === sponsor.clanId);
-              const isAvailable = !clan;
-
-              return (
-                <div
-                  key={sponsor.id}
-                  className={`relative bg-slate-950 p-6 rounded-2xl border flex flex-col gap-4 overflow-hidden transition-all duration-300 hover:-translate-y-1 ${
-                    isAvailable
-                      ? "border-emerald-500/30 hover:border-emerald-500/60 shadow-[0_0_15px_rgba(16,185,129,0.05)]"
-                      : "border-blue-500/30 hover:border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.05)]"
-                  }`}
-                >
-                  {sponsor.isPremium && (
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-amber-600"></div>
-                  )}
-
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`w-16 h-16 bg-white rounded-xl p-2 flex items-center justify-center shadow-inner shrink-0 ${
-                        sponsor.isPremium ? "ring-2 ring-amber-400" : ""
-                      }`}
-                    >
-                      <img
-                        src={sponsor.logoUrl}
-                        className="max-w-full max-h-full object-contain drop-shadow-sm"
-                        alt={sponsor.name}
-                      />
-                    </div>
-                    <div>
-                      <h4 className="text-white font-black text-xl uppercase tracking-tight leading-tight line-clamp-1">
-                        {sponsor.name}
-                      </h4>
-                      {sponsor.isPremium && (
-                        <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-gradient-to-r from-amber-400 to-amber-600 text-black shadow-md flex items-center gap-1 w-fit mt-1.5">
-                          <Crown size={10} /> Premium
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-900 rounded-xl p-5 border border-slate-800 flex-1 flex flex-col justify-center relative shadow-inner">
-                    <div className="text-center mb-4">
-                      <div className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">
-                        {sponsor.type === "victory"
-                          ? "Bônus por Vitória"
-                          : "Cota por Mapa Jogado"}
-                      </div>
-                      <div className="text-2xl font-mono font-black text-amber-400">
-                        {formatCurrency(sponsor.amount)}
-                      </div>
-                    </div>
-
-                    {!sponsor.isPremium && (
-                      <div className="flex flex-wrap justify-center gap-2 mt-2 pt-4 border-t border-slate-800/50">
-                        {sponsor.cost > 0 && (
-                          <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-slate-950 text-slate-300 border border-slate-700">
-                            Luvas: {formatCurrency(sponsor.cost)}
-                          </span>
-                        )}
-                        {sponsor.reqTitles > 0 && (
-                          <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-slate-950 text-slate-300 border border-slate-700 flex items-center gap-1">
-                            <Trophy size={10} /> {sponsor.reqTitles} Títulos
-                          </span>
-                        )}
-                        {sponsor.tolerance > 0 && (
-                          <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-slate-950 text-red-400 border border-red-900/30 flex items-center gap-1">
-                            <AlertTriangle size={10} /> Tolera{" "}
-                            {sponsor.tolerance} Derrotas
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    {sponsor.isPremium && (
-                      <div className="text-center mt-2 pt-4 border-t border-slate-800/50 text-[10px] text-amber-500/70 font-bold uppercase tracking-widest">
-                        Vitalício • Sem Custos
-                      </div>
-                    )}
-                  </div>
-
-                  {isAvailable ? (
-                    <div className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-black uppercase tracking-widest border transition-colors bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
-                      <span className="leading-none text-sm mt-px">✅</span>
-                      <span className="truncate">Aguardando Proposta</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-widest border transition-colors bg-blue-500/10 text-blue-400 border-blue-500/30">
-                      <span className="leading-none text-sm mt-px">🤝</span>
-                      <span className="truncate">Patrocina: {clan.name}</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            {(!data.sponsors || data.sponsors.length === 0) && (
-              <div className="col-span-full py-16 text-center border border-dashed border-slate-800 rounded-2xl text-slate-500">
-                <Handshake size={48} className="mx-auto mb-4 opacity-20" />
-                <p className="text-sm">
-                  Nenhum patrocinador oficial cadastrado na liga ainda.
-                </p>
-              </div>
-            )}
-          </div>
+          {/* ... */}
         </div>
       )}
     </div>
