@@ -10106,7 +10106,7 @@ const App = () => {
                       size={14}
                       className={view === "market" ? "text-green-400" : ""}
                     />{" "}
-                    Mercado VIP
+                    Mercado
                   </button>
                   <button
                     onClick={() => setView("store")}
