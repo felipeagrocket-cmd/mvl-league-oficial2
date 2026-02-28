@@ -1008,10 +1008,10 @@ const LiveTicker = ({ data, backend }) => {
           0%, 100% { opacity: 1; }
           50% { opacity: 0; }
         }
-        /* Desmanche suave após os 7 segundos para entrar o próximo */
+        /* Travado 100% estático até o final, desmanchando apenas no último segundo */
         @keyframes ticker-fade-out {
-          0% { opacity: 1; filter: blur(0); }
-          85% { opacity: 1; filter: blur(0); }
+          0% { opacity: 1; filter: blur(0); transform: translateX(0); }
+          85% { opacity: 1; filter: blur(0); transform: translateX(0); }
           100% { opacity: 0; filter: blur(4px); transform: translateX(-10px); }
         }
         
