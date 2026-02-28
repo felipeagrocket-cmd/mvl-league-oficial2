@@ -9267,7 +9267,10 @@ const StartHerePage = ({ data, onPlayerClick }) => {
               Suba de Nível (XP)
             </h4>
             <p className="text-slate-400 text-sm leading-relaxed">
-            O seu Level na MVL é o medidor oficial do seu talento. Comece no 1 e ganhe XP a cada boa atuação para chegar ao cobiçado Nível 21. Mas cuidado, a cada partida ruim, você perde XP. É a prova definitiva de quem domina a liga.
+              O seu Level na MVL é o medidor oficial do seu talento. Comece no 1
+              e ganhe XP a cada boa atuação para chegar ao cobiçado Nível 21.
+              Mas cuidado, a cada partida ruim, você perde XP. É a prova
+              definitiva de quem domina a liga.
             </p>
           </div>
 
@@ -9294,9 +9297,10 @@ const StartHerePage = ({ data, onPlayerClick }) => {
               Aproveite seus Ganhos
             </h4>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Acumulou salário? Visite nossa Loja Oficial. Compre itens visuais,
-              destaque seu perfil e exiba o resultado do seu esforço para toda a
-              comunidade.
+              Acumulou salário? Então aproveite. Visite nossa Loja Oficial e
+              compre itens do jogo ou cosméticos exclusivos para usar aqui no
+              site. Destaque seu perfil e mostre para toda a comunidade o
+              resultado do seu esforço..
             </p>
           </div>
         </div>
