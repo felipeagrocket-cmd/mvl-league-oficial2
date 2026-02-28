@@ -1740,45 +1740,49 @@ const PlayersPage = ({ players, clans, backend, onPlayerClick }) => {
 
 const ClanStandingsTable = ({ data }) => (
   <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-full ring-1 ring-white/5">
-    <div className="bg-slate-900/50 p-5 border-b border-slate-800 flex justify-between items-center shrink-0 backdrop-blur-sm">
-      <h3 className="text-lg font-black text-white uppercase flex items-center gap-3 tracking-tight">
+    <div className="bg-slate-900/50 p-4 md:p-5 border-b border-slate-800 flex justify-between items-center shrink-0 backdrop-blur-sm">
+      <h3 className="text-base md:text-lg font-black text-white uppercase flex items-center gap-2 md:gap-3 tracking-tight">
         <div className="p-1.5 bg-slate-800 rounded-lg border border-slate-700">
-          <Shield className="text-amber-400" size={18} />
+          <Shield className="text-amber-400" size={16} />
         </div>{" "}
-        Tabela de Classificação
+        Classificação
       </h3>
     </div>
     <div className="overflow-x-auto grow scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
-      <table className="w-full text-left border-collapse">
-        <thead className="bg-slate-950/50 text-[10px] md:text-xs text-slate-500 uppercase font-bold tracking-wider sticky top-0 z-10 backdrop-blur-sm">
+      <table className="w-full text-left border-collapse whitespace-nowrap">
+        <thead className="bg-slate-950/50 text-[9px] md:text-xs text-slate-500 uppercase font-bold tracking-wider sticky top-0 z-10 backdrop-blur-sm">
           <tr>
-            <th className="p-4 border-b border-slate-800 text-center">Pos</th>
-            <th className="p-4 border-b border-slate-800">Equipe</th>
+            <th className="px-3 py-3 md:p-4 border-b border-slate-800 text-center">
+              Pos
+            </th>
+            <th className="px-3 py-3 md:p-4 border-b border-slate-800">
+              Equipe
+            </th>
             <th
-              className="p-4 text-center border-b border-slate-800"
+              className="px-2 py-3 md:p-4 text-center border-b border-slate-800"
               title="Jogos"
             >
               J
             </th>
             <th
-              className="p-4 text-center border-b border-slate-800"
+              className="px-2 py-3 md:p-4 text-center border-b border-slate-800"
               title="Vitórias"
             >
               V
             </th>
             <th
-              className="p-4 text-center border-b border-slate-800"
+              className="px-2 py-3 md:p-4 text-center border-b border-slate-800"
               title="Derrotas"
             >
               D
             </th>
             <th
-              className="p-4 text-center border-b border-slate-800"
+              className="px-2 py-3 md:p-4 text-center border-b border-slate-800"
               title="Saldo de Mapas"
             >
               SD
             </th>
-            <th className="p-4 text-center text-amber-500 bg-amber-500/5 border-b border-amber-500/10">
+            <th className="px-3 py-3 md:p-4 text-center text-amber-500 bg-amber-500/5 border-b border-amber-500/10">
               PTS
             </th>
           </tr>
@@ -1794,39 +1798,40 @@ const ClanStandingsTable = ({ data }) => (
               }`}
             >
               <td
-                className={`p-4 font-mono font-bold w-12 text-center ${
+                className={`px-3 py-3 md:p-4 font-mono font-bold w-10 md:w-12 text-center text-xs md:text-sm ${
                   index === 0 ? "text-amber-400" : "text-slate-500"
                 }`}
               >
                 {index + 1}º
               </td>
-              <td className="p-4">
-                <div className="flex items-center gap-4">
+              <td className="px-3 py-3 md:p-4">
+                <div className="flex items-center gap-2 md:gap-4">
                   <img
                     src={clan.logoUrl}
-                    className="w-8 h-8 object-contain drop-shadow"
+                    className="w-6 h-6 md:w-8 md:h-8 object-contain drop-shadow"
+                    alt="logo"
                   />
-                  <span className="font-bold text-sm text-white flex items-center gap-2">
+                  <span className="font-bold text-xs md:text-sm text-white flex items-center gap-1.5 md:gap-2">
                     {clan.name}{" "}
-                    <span className="text-[10px] text-slate-500 font-mono tracking-widest hidden sm:inline-block">
+                    <span className="text-[9px] md:text-[10px] text-slate-500 font-mono tracking-widest hidden sm:inline-block">
                       [{clan.tag}]
                     </span>
                   </span>
                 </div>
               </td>
-              <td className="p-4 text-center font-mono text-slate-300 font-bold">
+              <td className="px-2 py-3 md:p-4 text-center font-mono text-slate-300 font-bold text-xs md:text-sm">
                 {clan.matches}
               </td>
-              <td className="p-4 text-center font-mono text-emerald-400 font-bold">
+              <td className="px-2 py-3 md:p-4 text-center font-mono text-emerald-400 font-bold text-xs md:text-sm">
                 {clan.wins}
               </td>
-              <td className="p-4 text-center font-mono text-red-400 font-bold">
+              <td className="px-2 py-3 md:p-4 text-center font-mono text-red-400 font-bold text-xs md:text-sm">
                 {clan.losses}
               </td>
-              <td className="p-4 text-center font-mono text-slate-300 font-bold">
+              <td className="px-2 py-3 md:p-4 text-center font-mono text-slate-300 font-bold text-xs md:text-sm">
                 {clan.mapDiff > 0 ? `+${clan.mapDiff}` : clan.mapDiff}
               </td>
-              <td className="p-4 text-center font-black text-xl text-white bg-slate-800/20">
+              <td className="px-3 py-3 md:p-4 text-center font-black text-base md:text-xl text-white bg-slate-800/20">
                 {clan.points}
               </td>
             </tr>
@@ -1835,7 +1840,7 @@ const ClanStandingsTable = ({ data }) => (
             <tr>
               <td
                 colSpan={7}
-                className="p-12 text-center text-slate-500 text-sm italic"
+                className="p-8 md:p-12 text-center text-slate-500 text-xs md:text-sm italic"
               >
                 Nenhum jogo na fase de grupos registrado.
               </td>
