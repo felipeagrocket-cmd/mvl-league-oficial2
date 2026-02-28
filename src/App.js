@@ -900,8 +900,17 @@ class BackendController {
   }
 }
 
-// --- UI COMPONENTS ---
-const Hero = ({ champion, settings }) => (
+// --- SISTEMA DE ACESSIBILIDADE E TRADUÇÃO (TOOLTIPS) ---
+const Tooltip = ({ text }) => (
+  <div className="group relative inline-flex items-center ml-1.5 cursor-help align-middle">
+    <Info size={13} className="text-slate-500 group-hover:text-amber-400 transition-colors" />
+    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2.5 bg-slate-800 text-white text-[10px] rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 shadow-2xl z-50 text-center font-normal leading-relaxed border border-slate-700 pointer-events-none drop-shadow-xl">
+      {text}
+      {/* Setinha apontando para baixo */}
+      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+    </div>
+  </div>
+);
   <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden flex items-end justify-center bg-slate-900 border-b border-slate-800">
     {settings.heroBackgroundUrl ? (
       <img
@@ -2149,6 +2158,7 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                   <span className="inline-flex items-center gap-1.5 bg-green-500/10 text-green-400 px-4 py-1.5 rounded-lg text-xs font-mono font-bold border border-green-500/20 tracking-wide shadow-[0_0_10px_rgba(74,222,128,0.1)]">
                     <DollarSign size={14} /> Passe:{" "}
                     {formatCurrency(player.marketValue || 10000000)}
+                    <Tooltip text="Valor de mercado do atleta. Aumenta ou diminui com base no K/D e histórico de vitórias." />
                   </span>
                 </div>
 
@@ -2375,9 +2385,9 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
             {/* ------------------------------------------------------------- */}
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-8">
-              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
-                <div className="text-slate-500 text-[9px] font-bold uppercase mb-1 tracking-wider">
-                  KD Geral
+            <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+                <div className="text-slate-500 text-[9px] font-bold uppercase mb-1 tracking-wider flex items-center">
+                  KD Geral <Tooltip text="Kill/Death Ratio. Média de abates por morte. Ter KD positivo valoriza seu passe!" />
                 </div>
                 <div
                   className={`text-2xl font-mono font-bold ${
@@ -2495,6 +2505,7 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
               <div>
                 <div className="text-slate-500 text-[10px] uppercase font-bold tracking-wider mb-1 flex items-center gap-1">
                   <Lock size={10} /> Multa Rescisória
+                  <Tooltip text="Valor extra que outro clã precisa pagar para roubar este jogador antes do vencimento do contrato." />
                 </div>
                 <div
                   className={`font-mono font-bold ${
@@ -6608,8 +6619,9 @@ const AdminPanel = ({
                       </select>
                     </div>
                     <div>
-                      <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
-                        Valor da Transação{" "}
+                      <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider flex items-center">
+                        Valor da Transação 
+                        <Tooltip text="Soma do passe do jogador + multa rescisória (se houver quebra de contrato)." />
                         {isHostilePossible && !isFriendlyAgreement && (
                           <span className="text-red-400 animate-pulse ml-1">
                             (Multa)
@@ -6652,8 +6664,9 @@ const AdminPanel = ({
                             setIsFriendlyAgreement(e.target.checked)
                           }
                         />
-                        <span className="text-slate-300 text-xs font-bold uppercase">
+                        <span className="text-slate-300 text-xs font-bold uppercase flex items-center">
                           Acordo Amigável
+                          <Tooltip text="Se ativado, a transferência não cobra a multa rescisória do clã comprador." />
                         </span>
                       </label>
                     </div>
