@@ -9462,7 +9462,7 @@ const StartHerePage = ({ data, onPlayerClick }) => {
       {/* CTA FINAL WHATSAPP */}
       <div className="text-center pt-8">
         <a
-          href="https://wa.me/?text=Quero%20jogar%20na%20MVL"
+          href="https://wa.me/5516988211957?text=Quero%20jogar%20na%20MVL"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-3 bg-amber-400 hover:bg-amber-300 text-black px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm transition-transform hover:-translate-y-1 shadow-[0_10px_30px_rgba(251,191,36,0.3)]"
