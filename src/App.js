@@ -9267,9 +9267,7 @@ const StartHerePage = ({ data, onPlayerClick }) => {
               Suba de Nível (XP)
             </h4>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Jogue e vença para ganhar Experiência (XP). Comece no Nível 1 e
-              construa sua reputação até o cobiçado Nível 21. Mostre para todos
-              quem manda no servidor.
+            O seu Level na MVL é o medidor oficial do seu talento. Comece no 1 e ganhe XP a cada boa atuação para chegar ao cobiçado Nível 21. Mas cuidado, a cada partida ruim, você perde XP. É a prova definitiva de quem domina a liga.
             </p>
           </div>
 
@@ -9282,8 +9280,8 @@ const StartHerePage = ({ data, onPlayerClick }) => {
             </h4>
             <p className="text-slate-400 text-sm leading-relaxed">
               Seu talento vale dinheiro virtual. Se você joga bem, seu "Passe"
-              fica mais caro. Nos campeonatos oficiais, você recebe um{" "}
-              <strong>Salário</strong> por cada partida jogada. Quanto melhor
+              fica mais caro. Nos campeonatos oficiais de Clã x Clã, você recebe
+              um <strong>Salário</strong> por cada partida jogada. Quanto melhor
               sua fase, mais os Clãs vão te disputar.
             </p>
           </div>
