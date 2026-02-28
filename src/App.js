@@ -2947,7 +2947,7 @@ const StorePage = ({ items, players }) => {
         {[
           { id: "all", label: "Todos os Itens" },
           { id: "ingame", label: "Itens do Jogo" },
-          { id: "cosmetic", label: "Cosméticos de Perfil" },
+          { id: "cosmetic", label: "Itens MVL" },
           { id: "premium", label: "Premium" },
         ].map((tab) => (
           <button
@@ -3047,7 +3047,7 @@ const StorePage = ({ items, players }) => {
                   ? "Item Premium"
                   : item.category === "ingame"
                   ? "Item do Jogo"
-                  : "Cosmético"}
+                  : "Item MVL"}
               </span>
 
               <div className="pt-4 flex items-center justify-between border-t border-slate-800/50">
@@ -8520,7 +8520,7 @@ const AdminPanel = ({
                         }
                       >
                         <option value="ingame">Item do Jogo (Vantagens)</option>
-                        <option value="cosmetic">Cosmético de Perfil</option>
+                        <option value="cosmetic">Itens MVL</option>
                       </select>
                     </div>
                     <div>
