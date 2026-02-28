@@ -3039,7 +3039,7 @@ const StorePage = ({ items, players }) => {
                   ? "Item Premium"
                   : item.category === "ingame"
                   ? "Item do Jogo"
-                  : "Cosmético"}
+                  : "Item MVL"}
               </span>
 
               <div className="mt-auto pt-4 flex items-center justify-between">
