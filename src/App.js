@@ -923,60 +923,32 @@ const LiveTicker = ({ data, backend }) => {
   const stats = useMemo(() => {
     if (!data || !data.players) return [];
     const ranking = backend.getGlobalRanking();
-
+    
     // Calcula os destaques
-    const mostExpensive = [...data.players].sort(
-      (a, b) => (b.marketValue || 0) - (a.marketValue || 0)
-    )[0];
-    const bestKDPlayer = [...ranking].sort((a, b) => b.kd - a.kd)[0];
-    const biggestTransfer =
-      data.transfers && data.transfers.length > 0
-        ? [...data.transfers].sort((a, b) => b.value - a.value)[0]
-        : null;
-    const highestLevelPlayer = [...data.players].sort(
-      (a, b) => (b.xp || 0) - (a.xp || 0)
-    )[0];
-    const richestPlayer = [...data.players].sort(
-      (a, b) => (b.totalEarnings || 0) - (a.totalEarnings || 0)
-    )[0];
+    const top1Global = ranking.length > 0 ? ranking[0] : null; // O Rei da Liga
+    const mostExpensive = [...data.players].sort((a,b) => (b.marketValue || 0) - (a.marketValue || 0))[0];
+    const bestKDPlayer = [...ranking].sort((a,b) => b.kd - a.kd)[0];
+    const biggestTransfer = data.transfers && data.transfers.length > 0 ? [...data.transfers].sort((a,b) => b.value - a.value)[0] : null;
+    const highestLevelPlayer = [...data.players].sort((a,b) => (b.xp || 0) - (a.xp || 0))[0];
+    const richestPlayer = [...data.players].sort((a,b) => (b.totalEarnings || 0) - (a.totalEarnings || 0))[0];
 
     const items = [];
-    if (mostExpensive && mostExpensive.marketValue > 0)
-      items.push({
-        prefix: "💰 Passe Mais Valioso:",
-        name: mostExpensive.nickname,
-        suffix: formatCurrency(mostExpensive.marketValue),
-      });
-    if (bestKDPlayer && bestKDPlayer.kd > 0)
-      items.push({
-        prefix: "🎯 Maior K/D da Liga:",
-        name: bestKDPlayer.nickname,
-        suffix: `${bestKDPlayer.kd.toFixed(2)} KD`,
-      });
-    if (highestLevelPlayer && highestLevelPlayer.xp > 0)
-      items.push({
-        prefix: "⚡ Maior Nível (XP):",
-        name: highestLevelPlayer.nickname,
-        suffix: `Level ${
-          LevelEngine.getLevelData(highestLevelPlayer.xp).level
-        }`,
-      });
-    if (richestPlayer && richestPlayer.totalEarnings > 0)
-      items.push({
-        prefix: "🏦 Jogador Mais Rico:",
-        name: richestPlayer.nickname,
-        suffix: formatCurrency(richestPlayer.totalEarnings),
-      });
-    if (biggestTransfer)
-      items.push({
-        prefix: "🤝 Maior Transferência:",
-        name: biggestTransfer.playerName,
-        suffix: formatCurrency(biggestTransfer.value),
-      });
+    
+    // Injeta as informações no letreiro
+    if (top1Global && top1Global.points > 0)
+      items.push({ prefix: "👑 Líder do Ranking:", name: top1Global.nickname, suffix: `${top1Global.points} PTS` });
+    if (mostExpensive && mostExpensive.marketValue > 0) 
+      items.push({ prefix: "💰 Passe Mais Valioso:", name: mostExpensive.nickname, suffix: formatCurrency(mostExpensive.marketValue) });
+    if (bestKDPlayer && bestKDPlayer.kd > 0) 
+      items.push({ prefix: "🎯 Maior K/D da Liga:", name: bestKDPlayer.nickname, suffix: `${bestKDPlayer.kd.toFixed(2)} KD` });
+    if (highestLevelPlayer && highestLevelPlayer.xp > 0) 
+      items.push({ prefix: "⚡ Maior Nível (XP):", name: highestLevelPlayer.nickname, suffix: `Level ${LevelEngine.getLevelData(highestLevelPlayer.xp).level}` });
+    if (richestPlayer && richestPlayer.totalEarnings > 0) 
+      items.push({ prefix: "🏦 Jogador Mais Rico:", name: richestPlayer.nickname, suffix: formatCurrency(richestPlayer.totalEarnings) });
+    if (biggestTransfer) 
+      items.push({ prefix: "🤝 Maior Transferência:", name: biggestTransfer.playerName, suffix: formatCurrency(biggestTransfer.value) });
 
-    return items.length > 0
-      ? items
-      : [{ prefix: "🚨", name: "MVL", suffix: "A NOVA ERA DOS ESPORTS" }];
+    return items.length > 0 ? items : [{ prefix: "🚨", name: "MVL", suffix: "A NOVA ERA DOS ESPORTS" }];
   }, [data, backend]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
