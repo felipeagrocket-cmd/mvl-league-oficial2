@@ -8944,8 +8944,11 @@ const AdminPanel = ({
                           setNewsContent("");
                           setNewsImage("");
                           triggerFeedback("Notícia publicada!");
+                          window.scrollTo({ top: 0, behavior: "smooth" }); // Sobe a tela pra você ver o aviso de sucesso!
                         } else {
-                          setFeedback("Preencha todos os campos.");
+                          alert(
+                            "Erro: Preencha o Título, o Texto e suba uma Imagem de Capa!"
+                          ); // Alerta que trava a tela, impossível não ver.
                         }
                       }}
                       className="w-full bg-amber-400 hover:bg-amber-300 text-black font-bold uppercase py-4 rounded-lg text-sm transition-all shadow-lg shadow-amber-400/20"
