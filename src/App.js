@@ -2371,7 +2371,7 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                 </div>
 
                 {/* BLOCO DO PATRIMÔNIO */}
-                {/* INVENTÁRIO DO JOGADOR (A MOCHILA) */}
+                {/* INVENTÁRIO DO JOGADOR (A MOCHILA DINÂMICA) */}
                 {player.inventory && player.inventory.length > 0 && (
                   <div className="bg-slate-950/80 p-4 rounded-2xl border border-white/5 mb-6 md:mb-8 text-left w-full md:max-w-sm mt-2 md:mt-4">
                     <div className="flex items-center justify-center md:justify-start gap-2 text-blue-400 mb-3 border-b border-slate-800/80 pb-2">
@@ -2381,27 +2381,33 @@ const PlayerProfile = ({ profileData, data, onBack }) => {
                       </span>
                     </div>
                     <div className="flex flex-wrap justify-center md:justify-start gap-3">
-                      {player.inventory.map((item, idx) => (
-                        <div
-                          key={idx}
-                          className="relative group cursor-help"
-                          title={item.name}
-                        >
+                      {player.inventory.map((savedItem, idx) => {
+                        // Busca o item atualizado na Loja. Se foi deletado, usa o que tá salvo na memória.
+                        const liveItem =
+                          data.items?.find((i) => i.id === savedItem.id) ||
+                          savedItem;
+                        return (
                           <div
-                            className={`w-10 h-10 md:w-12 md:h-12 rounded-xl p-1.5 flex items-center justify-center border shadow-inner ${
-                              item.isPremium
-                                ? "bg-gradient-to-br from-amber-500/20 to-amber-700/20 border-amber-500/50"
-                                : "bg-slate-900 border-slate-700"
-                            }`}
+                            key={idx}
+                            className="relative group cursor-help"
+                            title={liveItem.name}
                           >
-                            <img
-                              src={item.imageUrl}
-                              alt={item.name}
-                              className="max-w-full max-h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform"
-                            />
+                            <div
+                              className={`w-10 h-10 md:w-12 md:h-12 rounded-xl p-1.5 flex items-center justify-center border shadow-inner ${
+                                liveItem.isPremium
+                                  ? "bg-gradient-to-br from-amber-500/20 to-amber-700/20 border-amber-500/50"
+                                  : "bg-slate-900 border-slate-700"
+                              }`}
+                            >
+                              <img
+                                src={liveItem.imageUrl}
+                                alt={liveItem.name}
+                                className="max-w-full max-h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform"
+                              />
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -7059,9 +7065,30 @@ const AdminPanel = ({
                           type="checkbox"
                           className="accent-amber-500"
                           checked={isFriendlyAgreement}
-                          onChange={(e) =>
-                            setIsFriendlyAgreement(e.target.checked)
-                          }
+                          onChange={(e) => {
+                            const isFriendly = e.target.checked;
+                            setIsFriendlyAgreement(isFriendly);
+
+                            // Recalcula o preço IMEDIATAMENTE ao marcar/desmarcar
+                            const player = data.players.find(
+                              (p) => p.id === marketSelectedPlayer
+                            );
+                            if (player) {
+                              const basePasse = player.marketValue || 10000000;
+                              if (
+                                !isFriendly &&
+                                getContractStatus(player).isValid
+                              ) {
+                                const penalty = calculateReleaseClause(
+                                  basePasse,
+                                  player.releaseClauseMultiplier
+                                );
+                                setMarketPriceOverride(basePasse + penalty);
+                              } else {
+                                setMarketPriceOverride(basePasse);
+                              }
+                            }
+                          }}
                         />
                         <span className="text-slate-300 text-xs font-bold uppercase flex items-center">
                           Acordo Amigável
@@ -7717,13 +7744,14 @@ const AdminPanel = ({
                                     stat.kills,
                                     stat.deaths
                                   );
-                                  totalXp += xpResult.xpChange;
+                                  // APLICA O LIMITE DE ZERO A CADA PARTIDA (Evita o cara ir pra -100 e não subir)
+                                  totalXp = Math.max(
+                                    0,
+                                    totalXp + xpResult.xpChange
+                                  );
                                 }
                               }
                             }
-
-                            // Evita que alguém fique com XP negativo
-                            totalXp = Math.max(0, totalXp);
 
                             // Injeta o XP recalculado no banco de dados do jogador
                             await updateDoc(
