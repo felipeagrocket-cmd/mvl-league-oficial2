@@ -7344,12 +7344,34 @@ const AdminPanel = ({
                                   </div>
                                 </div>
                               </div>
-                              <button
-                                onClick={() => setManageContractPlayerId(p.id)}
-                                className="px-3 py-1.5 bg-slate-900 hover:bg-amber-400 hover:text-black text-slate-400 text-[10px] font-bold uppercase rounded border border-slate-700 transition-all"
-                              >
-                                Renovar
-                              </button>
+                              <div className="flex items-center gap-2 shrink-0 mt-3 md:mt-0">
+                                <button
+                                  onClick={() =>
+                                    setManageContractPlayerId(p.id)
+                                  }
+                                  className="px-3 py-1.5 bg-slate-900 hover:bg-amber-400 hover:text-black text-slate-400 text-[10px] font-bold uppercase rounded border border-slate-700 transition-all"
+                                >
+                                  Renovar
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (
+                                      window.confirm(
+                                        `Tem certeza que deseja dispensar ${p.nickname}? O clã não receberá nenhum valor de volta e o jogador ficará livre (Free Agent).`
+                                      )
+                                    ) {
+                                      onRemovePlayerFromClan(p.id);
+                                      triggerFeedback(
+                                        `${p.nickname} foi dispensado!`
+                                      );
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 bg-slate-900 hover:bg-red-500 hover:text-white text-slate-400 text-[10px] font-bold uppercase rounded border border-slate-700 transition-all"
+                                  title="Rescisão Amigável"
+                                >
+                                  Dispensar
+                                </button>
+                              </div>
                             </div>
                           );
                         })}
@@ -10400,12 +10422,48 @@ const App = () => {
   };
 
   const removePlayerFromClan = async (playerId) => {
+    const player = db.players.find((p) => p.id === playerId);
+    if (!player) return;
+    const clanId = player.clanId;
+
     try {
+      // 1. Libera o jogador e tira a multa
       await updateDoc(doc(firebaseDb, "players", playerId), {
         clanId: null,
         contractEnd: null,
         releaseClauseMultiplier: 0,
       });
+
+      if (clanId) {
+        const clan = db.clans.find((c) => c.id === clanId);
+        if (clan) {
+          // 2. Registra no caixa a rescisão amigável (Valor 0)
+          await salvarNoFirebase("financialLogs", {
+            id: generateId(),
+            clanId: clanId,
+            type: "contract_termination",
+            amount: 0,
+            oldBalance: clan.budget,
+            newBalance: clan.budget,
+            reason: `Rescisão Amigável: ${player.nickname}`,
+            date: new Date().toISOString(),
+          });
+
+          // 3. Joga a fofoca no feed de transferências (Mercado)
+          await salvarNoFirebase("transfers", {
+            id: generateId(),
+            type: "dispense",
+            playerId: player.id,
+            playerName: player.nickname,
+            fromClanId: clanId,
+            toClanId: null,
+            toClanName: "Free Agent", // Informa pra onde ele foi
+            value: 0,
+            date: new Date().toISOString(),
+            isHostile: false,
+          });
+        }
+      }
     } catch (e) {
       console.error(e);
     }
