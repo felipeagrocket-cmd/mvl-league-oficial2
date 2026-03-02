@@ -5909,7 +5909,9 @@ const AdminPanel = ({
   onDeleteStoreItem,
   onUpdateStoreItem,
   onSellStoreItem,
+  onRemoveItemFromInventory,
 }) => {
+  const [manageInventoryPlayerId, setManageInventoryPlayerId] = useState(null);
   const [editingStoreItemId, setEditingStoreItemId] = useState(null);
   const [newStoreItemName, setNewStoreItemName] = useState("");
   const [newStoreItemCategory, setNewStoreItemCategory] = useState("ingame");
@@ -6145,6 +6147,88 @@ const AdminPanel = ({
             }}
           />
         )}
+
+        {manageInventoryPlayerId &&
+          (() => {
+            const p = data.players.find(
+              (pl) => pl.id === manageInventoryPlayerId
+            );
+            if (!p) return null;
+            return (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn">
+                <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden flex flex-col max-h-[80vh]">
+                  <div className="bg-slate-950 p-5 border-b border-slate-800 flex justify-between items-center shrink-0">
+                    <h3 className="text-white font-bold uppercase flex items-center gap-2 text-sm">
+                      <Package className="text-purple-400" size={18} /> Mochila
+                      de {p.nickname}
+                    </h3>
+                    <button
+                      onClick={() => setManageInventoryPlayerId(null)}
+                      className="text-slate-500 hover:text-white transition-colors"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                  <div className="p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 flex-1">
+                    {!p.inventory || p.inventory.length === 0 ? (
+                      <div className="text-center py-8 text-slate-500 text-sm italic border border-dashed border-slate-800 rounded-xl">
+                        O inventário está vazio.
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {p.inventory.map((item, idx) => {
+                          const liveItem =
+                            data.items?.find((i) => i.id === item.id) || item;
+                          return (
+                            <div
+                              key={idx}
+                              className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center justify-between group"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center border border-slate-700 overflow-hidden shrink-0">
+                                  <img
+                                    src={liveItem.imageUrl}
+                                    alt={liveItem.name}
+                                    className="max-w-full max-h-full object-contain"
+                                  />
+                                </div>
+                                <div>
+                                  <div className="text-white font-bold text-xs line-clamp-1">
+                                    {liveItem.name}
+                                  </div>
+                                  <div className="text-slate-500 text-[9px] uppercase tracking-wider mt-0.5">
+                                    {liveItem.category}
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  if (
+                                    window.confirm(
+                                      `Remover ${liveItem.name} do jogador?`
+                                    )
+                                  ) {
+                                    onRemoveItemFromInventory(p.id, idx);
+                                    triggerFeedback(
+                                      "Item removido da mochila!"
+                                    );
+                                  }
+                                }}
+                                className="text-slate-500 hover:text-red-400 p-2 rounded-lg hover:bg-red-400/10 transition-colors shrink-0"
+                                title="Remover Item"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
         {activeMD3Series && (
           <TournamentMD3Modal
@@ -8002,6 +8086,20 @@ const AdminPanel = ({
                           title="Editar"
                         >
                           <Pencil size={18} />
+                        </button>
+                        <button
+                          onClick={() => setManageInventoryPlayerId(player.id)}
+                          className="p-2.5 text-slate-500 hover:text-purple-400 hover:bg-purple-400/10 rounded-lg transition-colors"
+                          title="Gerenciar Mochila"
+                        >
+                          <Package size={18} />
+                        </button>
+                        <button
+                          onClick={() => setManageInventoryPlayerId(player.id)}
+                          className="p-2.5 text-slate-500 hover:text-purple-400 hover:bg-purple-400/10 rounded-lg transition-colors"
+                          title="Gerenciar Mochila"
+                        >
+                          <Package size={18} />
                         </button>
                         <button
                           onClick={() => openBanModal(player)}
@@ -10445,6 +10543,23 @@ const App = () => {
     }
   };
 
+  const removeItemFromInventory = async (playerId, itemIndex) => {
+    const player = db.players.find((p) => p.id === playerId);
+    if (!player || !player.inventory) return;
+
+    // Faz uma cópia da mochila e remove o item específico pelo índice
+    const newInventory = [...player.inventory];
+    newInventory.splice(itemIndex, 1);
+
+    try {
+      await updateDoc(doc(firebaseDb, "players", playerId), {
+        inventory: newInventory,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const addSplit = async (name, champId, format) => {
     const id = generateId();
     try {
@@ -11268,6 +11383,7 @@ const App = () => {
               onDeleteStoreItem={deleteStoreItem}
               onUpdateStoreItem={updateStoreItem}
               onSellStoreItem={sellItemToPlayer}
+              onRemoveItemFromInventory={removeItemFromInventory}
             />
           )}
           {view === "teams" && (
