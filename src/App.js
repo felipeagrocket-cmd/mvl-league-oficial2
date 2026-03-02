@@ -361,36 +361,42 @@ const calculateReleaseClause = (marketValue, multiplier) =>
 const checkCosmetics = (player) => {
   const inventory = player?.inventory || [];
 
-  // Agora o Dourado só ativa se o NOME do item tiver "VIP" ou "Premium MVL"
+  // O Dourado ativa se tiver "VIP" ou "Premium MVL"
   const isPremium = inventory.some(
     (i) =>
       i.name.toLowerCase().includes("vip") ||
       i.name.toLowerCase().includes("premium mvl")
   );
 
-  const hasNeon = inventory.some((i) => i.name.toLowerCase().includes("neon"));
+  // A estética Azul Ciano agora é exclusiva de quem tem o item "Capitão"
+  const isCaptain = inventory.some(
+    (i) =>
+      i.name.toLowerCase().includes("capitão") ||
+      i.name.toLowerCase().includes("capitao")
+  );
 
   return {
     isPremium,
-    hasNeon,
+    isCaptain,
+    hasNeon: isCaptain, // Ponte de segurança para não quebrar a lógica das outras páginas
     nameClass: isPremium
       ? "text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]"
-      : hasNeon
+      : isCaptain
       ? "text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-400 to-cyan-500 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]"
       : "text-white group-hover:text-amber-400",
     avatarRing: isPremium
       ? "ring-2 ring-amber-400 border border-yellow-200/80 relative z-10 shadow-[0_0_25px_rgba(251,191,36,0.7)] group-hover:rotate-3 group-hover:scale-105"
-      : hasNeon
+      : isCaptain
       ? "ring-2 ring-cyan-400 border border-blue-200/80 relative z-10 shadow-[0_0_25px_rgba(34,211,238,0.7)] group-hover:-rotate-3 group-hover:scale-105"
       : "border border-slate-700 shadow-sm relative z-10",
     fireProfile: isPremium
       ? "absolute -inset-3 bg-gradient-to-tr from-amber-600 via-yellow-300 to-orange-600 rounded-[2rem] blur-xl animate-pulse opacity-70 group-hover:opacity-100 transition-opacity duration-500 z-0"
-      : hasNeon
+      : isCaptain
       ? "absolute -inset-3 bg-gradient-to-tr from-cyan-600 via-blue-400 to-cyan-300 rounded-[2rem] blur-xl animate-pulse opacity-70 group-hover:opacity-100 transition-opacity duration-500 z-0"
       : "hidden",
     fireCard: isPremium
       ? "absolute -inset-1.5 bg-gradient-to-tr from-amber-600 via-yellow-400 to-orange-600 rounded-2xl blur-lg animate-pulse opacity-60 group-hover:opacity-100 transition-opacity duration-500 z-0"
-      : hasNeon
+      : isCaptain
       ? "absolute -inset-1.5 bg-gradient-to-tr from-cyan-600 via-blue-500 to-cyan-300 rounded-2xl blur-lg animate-pulse opacity-60 group-hover:opacity-100 transition-opacity duration-500 z-0"
       : "hidden",
   };
