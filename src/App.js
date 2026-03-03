@@ -5910,6 +5910,8 @@ const AdminPanel = ({
   onUpdateStoreItem,
   onSellStoreItem,
   onRemoveItemFromInventory,
+  onCreateProposal,
+  onDeleteProposal,
 }) => {
   const [manageInventoryPlayerId, setManageInventoryPlayerId] = useState(null);
   const [editingStoreItemId, setEditingStoreItemId] = useState(null);
