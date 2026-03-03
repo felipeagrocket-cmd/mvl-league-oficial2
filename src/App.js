@@ -8077,49 +8077,63 @@ const AdminPanel = ({
 
                 {/* FILA DE TRIAGEM (DRAFT) */}
                 <div className="bg-slate-950 p-6 rounded-2xl border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.05)] mb-10">
-                      <h4 className="text-blue-400 font-bold text-xs uppercase flex items-center gap-2 mb-6 tracking-widest">
-                        <UserPlus size={16} /> Triagem Pendente ({data.drafts?.length || 0})
-                      </h4>
-                      <div className="space-y-3">
-                        {data.drafts && data.drafts.length > 0 ? (
-                          data.drafts.map(draft => (
-                            <div key={draft.id} className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
-                              <div className="flex items-center gap-4 w-full md:w-auto">
-                                <img src={draft.avatarUrl} className="w-12 h-12 rounded-lg bg-slate-800 object-cover" alt="Draft" />
-                                <div>
-                                  <div className="text-white font-bold text-sm">{draft.nickname}</div>
-                                  <div className="text-slate-500 text-[10px] font-mono">{draft.gameId}</div>
-                                </div>
+                  <h4 className="text-blue-400 font-bold text-xs uppercase flex items-center gap-2 mb-6 tracking-widest">
+                    <UserPlus size={16} /> Triagem Pendente (
+                    {data.drafts?.length || 0})
+                  </h4>
+                  <div className="space-y-3">
+                    {data.drafts && data.drafts.length > 0 ? (
+                      data.drafts.map((draft) => (
+                        <div
+                          key={draft.id}
+                          className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4"
+                        >
+                          <div className="flex items-center gap-4 w-full md:w-auto">
+                            <img
+                              src={draft.avatarUrl}
+                              className="w-12 h-12 rounded-lg bg-slate-800 object-cover"
+                              alt="Draft"
+                            />
+                            <div>
+                              <div className="text-white font-bold text-sm">
+                                {draft.nickname}
                               </div>
-                              <div className="flex items-center gap-2 w-full md:w-auto">
-                                <button 
-                                  onClick={() => {
-                                    rejectDraft(draft.id);
-                                    triggerFeedback("Inscrição recusada.");
-                                  }}
-                                  className="flex-1 md:flex-none text-red-400 bg-red-500/10 hover:bg-red-500/20 px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-colors"
-                                >
-                                  Recusar
-                                </button>
-                                <button 
-                                  onClick={() => {
-                                    approveDraft(draft);
-                                    triggerFeedback("Jogador aprovado e cadastrado na liga!");
-                                  }}
-                                  className="flex-1 md:flex-none text-black bg-emerald-500 hover:bg-emerald-400 px-6 py-2 rounded-lg text-[10px] font-black uppercase shadow-lg transition-transform hover:-translate-y-0.5"
-                                >
-                                  Aprovar e Cadastrar
-                                </button>
+                              <div className="text-slate-500 text-[10px] font-mono">
+                                {draft.gameId}
                               </div>
                             </div>
-                          ))
-                        ) : (
-                          <div className="text-center py-6 text-slate-500 text-xs italic border border-dashed border-slate-800 rounded-xl">
-                            Nenhum jogador na fila de triagem no momento.
                           </div>
-                        )}
+                          <div className="flex items-center gap-2 w-full md:w-auto">
+                            <button
+                              onClick={() => {
+                                rejectDraft(draft.id);
+                                triggerFeedback("Inscrição recusada.");
+                              }}
+                              className="flex-1 md:flex-none text-red-400 bg-red-500/10 hover:bg-red-500/20 px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-colors"
+                            >
+                              Recusar
+                            </button>
+                            <button
+                              onClick={() => {
+                                approveDraft(draft);
+                                triggerFeedback(
+                                  "Jogador aprovado e cadastrado na liga!"
+                                );
+                              }}
+                              className="flex-1 md:flex-none text-black bg-emerald-500 hover:bg-emerald-400 px-6 py-2 rounded-lg text-[10px] font-black uppercase shadow-lg transition-transform hover:-translate-y-0.5"
+                            >
+                              Aprovar e Cadastrar
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-6 text-slate-500 text-xs italic border border-dashed border-slate-800 rounded-xl">
+                        Nenhum jogador na fila de triagem no momento.
                       </div>
-                    </div>
+                    )}
+                  </div>
+                </div>
 
                 <div
                   className={`bg-slate-950 p-8 rounded-2xl border mb-10 transition-colors ${
@@ -9896,7 +9910,7 @@ const StartHerePage = ({ data, onPlayerClick }) => {
           }}
           className="inline-flex items-center gap-3 bg-amber-400 hover:bg-amber-300 text-black px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm transition-transform hover:-translate-y-1 shadow-[0_10px_30px_rgba(251,191,36,0.3)]"
         >
-          <Rocket size={20} /> Fazer Inscrição no Draft
+          <Rocket size={20} /> Quero Entrar para a Liga
         </button>
       </div>
     </div>
@@ -9972,10 +9986,11 @@ const DraftRegistrationPage = ({ onSubmit, onBack }) => {
       <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-[80px] pointer-events-none"></div>
         <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-2 flex items-center gap-3 relative z-10">
-          <UserPlus className="text-amber-400" /> Draft Oficial
+          <UserPlus className="text-amber-400" /> Inscrição na Liga
         </h2>
         <p className="text-slate-400 text-sm mb-8 relative z-10">
-          Preencha sua ficha técnica para entrar na fila de avaliação da MVL.
+          Preencha sua ficha técnica oficial para entrar no radar dos times da
+          MVL.
         </p>
 
         <div className="space-y-6 relative z-10">
