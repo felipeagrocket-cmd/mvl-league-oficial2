@@ -5913,6 +5913,8 @@ const AdminPanel = ({
   onRemoveItemFromInventory,
   onCreateProposal,
   onDeleteProposal,
+  approveDraft,
+  rejectDraft,
 }) => {
   const [manageInventoryPlayerId, setManageInventoryPlayerId] = useState(null);
   const [editingStoreItemId, setEditingStoreItemId] = useState(null);
@@ -8072,6 +8074,63 @@ const AdminPanel = ({
                     </button>
                   </div>
                 </div>
+
+                {/* FILA DE TRIAGEM (DRAFT) */}
+                {data.drafts && data.drafts.length > 0 && (
+                  <div className="bg-slate-950 p-6 rounded-2xl border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.05)] mb-10">
+                    <h4 className="text-blue-400 font-bold text-xs uppercase flex items-center gap-2 mb-6 tracking-widest">
+                      <UserPlus size={16} /> Triagem Pendente (
+                      {data.drafts.length})
+                    </h4>
+                    <div className="space-y-3">
+                      {data.drafts.map((draft) => (
+                        <div
+                          key={draft.id}
+                          className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4"
+                        >
+                          <div className="flex items-center gap-4 w-full md:w-auto">
+                            <img
+                              src={draft.avatarUrl}
+                              className="w-12 h-12 rounded-lg bg-slate-800 object-cover"
+                              alt="Draft"
+                            />
+                            <div>
+                              <div className="text-white font-bold text-sm">
+                                {draft.nickname}
+                              </div>
+                              <div className="text-slate-500 text-[10px] font-mono">
+                                {draft.gameId}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 w-full md:w-auto">
+                            <button
+                              onClick={() => {
+                                rejectDraft(draft.id);
+                                triggerFeedback("Inscrição recusada.");
+                              }}
+                              className="flex-1 md:flex-none text-red-400 bg-red-500/10 hover:bg-red-500/20 px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-colors"
+                            >
+                              Recusar
+                            </button>
+                            <button
+                              onClick={() => {
+                                approveDraft(draft);
+                                triggerFeedback(
+                                  "Jogador aprovado e cadastrado na liga!"
+                                );
+                              }}
+                              className="flex-1 md:flex-none text-black bg-emerald-500 hover:bg-emerald-400 px-6 py-2 rounded-lg text-[10px] font-black uppercase shadow-lg transition-transform hover:-translate-y-0.5"
+                            >
+                              Aprovar e Cadastrar
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div
                   className={`bg-slate-950 p-8 rounded-2xl border mb-10 transition-colors ${
                     editingPlayerId
@@ -9839,16 +9898,171 @@ const StartHerePage = ({ data, onPlayerClick }) => {
         </div>
       </div>
 
-      {/* CTA FINAL WHATSAPP */}
+      {/* CTA FINAL WHATSAPP / DRAFT */}
       <div className="text-center pt-8">
-        <a
-          href="https://wa.me/5516988211957?text=Quero%20jogar%20na%20MVL"
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={() => {
+            window.location.search = "?draft=true";
+          }}
           className="inline-flex items-center gap-3 bg-amber-400 hover:bg-amber-300 text-black px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm transition-transform hover:-translate-y-1 shadow-[0_10px_30px_rgba(251,191,36,0.3)]"
         >
-          <Rocket size={20} /> Entrar pra MVL
-        </a>
+          <Rocket size={20} /> Fazer Inscrição no Draft
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const DraftRegistrationPage = ({ onSubmit, onBack }) => {
+  const [nickname, setNickname] = useState("");
+  const [gameId, setGameId] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const img = new Image();
+      img.src = reader.result;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 400;
+        const scaleSize = MAX_WIDTH / img.width;
+        if (img.width < MAX_WIDTH) {
+          canvas.width = img.width;
+          canvas.height = img.height;
+        } else {
+          canvas.width = MAX_WIDTH;
+          canvas.height = img.height * scaleSize;
+        }
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        setAvatarUrl(canvas.toDataURL("image/webp", 0.8));
+      };
+    };
+    reader.readAsDataURL(file);
+  };
+
+  if (isSuccess) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 animate-fadeIn">
+        <div className="w-20 h-20 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mb-6 border-2 border-emerald-500/50 shadow-[0_0_30px_rgba(52,211,153,0.2)]">
+          <CheckCircle size={40} />
+        </div>
+        <h2 className="text-3xl font-black text-white uppercase tracking-tight mb-2 text-center">
+          Inscrição Enviada!
+        </h2>
+        <p className="text-slate-400 text-center max-w-md mb-8">
+          Sua ficha foi enviada para a diretoria da liga. Aguarde a aprovação
+          para entrar no mercado oficial.
+        </p>
+        <button
+          onClick={onBack}
+          className="text-slate-500 hover:text-white font-bold uppercase text-xs tracking-widest transition-colors flex items-center gap-2"
+        >
+          <ChevronRight className="rotate-180" size={14} /> Voltar ao Início
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto p-4 animate-fadeIn pb-16">
+      <button
+        onClick={onBack}
+        className="mb-8 text-slate-500 hover:text-white flex items-center gap-2 text-xs font-bold uppercase transition-colors tracking-widest"
+      >
+        <ChevronRight size={14} className="rotate-180" /> Voltar
+      </button>
+
+      <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-[80px] pointer-events-none"></div>
+        <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-2 flex items-center gap-3 relative z-10">
+          <UserPlus className="text-amber-400" /> Draft Oficial
+        </h2>
+        <p className="text-slate-400 text-sm mb-8 relative z-10">
+          Preencha sua ficha técnica para entrar na fila de avaliação da MVL.
+        </p>
+
+        <div className="space-y-6 relative z-10">
+          <div>
+            <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
+              Nickname (Como você é conhecido)
+            </label>
+            <input
+              type="text"
+              placeholder="Ex: FalleN"
+              className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white text-sm outline-none focus:border-amber-400 transition-colors shadow-inner"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
+              Game ID Oficial (Com a TAG)
+            </label>
+            <input
+              type="text"
+              placeholder="Ex: FalleN#BR1"
+              className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white text-sm outline-none focus:border-amber-400 transition-colors shadow-inner font-mono"
+              value={gameId}
+              onChange={(e) => setGameId(e.target.value)}
+            />
+          </div>
+          <div className="bg-slate-950/50 p-6 rounded-xl border border-slate-800 border-dashed">
+            <label className="block text-slate-400 text-[10px] uppercase font-bold mb-4 tracking-wider text-center md:text-left">
+              Foto de Perfil (Fundo transparente se possível)
+            </label>
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-3.5 px-6 rounded-xl border border-slate-600 transition-all flex items-center gap-2 shadow-lg group">
+                <Upload
+                  size={16}
+                  className="group-hover:-translate-y-1 transition-transform"
+                />{" "}
+                Carregar Imagem
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                />
+              </label>
+              {avatarUrl && (
+                <div className="relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-amber-500/50 bg-slate-800 shadow-xl">
+                  <img
+                    src={avatarUrl}
+                    className="w-full h-full object-cover"
+                    alt="Preview"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={async () => {
+              if (!nickname || !gameId || !avatarUrl)
+                return alert("Preencha o Nickname, Game ID e envie uma foto!");
+              setIsSubmitting(true);
+              await onSubmit({ nickname, gameId, avatarUrl });
+              setIsSubmitting(false);
+              setIsSuccess(true);
+            }}
+            disabled={isSubmitting}
+            className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-black uppercase py-4 rounded-xl text-sm transition-all shadow-[0_10px_20px_rgba(251,191,36,0.2)] flex justify-center items-center gap-2 mt-4"
+          >
+            {isSubmitting ? (
+              "Enviando..."
+            ) : (
+              <>
+                <Rocket size={18} /> Solicitar Inscrição
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -10082,6 +10296,7 @@ const App = () => {
     transfers: [],
     financialLogs: [],
     proposals: [],
+    drafts: [],
   });
 
   const [view, setView] = useState("home");
@@ -10099,6 +10314,10 @@ const App = () => {
     if (propId) {
       setActiveProposalId(propId);
       setView("proposal");
+    }
+
+    if (params.get("draft") === "true") {
+      setView("draftForm");
     }
   }, []);
 
@@ -10120,6 +10339,7 @@ const App = () => {
       "transfers",
       "financialLogs",
       "proposals",
+      "drafts",
     ];
 
     const unsubs = colecoes.map((colecao) => {
@@ -11027,6 +11247,38 @@ const App = () => {
     }
   };
 
+  const submitDraft = async (draftData) => {
+    const id = generateId();
+    await salvarNoFirebase("drafts", {
+      ...draftData,
+      id,
+      date: new Date().toISOString(),
+    });
+  };
+
+  const approveDraft = async (draft) => {
+    try {
+      // 1. Cria o jogador oficial
+      await addPlayer({
+        nickname: draft.nickname,
+        gameId: draft.gameId,
+        avatarUrl: draft.avatarUrl,
+      });
+      // 2. Apaga da fila de triagem
+      await deleteDoc(doc(firebaseDb, "drafts", draft.id));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const rejectDraft = async (draftId) => {
+    try {
+      await deleteDoc(doc(firebaseDb, "drafts", draftId));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const addSplit = async (name, champId, format) => {
     const id = generateId();
     try {
@@ -11663,6 +11915,13 @@ const App = () => {
             />
           )}
 
+          {view === "draftForm" && (
+            <DraftRegistrationPage
+              onSubmit={submitDraft}
+              onBack={() => setView("start")}
+            />
+          )}
+
           {view === "start" && (
             <StartHerePage data={db} onPlayerClick={goToProfile} />
           )}
@@ -11862,6 +12121,8 @@ const App = () => {
               onRemoveItemFromInventory={removeItemFromInventory}
               onCreateProposal={createProposal}
               onDeleteProposal={deleteProposal}
+              approveDraft={approveDraft}
+              rejectDraft={rejectDraft}
             />
           )}
           {view === "teams" && (
