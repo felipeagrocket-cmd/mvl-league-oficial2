@@ -7537,7 +7537,7 @@ const AdminPanel = ({
                             name: newClanName,
                             tag: newClanTag,
                             logoUrl: newClanLogo,
-                            budget: 150000000,
+                            budget: 50000000,
                           });
                           triggerFeedback("Clã criado com sucesso!");
                         }
