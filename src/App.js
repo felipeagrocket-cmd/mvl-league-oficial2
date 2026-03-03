@@ -10008,7 +10008,7 @@ const DraftRegistrationPage = ({ onSubmit, onBack }) => {
           </div>
           <div>
             <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
-              Game ID Oficial (Com a TAG)
+              ID do Jogo
             </label>
             <input
               type="text"
@@ -10019,9 +10019,21 @@ const DraftRegistrationPage = ({ onSubmit, onBack }) => {
             />
           </div>
           <div className="bg-slate-950/50 p-6 rounded-xl border border-slate-800 border-dashed">
-            <label className="block text-slate-400 text-[10px] uppercase font-bold mb-4 tracking-wider text-center md:text-left">
-              Foto de Perfil (Fundo transparente se possível)
+            <label className="block text-slate-400 text-[10px] uppercase font-bold mb-1 tracking-wider text-center md:text-left">
+              Foto de Perfil{" "}
+              <span className="text-slate-500 normal-case font-normal">
+                (Opcional)
+              </span>
             </label>
+            <p className="text-[10px] text-slate-400 mb-4 text-center md:text-left flex flex-col md:flex-row md:items-center gap-1.5 justify-center md:justify-start bg-amber-500/5 p-2 rounded-lg border border-amber-500/20">
+              <AlertCircle
+                size={14}
+                className="text-amber-500 shrink-0 mx-auto md:mx-0"
+              />
+              A liga aceita apenas fotos reais para manter o padrão. Não utilize
+              memes ou figuras. Se preferir, deixe em branco para usar o avatar
+              padrão.
+            </p>
             <div className="flex flex-col md:flex-row items-center gap-6">
               <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-3.5 px-6 rounded-xl border border-slate-600 transition-all flex items-center gap-2 shadow-lg group">
                 <Upload
@@ -10049,10 +10061,17 @@ const DraftRegistrationPage = ({ onSubmit, onBack }) => {
           </div>
           <button
             onClick={async () => {
-              if (!nickname || !gameId || !avatarUrl)
-                return alert("Preencha o Nickname, Game ID e envie uma foto!");
+              if (!nickname || !gameId)
+                return alert(
+                  "Preencha o Nickname e o Game ID para se inscrever!"
+                );
               setIsSubmitting(true);
-              await onSubmit({ nickname, gameId, avatarUrl });
+
+              // Se ele não enviou foto, já injeta a imagem padrão do sistema
+              const finalAvatar =
+                avatarUrl || "https://i.imgur.com/KE2qIR5.png";
+
+              await onSubmit({ nickname, gameId, avatarUrl: finalAvatar });
               setIsSubmitting(false);
               setIsSuccess(true);
             }}
