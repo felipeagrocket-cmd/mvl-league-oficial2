@@ -9913,15 +9913,18 @@ const ProposalPage = ({ proposalId, data, onAnswer }) => {
           <h4 className="text-amber-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
             Proposta Oficial de Transferência
           </h4>
-          <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">
-            A equipe <span className="text-blue-400">{clan.name}</span> quer
+          <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-3 leading-tight">
+            <span className="text-amber-400 drop-shadow-md">
+              {player.nickname}
+            </span>
+            , a equipe <span className="text-blue-400">{clan.name}</span> quer
             você!
           </h2>
-          <p className="text-slate-400 text-sm leading-relaxed mb-8">
-            Você foi selecionado pelo manager da organização. Ao aceitar esta
-            proposta, você concorda em defender a TAG{" "}
+          <p className="text-slate-400 text-sm leading-relaxed mb-8 px-2">
+            Você foi selecionado a dedo pelo manager da organização. Ao aceitar
+            esta proposta, você concorda em defender a TAG{" "}
             <span className="text-white font-bold">[{clan.tag}]</span> e receber
-            o salário abaixo por mapa jogado.
+            o salário abaixo por cada mapa jogado.
           </p>
 
           <div className="grid grid-cols-2 gap-4 mb-8">
