@@ -5915,6 +5915,8 @@ const AdminPanel = ({
   onDeleteProposal,
   approveDraft,
   rejectDraft,
+  approveClanDraft,
+  rejectClanDraft,
 }) => {
   const [manageInventoryPlayerId, setManageInventoryPlayerId] = useState(null);
   const [editingStoreItemId, setEditingStoreItemId] = useState(null);
@@ -7018,6 +7020,69 @@ const AdminPanel = ({
                 <h3 className="text-xl font-black text-white mb-6 border-b border-slate-800 pb-4 tracking-tight">
                   Mercado da Bala & Contratos
                 </h3>
+                {/* FILA DE TRIAGEM (CLÃS) */}
+                <div className="bg-slate-950 p-6 rounded-2xl border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.05)] mb-10">
+                  <h4 className="text-blue-400 font-bold text-xs uppercase flex items-center gap-2 mb-6 tracking-widest">
+                    <Shield size={16} /> Triagem de Franquias (
+                    {data.clanDrafts?.length || 0})
+                  </h4>
+                  <div className="space-y-3">
+                    {data.clanDrafts && data.clanDrafts.length > 0 ? (
+                      data.clanDrafts.map((draft) => (
+                        <div
+                          key={draft.id}
+                          className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4"
+                        >
+                          <div className="flex items-center gap-4 w-full md:w-auto">
+                            <div className="w-12 h-12 bg-slate-950 rounded-xl p-1.5 border border-slate-800 flex items-center justify-center">
+                              <img
+                                src={draft.logoUrl}
+                                className="max-w-full max-h-full object-contain"
+                                alt="Logo"
+                              />
+                            </div>
+                            <div>
+                              <div className="text-white font-bold text-sm">
+                                {draft.name}
+                              </div>
+                              <div className="text-slate-500 text-[10px] font-mono font-bold uppercase mt-0.5">
+                                [{draft.tag}]
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 w-full md:w-auto">
+                            <button
+                              onClick={() => {
+                                rejectClanDraft(draft.id);
+                                triggerFeedback(
+                                  "Aplicação de Franquia recusada."
+                                );
+                              }}
+                              className="flex-1 md:flex-none text-red-400 bg-red-500/10 hover:bg-red-500/20 px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-colors"
+                            >
+                              Recusar
+                            </button>
+                            <button
+                              onClick={() => {
+                                approveClanDraft(draft);
+                                triggerFeedback(
+                                  "Franquia aprovada e inserida na liga com R$ 80 Mi de orçamento!"
+                                );
+                              }}
+                              className="flex-1 md:flex-none text-white bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-lg text-[10px] font-black uppercase shadow-lg transition-transform hover:-translate-y-0.5"
+                            >
+                              Aprovar Franquia
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-6 text-slate-500 text-xs italic border border-dashed border-slate-800 rounded-xl">
+                        Nenhuma aplicação de Franquia pendente.
+                      </div>
+                    )}
+                  </div>
+                </div>
 
                 {/* PAINEL DE CONTROLE DA JANELA COM CALENDÁRIO */}
                 <div
@@ -9902,16 +9967,27 @@ const StartHerePage = ({ data, onPlayerClick }) => {
         </div>
       </div>
 
-      {/* CTA FINAL WHATSAPP / DRAFT */}
+      {/* CTA FINAL (JOGADOR OU MANAGER) */}
       <div className="text-center pt-8">
-        <button
-          onClick={() => {
-            window.location.search = "?draft=true";
-          }}
-          className="inline-flex items-center gap-3 bg-amber-400 hover:bg-amber-300 text-black px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm transition-transform hover:-translate-y-1 shadow-[0_10px_30px_rgba(251,191,36,0.3)]"
-        >
-          <Rocket size={20} /> Quero Entrar para a Liga
-        </button>
+        {roleView === "player" ? (
+          <button
+            onClick={() => {
+              window.location.search = "?draft=true";
+            }}
+            className="inline-flex items-center gap-3 bg-amber-400 hover:bg-amber-300 text-black px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm transition-transform hover:-translate-y-1 shadow-[0_10px_30px_rgba(251,191,36,0.3)]"
+          >
+            <Rocket size={20} /> Quero Entrar para a Liga
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              window.location.search = "?newclan=true";
+            }}
+            className="inline-flex items-center gap-3 bg-blue-500 hover:bg-blue-400 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm transition-transform hover:-translate-y-1 shadow-[0_10px_30px_rgba(59,130,246,0.3)]"
+          >
+            <Shield size={20} /> Aplicar Minha Franquia
+          </button>
+        )}
       </div>
     </div>
   );
@@ -10301,6 +10377,173 @@ const ProposalPage = ({ proposalId, data, onAnswer }) => {
   );
 };
 
+const ClanRegistrationPage = ({ onSubmit, onBack }) => {
+  const [name, setName] = useState("");
+  const [tag, setTag] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const img = new Image();
+      img.src = reader.result;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 400;
+        const scaleSize = MAX_WIDTH / img.width;
+        if (img.width < MAX_WIDTH) {
+          canvas.width = img.width;
+          canvas.height = img.height;
+        } else {
+          canvas.width = MAX_WIDTH;
+          canvas.height = img.height * scaleSize;
+        }
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        setLogoUrl(canvas.toDataURL("image/webp", 0.8));
+      };
+    };
+    reader.readAsDataURL(file);
+  };
+
+  if (isSuccess) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 animate-fadeIn">
+        <div className="w-20 h-20 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center mb-6 border-2 border-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
+          <CheckCircle size={40} />
+        </div>
+        <h2 className="text-3xl font-black text-white uppercase tracking-tight mb-2 text-center">
+          Aplicação Enviada!
+        </h2>
+        <p className="text-slate-400 text-center max-w-md mb-8">
+          O projeto da sua Franquia está na mesa da diretoria. Aguarde a
+          aprovação para começar a gerenciar sua equipe.
+        </p>
+        <button
+          onClick={onBack}
+          className="text-slate-500 hover:text-white font-bold uppercase text-xs tracking-widest transition-colors flex items-center gap-2"
+        >
+          <ChevronRight className="rotate-180" size={14} /> Voltar ao Início
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto p-4 animate-fadeIn pb-16">
+      <button
+        onClick={onBack}
+        className="mb-8 text-slate-500 hover:text-white flex items-center gap-2 text-xs font-bold uppercase transition-colors tracking-widest"
+      >
+        <ChevronRight size={14} className="rotate-180" /> Voltar
+      </button>
+
+      <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-[80px] pointer-events-none"></div>
+        <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-2 flex items-center gap-3 relative z-10">
+          <Shield className="text-blue-400" /> Fundar Franquia
+        </h2>
+        <p className="text-slate-400 text-sm mb-8 relative z-10">
+          Cadastre a sua organização para entrar na disputa da Match Vanguard
+          League.
+        </p>
+
+        <div className="space-y-6 relative z-10">
+          <div>
+            <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
+              Nome da Organização
+            </label>
+            <input
+              type="text"
+              placeholder="Ex: LOUD, Furia, NaVi..."
+              className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white text-sm outline-none focus:border-blue-400 transition-colors shadow-inner"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
+              TAG Oficial (3 ou 4 letras)
+            </label>
+            <input
+              type="text"
+              placeholder="Ex: LLL"
+              maxLength={4}
+              className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white text-sm outline-none focus:border-blue-400 transition-colors shadow-inner font-mono uppercase"
+              value={tag}
+              onChange={(e) => setTag(e.target.value.toUpperCase())}
+            />
+          </div>
+          <div className="bg-slate-950/50 p-6 rounded-xl border border-slate-800 border-dashed">
+            <label className="block text-slate-400 text-[10px] uppercase font-bold mb-1 tracking-wider text-center md:text-left">
+              Logo da Equipe{" "}
+              <span className="text-slate-500 normal-case font-normal">
+                (Opcional)
+              </span>
+            </label>
+            <p className="text-[10px] text-slate-400 mb-4 text-center md:text-left">
+              Recomendamos imagens com fundo transparente (PNG). Se deixar em
+              branco, usaremos um escudo genérico.
+            </p>
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-3.5 px-6 rounded-xl border border-slate-600 transition-all flex items-center gap-2 shadow-lg group">
+                <Upload
+                  size={16}
+                  className="group-hover:-translate-y-1 transition-transform"
+                />{" "}
+                Subir Logo
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                />
+              </label>
+              {logoUrl && (
+                <div className="relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-blue-500/50 bg-slate-800 shadow-xl p-2 flex items-center justify-center">
+                  <img
+                    src={logoUrl}
+                    className="max-w-full max-h-full object-contain"
+                    alt="Preview"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={async () => {
+              if (!name || !tag)
+                return alert("O Nome e a TAG são obrigatórios!");
+              setIsSubmitting(true);
+              const finalLogo =
+                logoUrl ||
+                "https://cdn-icons-png.flaticon.com/512/9406/9406324.png"; // Escudo genérico
+              await onSubmit({ name, tag, logoUrl: finalLogo });
+              setIsSubmitting(false);
+              setIsSuccess(true);
+            }}
+            disabled={isSubmitting}
+            className="w-full bg-blue-500 hover:bg-blue-400 disabled:opacity-50 text-white font-black uppercase py-4 rounded-xl text-sm transition-all shadow-[0_10px_20px_rgba(59,130,246,0.2)] flex justify-center items-center gap-2 mt-4"
+          >
+            {isSubmitting ? (
+              "Enviando..."
+            ) : (
+              <>
+                <Landmark size={18} /> Enviar Projeto de Franquia
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const App = () => {
   const [db, setDb] = useState({
     players: [],
@@ -10321,6 +10564,7 @@ const App = () => {
     financialLogs: [],
     proposals: [],
     drafts: [],
+    clanDrafts: [],
   });
 
   const [view, setView] = useState("home");
@@ -10343,6 +10587,9 @@ const App = () => {
     if (params.get("draft") === "true") {
       setView("draftForm");
     }
+    if (params.get("newclan") === "true") {
+      setView("clanForm");
+    }
   }, []);
 
   // --- SINCRONIZADOR EM TEMPO REAL (FIREBASE) ---
@@ -10364,6 +10611,7 @@ const App = () => {
       "financialLogs",
       "proposals",
       "drafts",
+      "clanDrafts",
     ];
 
     const unsubs = colecoes.map((colecao) => {
@@ -11303,6 +11551,39 @@ const App = () => {
     }
   };
 
+  const submitClanDraft = async (draftData) => {
+    const id = generateId();
+    await salvarNoFirebase("clanDrafts", {
+      ...draftData,
+      id,
+      date: new Date().toISOString(),
+    });
+  };
+
+  const approveClanDraft = async (draft) => {
+    try {
+      // 1. Cria o Clã com o Teto de Franquia inicial de 80 Milhões
+      await addClan({
+        name: draft.name,
+        tag: draft.tag,
+        logoUrl: draft.logoUrl,
+        budget: 80000000,
+      });
+      // 2. Apaga da triagem
+      await deleteDoc(doc(firebaseDb, "clanDrafts", draft.id));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const rejectClanDraft = async (draftId) => {
+    try {
+      await deleteDoc(doc(firebaseDb, "clanDrafts", draftId));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const addSplit = async (name, champId, format) => {
     const id = generateId();
     try {
@@ -11946,6 +12227,13 @@ const App = () => {
             />
           )}
 
+          {view === "clanForm" && (
+            <ClanRegistrationPage
+              onSubmit={submitClanDraft}
+              onBack={() => setView("start")}
+            />
+          )}
+
           {view === "start" && (
             <StartHerePage data={db} onPlayerClick={goToProfile} />
           )}
@@ -12147,6 +12435,8 @@ const App = () => {
               onDeleteProposal={deleteProposal}
               approveDraft={approveDraft}
               rejectDraft={rejectDraft}
+              approveClanDraft={approveClanDraft}
+              rejectClanDraft={rejectClanDraft}
             />
           )}
           {view === "teams" && (
