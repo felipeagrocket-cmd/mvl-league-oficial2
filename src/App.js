@@ -10380,6 +10380,8 @@ const ProposalPage = ({ proposalId, data, onAnswer }) => {
 const ClanRegistrationPage = ({ onSubmit, onBack }) => {
   const [name, setName] = useState("");
   const [tag, setTag] = useState("");
+  const [ownerNick, setOwnerNick] = useState("");
+  const [ownerGameId, setOwnerGameId] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -10466,6 +10468,34 @@ const ClanRegistrationPage = ({ onSubmit, onBack }) => {
               onChange={(e) => setName(e.target.value)}
             />
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
+                Seu Nick (Presidente)
+              </label>
+              <input
+                type="text"
+                placeholder="Ex: FalleN"
+                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white text-sm outline-none focus:border-blue-400 transition-colors shadow-inner"
+                value={ownerNick}
+                onChange={(e) => setOwnerNick(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
+                Seu Game ID
+              </label>
+              <input
+                type="text"
+                placeholder="Ex: FalleN#BR1"
+                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white text-sm outline-none focus:border-blue-400 transition-colors shadow-inner font-mono"
+                value={ownerGameId}
+                onChange={(e) => setOwnerGameId(e.target.value)}
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
               TAG Oficial (3 ou 4 letras)
@@ -10517,13 +10547,19 @@ const ClanRegistrationPage = ({ onSubmit, onBack }) => {
           </div>
           <button
             onClick={async () => {
-              if (!name || !tag)
-                return alert("O Nome e a TAG são obrigatórios!");
+              if (!name || !tag || !ownerNick || !ownerGameId)
+                return alert("Preencha os dados do Clã e do Presidente!");
               setIsSubmitting(true);
               const finalLogo =
                 logoUrl ||
                 "https://cdn-icons-png.flaticon.com/512/9406/9406324.png"; // Escudo genérico
-              await onSubmit({ name, tag, logoUrl: finalLogo });
+              await onSubmit({
+                name,
+                tag,
+                logoUrl: finalLogo,
+                ownerNick,
+                ownerGameId,
+              });
               setIsSubmitting(false);
               setIsSuccess(true);
             }}
@@ -11567,6 +11603,8 @@ const App = () => {
         name: draft.name,
         tag: draft.tag,
         logoUrl: draft.logoUrl,
+        ownerNick: draft.ownerNick || "",
+        ownerGameId: draft.ownerGameId || "",
         budget: 80000000,
       });
       // 2. Apaga da triagem
