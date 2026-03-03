@@ -1238,9 +1238,15 @@ const TeamsPage = ({ clans, players, sponsors, backend, onPlayerClick }) => {
               <div className="inline-block bg-amber-500/10 border border-amber-500/30 text-amber-500 font-mono font-bold px-4 py-1.5 rounded-lg text-xs mb-4 tracking-widest w-fit mx-auto md:mx-0 shadow-sm">
                 TAG OFICIAL: [{clan.tag}]
               </div>
-              <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter mb-8 drop-shadow-lg">
+              <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter mb-2 drop-shadow-lg">
                 {clan.name}
               </h2>
+              {clan.ownerNick && (
+                <div className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-8 flex items-center justify-center md:justify-start gap-2">
+                  <Crown size={14} className="text-amber-400" /> Presidente:{" "}
+                  {clan.ownerNick}
+                </div>
+              )}
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
                 <div className="bg-slate-950/80 backdrop-blur-sm border border-slate-800 px-6 py-4 rounded-2xl flex items-center gap-4 shadow-inner">
@@ -7810,8 +7816,15 @@ const AdminPanel = ({
                                 [{clan.tag}]
                               </span>
                             </div>
-                            <div className="text-xs text-slate-500 mt-1.5 flex items-center gap-1.5 font-medium">
-                              <Users size={12} /> {memberCount} Membro(s)
+                            <div className="text-xs text-slate-500 mt-1.5 flex items-center gap-3 font-medium">
+                              <span className="flex items-center gap-1.5">
+                                <Users size={12} /> {memberCount} Membro(s)
+                              </span>
+                              {clan.ownerNick && (
+                                <span className="flex items-center gap-1 text-blue-400 border-l border-slate-700 pl-3">
+                                  <Crown size={12} /> Resp: {clan.ownerNick}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
