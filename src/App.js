@@ -7384,7 +7384,7 @@ const AdminPanel = ({
                                   </span>
                                   <button
                                     onClick={() => {
-                                      setMarketSelectedPlayer(p.id);
+                                      handlePlayerSelect(p.id); // Puxa todo o cálculo de passe e multa automaticamente!
                                       setMarketTargetClan(c.id);
                                       // Rola a tela pra cima onde fica o Executar Venda
                                       window.scrollTo({
