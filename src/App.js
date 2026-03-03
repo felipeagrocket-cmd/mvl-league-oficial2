@@ -4836,6 +4836,7 @@ function DraggableMenuItem({
   index,
   icon: Icon,
   isActive,
+  badgeCount,
   onClick,
   onDragStart,
   onDragEnter,
@@ -4863,7 +4864,7 @@ function DraggableMenuItem({
     >
       <button
         onClick={onClick}
-        className={`w-full text-left p-4 rounded-xl font-bold uppercase text-xs flex items-center gap-3 transition-all group relative cursor-pointer border ${
+        className={`w-full text-left p-4 rounded-xl font-bold uppercase text-xs flex items-center gap-3 transition-all group relative cursor-pointer border pr-8 ${
           isActive
             ? "bg-amber-400 text-black shadow-lg shadow-amber-400/20 border-amber-500 scale-[1.02]"
             : "bg-slate-900 text-slate-400 hover:bg-slate-800 border-slate-800 hover:border-slate-700"
@@ -4880,7 +4881,13 @@ function DraggableMenuItem({
               : "text-slate-500 group-hover:text-amber-400 transition-colors"
           }
         />{" "}
-        {label}
+        <span className="flex-1">{label}</span>
+        {/* A MÁGICA DA NOTIFICAÇÃO AQUI */}
+        {badgeCount > 0 && (
+          <span className="bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse shrink-0">
+            {badgeCount}
+          </span>
+        )}
       </button>
     </div>
   );
@@ -6267,6 +6274,16 @@ const AdminPanel = ({
             {data.adminMenuOrder.map((menuId, index) => {
               const menuItem = ADMIN_MENU_CONFIG[menuId];
               if (!menuItem) return null;
+
+              // Calcula as Notificações
+              let badge = 0;
+              if (menuId === "players") badge = data.drafts?.length || 0;
+              if (menuId === "clans") badge = data.clanDrafts?.length || 0;
+              if (menuId === "market")
+                badge =
+                  data.proposals?.filter((p) => p.status === "accepted")
+                    .length || 0;
+
               return (
                 <DraggableMenuItem
                   key={menuId}
@@ -6275,6 +6292,7 @@ const AdminPanel = ({
                   label={menuItem.label}
                   icon={menuItem.icon}
                   isActive={activeTab === menuId}
+                  badgeCount={badge}
                   onClick={() => setActiveTab(menuId)}
                   onDragStart={handleDragStart}
                   onDragEnter={handleDragEnter}
