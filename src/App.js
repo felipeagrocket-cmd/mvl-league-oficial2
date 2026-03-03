@@ -7264,6 +7264,159 @@ const AdminPanel = ({
                   </button>
                 </div>
 
+                {/* NOVO: CENTRAL DE PROPOSTAS (LINKS PRIVADOS) */}
+                <div className="bg-slate-950 p-8 rounded-2xl border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.05)] mb-8">
+                  <h4 className="text-blue-400 font-bold text-xs uppercase mb-6 flex items-center gap-2 tracking-widest">
+                    <UserPlus size={14} /> Link de Proposta Privada
+                  </h4>
+                  <p className="text-slate-400 text-[10px] mb-6">
+                    Gere um link mágico para enviar ao jogador pelo WhatsApp. Se
+                    ele aceitar, a transferência ficará "Aprovada" aqui no
+                    painel para você executar a compra.
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <select
+                      id="propPlayer"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white text-sm outline-none focus:border-blue-400"
+                    >
+                      <option value="">Selecione o Jogador...</option>
+                      {data.players
+                        .filter((p) => !p.isPaused)
+                        .map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.nickname}
+                          </option>
+                        ))}
+                    </select>
+                    <select
+                      id="propClan"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white text-sm outline-none focus:border-blue-400"
+                    >
+                      <option value="">Selecione o Clã interessado...</option>
+                      {data.clans.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      const pId = document.getElementById("propPlayer").value;
+                      const cId = document.getElementById("propClan").value;
+                      if (pId && cId) {
+                        const propId = await onCreateProposal(pId, cId);
+                        const link = `${window.location.origin}/?proposal=${propId}`;
+                        navigator.clipboard.writeText(link);
+                        triggerFeedback(
+                          "Proposta gerada! Link copiado para sua área de transferência."
+                        );
+                      } else {
+                        alert("Selecione Jogador e Clã.");
+                      }
+                    }}
+                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold uppercase py-3 rounded-lg text-sm transition-all shadow-lg flex items-center justify-center gap-2"
+                  >
+                    <Plus size={16} /> Gerar e Copiar Link Secreto
+                  </button>
+
+                  {/* Lista de Propostas Ativas */}
+                  {data.proposals && data.proposals.length > 0 && (
+                    <div className="mt-8 space-y-3">
+                      <h5 className="text-slate-500 text-[9px] uppercase font-bold tracking-widest border-b border-slate-800 pb-2">
+                        Status das Propostas
+                      </h5>
+                      {data.proposals.map((prop) => {
+                        const p = data.players.find(
+                          (x) => x.id === prop.playerId
+                        );
+                        const c = data.clans.find(
+                          (x) => x.id === prop.targetClanId
+                        );
+                        if (!p || !c) return null;
+
+                        return (
+                          <div
+                            key={prop.id}
+                            className="bg-slate-900 p-4 rounded-xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4"
+                          >
+                            <div>
+                              <div className="text-white font-bold text-sm">
+                                {c.tag}{" "}
+                                <ArrowRightLeft
+                                  size={10}
+                                  className="inline text-slate-500 mx-1"
+                                />{" "}
+                                {p.nickname}
+                              </div>
+                              <div className="text-[9px] text-slate-500 font-mono mt-1">
+                                ID: {prop.id.substring(0, 6)}...
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              {prop.status === "pending" && (
+                                <>
+                                  <span className="text-[10px] text-amber-500 uppercase font-bold border border-amber-500/30 px-2 py-1 rounded bg-amber-500/10 animate-pulse">
+                                    Aguardando
+                                  </span>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(
+                                        `${window.location.origin}/?proposal=${prop.id}`
+                                      );
+                                      triggerFeedback("Link copiado!");
+                                    }}
+                                    className="text-blue-400 hover:underline text-[10px] uppercase font-bold"
+                                  >
+                                    Copiar Link
+                                  </button>
+                                </>
+                              )}
+                              {prop.status === "accepted" && (
+                                <>
+                                  <span className="text-[10px] text-emerald-400 uppercase font-black border border-emerald-500/30 px-2 py-1 rounded bg-emerald-500/10">
+                                    Aceita!
+                                  </span>
+                                  <button
+                                    onClick={() => {
+                                      setMarketSelectedPlayer(p.id);
+                                      setMarketTargetClan(c.id);
+                                      // Rola a tela pra cima onde fica o Executar Venda
+                                      window.scrollTo({
+                                        top: 0,
+                                        behavior: "smooth",
+                                      });
+                                      triggerFeedback(
+                                        "Dados preenchidos no Executar Transação. Confirme os valores!"
+                                      );
+                                    }}
+                                    className="bg-emerald-500 text-black px-3 py-1.5 rounded-lg text-[10px] font-black uppercase hover:bg-emerald-400 transition-colors"
+                                  >
+                                    Efetivar
+                                  </button>
+                                </>
+                              )}
+                              {prop.status === "rejected" && (
+                                <span className="text-[10px] text-red-400 uppercase font-bold border border-red-500/30 px-2 py-1 rounded bg-red-500/10">
+                                  Recusada
+                                </span>
+                              )}
+                              <button
+                                onClick={() => onDeleteProposal(prop.id)}
+                                className="text-slate-600 hover:text-red-500 p-1"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
                 {/* PAINEL DE SOFT RESET (VIRADA DE TEMPORADA) */}
                 <div className="bg-slate-950 p-8 rounded-2xl border border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.05)] mb-10">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-slate-800 pb-4">
@@ -9698,6 +9851,152 @@ const StartHerePage = ({ data, onPlayerClick }) => {
   );
 };
 
+const ProposalPage = ({ proposalId, data, onAnswer }) => {
+  const proposal = data.proposals.find((p) => p.id === proposalId);
+
+  if (!proposal) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-center">
+        <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl max-w-md w-full">
+          <Search size={48} className="text-slate-600 mx-auto mb-4" />
+          <h2 className="text-white font-black uppercase text-xl mb-2">
+            Proposta Invalida
+          </h2>
+          <p className="text-slate-500 text-sm">
+            Este link não existe ou a proposta já foi apagada pelo conselho da
+            liga.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const player = data.players.find((p) => p.id === proposal.playerId);
+  const clan = data.clans.find((c) => c.id === proposal.targetClanId);
+
+  if (!player || !clan) return null;
+
+  const clanPlayers = data.players.filter(
+    (p) => p.clanId === clan.id && !p.isPaused
+  );
+  const salary = (player.marketValue || 10000000) * 0.005;
+
+  return (
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute top-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-slate-950 pointer-events-none"></div>
+
+      <div className="bg-slate-900 border border-slate-800 rounded-[2rem] w-full max-w-xl shadow-2xl relative z-10 overflow-hidden">
+        {/* Banner do Clã */}
+        <div className="h-32 bg-slate-800 relative flex items-center justify-center overflow-hidden border-b border-slate-700">
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent z-10"></div>
+          <img
+            src={clan.logoUrl}
+            className="w-48 h-48 object-contain opacity-20 scale-150 blur-[2px]"
+            alt="Bg"
+          />
+          <img
+            src={clan.logoUrl}
+            className="w-20 h-20 object-contain relative z-20 drop-shadow-xl"
+            alt="Logo"
+          />
+        </div>
+
+        <div className="p-8 text-center -mt-10 relative z-20">
+          <img
+            src={player.avatarUrl}
+            className="w-20 h-20 object-cover rounded-2xl mx-auto border-4 border-slate-900 shadow-xl bg-slate-800 mb-4"
+            alt="Player"
+          />
+
+          <h4 className="text-amber-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
+            Proposta Oficial de Transferência
+          </h4>
+          <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">
+            A equipe <span className="text-blue-400">{clan.name}</span> quer
+            você!
+          </h2>
+          <p className="text-slate-400 text-sm leading-relaxed mb-8">
+            Você foi selecionado pelo manager da organização. Ao aceitar esta
+            proposta, você concorda em defender a TAG{" "}
+            <span className="text-white font-bold">[{clan.tag}]</span> e receber
+            o salário abaixo por mapa jogado.
+          </p>
+
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 shadow-inner">
+              <div className="text-[9px] text-slate-500 uppercase font-bold tracking-widest mb-1">
+                Seu Salário / Mapa
+              </div>
+              <div className="text-emerald-400 font-mono font-black text-lg">
+                {formatCurrency(salary)}
+              </div>
+            </div>
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 shadow-inner">
+              <div className="text-[9px] text-slate-500 uppercase font-bold tracking-widest mb-1">
+                Seu Passe
+              </div>
+              <div className="text-green-400 font-mono font-black text-lg">
+                {formatCurrency(player.marketValue || 10000000)}
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <h5 className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-3 flex items-center justify-center gap-2">
+              <Users size={12} /> Elenco Atual que você fará parte
+            </h5>
+            <div className="flex flex-wrap justify-center gap-2">
+              {clanPlayers.length > 0 ? (
+                clanPlayers.map((p) => (
+                  <div
+                    key={p.id}
+                    className="bg-slate-800 text-slate-300 text-[10px] font-bold px-3 py-1.5 rounded-lg border border-slate-700"
+                  >
+                    {p.nickname}
+                  </div>
+                ))
+              ) : (
+                <span className="text-xs italic text-slate-500">
+                  Nenhum jogador no elenco atual. Você será o primeiro!
+                </span>
+              )}
+            </div>
+          </div>
+
+          {proposal.status === "pending" ? (
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={() => onAnswer(proposal.id, "rejected")}
+                className="flex-1 bg-slate-950 border border-red-500/30 hover:bg-red-500/10 text-red-400 font-bold uppercase py-4 rounded-xl text-sm transition-all"
+              >
+                Recusar Oferta
+              </button>
+              <button
+                onClick={() => onAnswer(proposal.id, "accepted")}
+                className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase py-4 rounded-xl text-sm transition-all shadow-lg shadow-emerald-500/20 transform hover:-translate-y-1"
+              >
+                Aceitar Contrato
+              </button>
+            </div>
+          ) : (
+            <div
+              className={`p-4 rounded-xl font-black uppercase tracking-widest text-sm border ${
+                proposal.status === "accepted"
+                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                  : "bg-red-500/10 text-red-400 border-red-500/30"
+              }`}
+            >
+              {proposal.status === "accepted"
+                ? "✅ Proposta Aceita!"
+                : "❌ Proposta Recusada"}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const App = () => {
   const [db, setDb] = useState({
     players: [],
@@ -9716,6 +10015,7 @@ const App = () => {
     adminMenuOrder: DEFAULT_ADMIN_MENU_ORDER,
     transfers: [],
     financialLogs: [],
+    proposals: [],
   });
 
   const [view, setView] = useState("home");
@@ -9724,6 +10024,18 @@ const App = () => {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [showLogin, setShowLogin] = useState(false);
+  const [activeProposalId, setActiveProposalId] = useState(null);
+
+  // Leitor de Link Secreto de Proposta
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const propId = params.get("proposal");
+    if (propId) {
+      setActiveProposalId(propId);
+      setView("proposal");
+    }
+  }, []);
+
   // --- SINCRONIZADOR EM TEMPO REAL (FIREBASE) ---
   useEffect(() => {
     const colecoes = [
@@ -9741,6 +10053,7 @@ const App = () => {
       "items",
       "transfers",
       "financialLogs",
+      "proposals",
     ];
 
     const unsubs = colecoes.map((colecao) => {
@@ -10618,6 +10931,36 @@ const App = () => {
     }
   };
 
+  const createProposal = async (playerId, targetClanId) => {
+    const id = generateId();
+    await salvarNoFirebase("proposals", {
+      id,
+      playerId,
+      targetClanId,
+      status: "pending",
+      date: new Date().toISOString(),
+    });
+    return id;
+  };
+
+  const answerProposal = async (id, response) => {
+    try {
+      await updateDoc(doc(firebaseDb, "proposals", id), {
+        status: response,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const deleteProposal = async (id) => {
+    try {
+      await deleteDoc(doc(firebaseDb, "proposals", id));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const addSplit = async (name, champId, format) => {
     const id = generateId();
     try {
@@ -11245,6 +11588,15 @@ const App = () => {
         )}
         <div className="max-w-7xl mx-auto px-6 py-12 w-full flex-grow">
           {/* CHAMADA DA NOVA PÁGINA "COMECE AQUI" */}
+
+          {view === "proposal" && activeProposalId && (
+            <ProposalPage
+              proposalId={activeProposalId}
+              data={db}
+              onAnswer={answerProposal}
+            />
+          )}
+
           {view === "start" && (
             <StartHerePage data={db} onPlayerClick={goToProfile} />
           )}
@@ -11442,6 +11794,8 @@ const App = () => {
               onUpdateStoreItem={updateStoreItem}
               onSellStoreItem={sellItemToPlayer}
               onRemoveItemFromInventory={removeItemFromInventory}
+              onCreateProposal={createProposal}
+              onDeleteProposal={deleteProposal}
             />
           )}
           {view === "teams" && (
