@@ -8076,60 +8076,50 @@ const AdminPanel = ({
                 </div>
 
                 {/* FILA DE TRIAGEM (DRAFT) */}
-                {data.drafts && data.drafts.length > 0 && (
-                  <div className="bg-slate-950 p-6 rounded-2xl border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.05)] mb-10">
-                    <h4 className="text-blue-400 font-bold text-xs uppercase flex items-center gap-2 mb-6 tracking-widest">
-                      <UserPlus size={16} /> Triagem Pendente (
-                      {data.drafts.length})
-                    </h4>
-                    <div className="space-y-3">
-                      {data.drafts.map((draft) => (
-                        <div
-                          key={draft.id}
-                          className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4"
-                        >
-                          <div className="flex items-center gap-4 w-full md:w-auto">
-                            <img
-                              src={draft.avatarUrl}
-                              className="w-12 h-12 rounded-lg bg-slate-800 object-cover"
-                              alt="Draft"
-                            />
-                            <div>
-                              <div className="text-white font-bold text-sm">
-                                {draft.nickname}
+                <div className="bg-slate-950 p-6 rounded-2xl border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.05)] mb-10">
+                      <h4 className="text-blue-400 font-bold text-xs uppercase flex items-center gap-2 mb-6 tracking-widest">
+                        <UserPlus size={16} /> Triagem Pendente ({data.drafts?.length || 0})
+                      </h4>
+                      <div className="space-y-3">
+                        {data.drafts && data.drafts.length > 0 ? (
+                          data.drafts.map(draft => (
+                            <div key={draft.id} className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
+                              <div className="flex items-center gap-4 w-full md:w-auto">
+                                <img src={draft.avatarUrl} className="w-12 h-12 rounded-lg bg-slate-800 object-cover" alt="Draft" />
+                                <div>
+                                  <div className="text-white font-bold text-sm">{draft.nickname}</div>
+                                  <div className="text-slate-500 text-[10px] font-mono">{draft.gameId}</div>
+                                </div>
                               </div>
-                              <div className="text-slate-500 text-[10px] font-mono">
-                                {draft.gameId}
+                              <div className="flex items-center gap-2 w-full md:w-auto">
+                                <button 
+                                  onClick={() => {
+                                    rejectDraft(draft.id);
+                                    triggerFeedback("Inscrição recusada.");
+                                  }}
+                                  className="flex-1 md:flex-none text-red-400 bg-red-500/10 hover:bg-red-500/20 px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-colors"
+                                >
+                                  Recusar
+                                </button>
+                                <button 
+                                  onClick={() => {
+                                    approveDraft(draft);
+                                    triggerFeedback("Jogador aprovado e cadastrado na liga!");
+                                  }}
+                                  className="flex-1 md:flex-none text-black bg-emerald-500 hover:bg-emerald-400 px-6 py-2 rounded-lg text-[10px] font-black uppercase shadow-lg transition-transform hover:-translate-y-0.5"
+                                >
+                                  Aprovar e Cadastrar
+                                </button>
                               </div>
                             </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-6 text-slate-500 text-xs italic border border-dashed border-slate-800 rounded-xl">
+                            Nenhum jogador na fila de triagem no momento.
                           </div>
-                          <div className="flex items-center gap-2 w-full md:w-auto">
-                            <button
-                              onClick={() => {
-                                rejectDraft(draft.id);
-                                triggerFeedback("Inscrição recusada.");
-                              }}
-                              className="flex-1 md:flex-none text-red-400 bg-red-500/10 hover:bg-red-500/20 px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-colors"
-                            >
-                              Recusar
-                            </button>
-                            <button
-                              onClick={() => {
-                                approveDraft(draft);
-                                triggerFeedback(
-                                  "Jogador aprovado e cadastrado na liga!"
-                                );
-                              }}
-                              className="flex-1 md:flex-none text-black bg-emerald-500 hover:bg-emerald-400 px-6 py-2 rounded-lg text-[10px] font-black uppercase shadow-lg transition-transform hover:-translate-y-0.5"
-                            >
-                              Aprovar e Cadastrar
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
 
                 <div
                   className={`bg-slate-950 p-8 rounded-2xl border mb-10 transition-colors ${
