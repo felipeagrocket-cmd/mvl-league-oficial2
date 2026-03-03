@@ -8447,8 +8447,14 @@ const AdminPanel = ({
                         </button>
                         <button
                           onClick={() => {
-                            onRemovePlayer(player.id);
-                            triggerFeedback("Jogador removido!");
+                            if (
+                              window.confirm(
+                                `⚠️ ALERTA: Tem certeza que deseja excluir o jogador ${player.nickname} permanentemente?\n\nIsso removerá ele da liga. Se ele apenas trocou de nick ou ID, use a opção de Editar.`
+                              )
+                            ) {
+                              onRemovePlayer(player.id);
+                              triggerFeedback("Jogador removido!");
+                            }
                           }}
                           className="p-2.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                           title="Excluir"
