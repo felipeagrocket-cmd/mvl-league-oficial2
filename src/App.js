@@ -10446,7 +10446,7 @@ const ClanRegistrationPage = ({ onSubmit, onBack }) => {
       <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-[80px] pointer-events-none"></div>
         <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-2 flex items-center gap-3 relative z-10">
-          <Shield className="text-blue-400" /> Fundar Franquia
+          <Shield className="text-blue-400" /> Fundar CLÃ
         </h2>
         <p className="text-slate-400 text-sm mb-8 relative z-10">
           Cadastre a sua organização para entrar na disputa da Match Vanguard
@@ -10534,7 +10534,7 @@ const ClanRegistrationPage = ({ onSubmit, onBack }) => {
               "Enviando..."
             ) : (
               <>
-                <Landmark size={18} /> Enviar Projeto de Franquia
+                <Landmark size={18} /> Enviar Projeto de Clã
               </>
             )}
           </button>
