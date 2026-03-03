@@ -56,6 +56,7 @@ import {
   Play,
   Check,
   LayoutTemplate,
+  PenTool,
   ShoppingCart,
   Package,
   Tag,
@@ -9862,10 +9863,10 @@ const ProposalPage = ({ proposalId, data, onAnswer }) => {
         <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl max-w-md w-full">
           <Search size={48} className="text-slate-600 mx-auto mb-4" />
           <h2 className="text-white font-black uppercase text-xl mb-2">
-            Proposta Invalida
+            Proposta Inválida
           </h2>
           <p className="text-slate-500 text-sm">
-            Este link não existe ou a proposta já foi apagada pelo conselho da
+            Este link não existe ou a proposta já foi apagada pela diretoria da
             liga.
           </p>
         </div>
@@ -9884,116 +9885,176 @@ const ProposalPage = ({ proposalId, data, onAnswer }) => {
   const salary = (player.marketValue || 10000000) * 0.005;
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute top-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-slate-950 pointer-events-none"></div>
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+      {/* Efeitos de Luz de Fundo */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-blue-500/10 blur-[120px] pointer-events-none rounded-full"></div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-[2rem] w-full max-w-xl shadow-2xl relative z-10 overflow-hidden">
-        {/* Banner do Clã */}
-        <div className="h-32 bg-slate-800 relative flex items-center justify-center overflow-hidden border-b border-slate-700">
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent z-10"></div>
-          <img
-            src={clan.logoUrl}
-            className="w-48 h-48 object-contain opacity-20 scale-150 blur-[2px]"
-            alt="Bg"
-          />
-          <img
-            src={clan.logoUrl}
-            className="w-20 h-20 object-contain relative z-20 drop-shadow-xl"
-            alt="Logo"
-          />
+      <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-[2rem] w-full max-w-2xl shadow-2xl relative z-10 overflow-hidden flex flex-col">
+        {/* Cabeçalho do "Documento Oficial" */}
+        <div className="bg-slate-950 p-4 border-b border-slate-800/80 flex justify-between items-center shrink-0">
+          <div className="flex items-center gap-2">
+            <FileText size={16} className="text-amber-500" />
+            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-[0.2em]">
+              Contrato Oficial #MVL-{proposal.id.substring(0, 6).toUpperCase()}
+            </span>
+          </div>
+          <div className="flex gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+            <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
+          </div>
         </div>
 
-        <div className="p-8 text-center -mt-10 relative z-20">
+        <div className="p-8 md:p-12 relative flex-1">
+          {/* Marca d'água da logo do clã no fundo do documento */}
           <img
-            src={player.avatarUrl}
-            className="w-20 h-20 object-cover rounded-2xl mx-auto border-4 border-slate-900 shadow-xl bg-slate-800 mb-4"
-            alt="Player"
+            src={clan.logoUrl}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 object-contain opacity-[0.03] pointer-events-none grayscale"
+            alt=""
           />
 
-          <h4 className="text-amber-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
-            Proposta Oficial de Transferência
-          </h4>
-          <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-3 leading-tight">
-            <span className="text-amber-400 drop-shadow-md">
-              {player.nickname}
-            </span>
-            , a equipe <span className="text-blue-400">{clan.name}</span> quer
-            você!
-          </h2>
-          <p className="text-slate-400 text-sm leading-relaxed mb-8 px-2">
-            Você foi selecionado a dedo pelo manager da organização. Ao aceitar
-            esta proposta, você concorda em defender a TAG{" "}
-            <span className="text-white font-bold">[{clan.tag}]</span> e receber
-            o salário abaixo por cada mapa jogado.
-          </p>
+          <div className="text-center mb-10 relative z-10">
+            <h4 className="text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] mb-2 drop-shadow-md">
+              Proposta de Transferência
+            </h4>
+            <h2 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tight leading-tight">
+              <span className="text-amber-400 drop-shadow-lg">
+                {player.nickname}
+              </span>
+              ,<br /> a equipe <span className="text-white">{clan.name}</span>{" "}
+              quer você!
+            </h2>
+          </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 shadow-inner">
-              <div className="text-[9px] text-slate-500 uppercase font-bold tracking-widest mb-1">
-                Seu Salário / Mapa
-              </div>
-              <div className="text-emerald-400 font-mono font-black text-lg">
-                {formatCurrency(salary)}
-              </div>
+          {/* O Encontro: Jogador -> Clã */}
+          <div className="flex items-center justify-center gap-6 md:gap-12 mb-10 relative z-10">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-amber-500/20 blur-xl rounded-full"></div>
+              <img
+                src={player.avatarUrl}
+                className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-2xl border-4 border-slate-800 relative z-10 shadow-2xl transition-transform group-hover:scale-105"
+                alt="Você"
+              />
             </div>
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 shadow-inner">
-              <div className="text-[9px] text-slate-500 uppercase font-bold tracking-widest mb-1">
-                Seu Passe
+
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 rounded-full bg-slate-950 border border-slate-700 flex items-center justify-center text-slate-500 mb-2 shadow-inner z-20 relative">
+                <Handshake size={20} className="text-blue-400" />
               </div>
-              <div className="text-green-400 font-mono font-black text-lg">
-                {formatCurrency(player.marketValue || 10000000)}
+              <div className="h-0.5 w-16 md:w-24 bg-gradient-to-r from-slate-700 via-blue-500 to-slate-700 absolute -z-0"></div>
+            </div>
+
+            <div className="relative group">
+              <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full"></div>
+              <div className="w-24 h-24 md:w-32 md:h-32 bg-slate-950 rounded-2xl border-4 border-slate-800 flex items-center justify-center relative z-10 shadow-2xl transition-transform group-hover:scale-105 p-3">
+                <img
+                  src={clan.logoUrl}
+                  className="max-w-full max-h-full object-contain drop-shadow-lg"
+                  alt="Clã"
+                />
               </div>
             </div>
           </div>
 
-          <div className="mb-8">
-            <h5 className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-3 flex items-center justify-center gap-2">
-              <Users size={12} /> Elenco Atual que você fará parte
+          {/* Termos do Contrato */}
+          <div className="bg-slate-950/80 rounded-2xl border border-slate-700 p-6 mb-8 relative z-10 shadow-inner">
+            <div className="text-center mb-6">
+              <p className="text-slate-300 text-sm leading-relaxed">
+                Você foi escolhido pela diretoria da{" "}
+                <span className="text-white font-bold">{clan.name}</span>. Ao
+                assinar este documento, você passará a representar a tag{" "}
+                <span className="text-amber-400 font-mono font-bold">
+                  [{clan.tag}]
+                </span>{" "}
+                nos próximos compromissos da liga com os seguintes termos:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col items-center text-center">
+                <span className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">
+                  Seu Salário / Mapa
+                </span>
+                <span className="text-emerald-400 font-mono font-black text-xl md:text-2xl drop-shadow-[0_0_10px_rgba(52,211,153,0.2)]">
+                  {formatCurrency(salary)}
+                </span>
+              </div>
+              <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col items-center text-center">
+                <span className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">
+                  Seu Passe
+                </span>
+                <span className="text-slate-300 font-mono font-black text-xl md:text-2xl">
+                  {formatCurrency(player.marketValue || 10000000)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Line-up Preview (Avatares Empilhados) */}
+          <div className="mb-10 text-center relative z-10">
+            <h5 className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-4">
+              Seus Futuros Companheiros de Equipe
             </h5>
-            <div className="flex flex-wrap justify-center gap-2">
-              {clanPlayers.length > 0 ? (
-                clanPlayers.map((p) => (
+
+            {clanPlayers.length > 0 ? (
+              <div className="flex justify-center -space-x-4 hover:space-x-2 transition-all duration-300">
+                {clanPlayers.map((p, i) => (
                   <div
                     key={p.id}
-                    className="bg-slate-800 text-slate-300 text-[10px] font-bold px-3 py-1.5 rounded-lg border border-slate-700"
+                    className="relative group cursor-default"
+                    style={{ zIndex: 10 - i }}
                   >
-                    {p.nickname}
+                    <img
+                      src={p.avatarUrl}
+                      className="w-12 h-12 rounded-full border-2 border-slate-900 object-cover bg-slate-800 shadow-lg group-hover:-translate-y-2 transition-all duration-300"
+                      alt={p.nickname}
+                    />
+                    <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-slate-950 border border-slate-800 text-white text-[9px] px-2 py-0.5 rounded font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                      {p.nickname}
+                    </div>
                   </div>
-                ))
-              ) : (
-                <span className="text-xs italic text-slate-500">
-                  Nenhum jogador no elenco atual. Você será o primeiro!
-                </span>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <span className="text-xs italic text-slate-500 bg-slate-950 px-4 py-2 rounded-lg border border-slate-800/50">
+                Você será o primeiro pilar de reconstrução desta equipe!
+              </span>
+            )}
           </div>
 
+          {/* Área de Ação / Assinatura */}
           {proposal.status === "pending" ? (
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 relative z-10">
               <button
                 onClick={() => onAnswer(proposal.id, "rejected")}
-                className="flex-1 bg-slate-950 border border-red-500/30 hover:bg-red-500/10 text-red-400 font-bold uppercase py-4 rounded-xl text-sm transition-all"
+                className="flex-1 bg-slate-950 border border-red-500/20 hover:border-red-500/50 hover:bg-red-500/10 text-red-400 font-bold uppercase py-4 rounded-xl text-sm transition-all"
               >
                 Recusar Oferta
               </button>
               <button
                 onClick={() => onAnswer(proposal.id, "accepted")}
-                className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase py-4 rounded-xl text-sm transition-all shadow-lg shadow-emerald-500/20 transform hover:-translate-y-1"
+                className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black uppercase py-4 rounded-xl text-sm transition-all shadow-[0_10px_25px_rgba(16,185,129,0.3)] hover:shadow-[0_15px_35px_rgba(16,185,129,0.5)] transform hover:-translate-y-1 flex items-center justify-center gap-2"
               >
-                Aceitar Contrato
+                <PenTool size={18} /> Assinar Contrato
               </button>
             </div>
           ) : (
             <div
-              className={`p-4 rounded-xl font-black uppercase tracking-widest text-sm border ${
+              className={`p-6 rounded-2xl font-black uppercase tracking-widest text-center text-lg md:text-xl border-2 flex items-center justify-center gap-3 relative z-10 shadow-2xl ${
                 proposal.status === "accepted"
-                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                  : "bg-red-500/10 text-red-400 border-red-500/30"
+                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/50 shadow-emerald-500/20"
+                  : "bg-red-500/10 text-red-400 border-red-500/50 shadow-red-500/20"
               }`}
             >
-              {proposal.status === "accepted"
-                ? "✅ Proposta Aceita!"
-                : "❌ Proposta Recusada"}
+              {proposal.status === "accepted" ? (
+                <>
+                  <CheckCircle size={28} /> Contrato Assinado
+                </>
+              ) : (
+                <>
+                  <X size={28} /> Proposta Recusada
+                </>
+              )}
             </div>
           )}
         </div>
