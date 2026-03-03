@@ -9985,7 +9985,7 @@ const StartHerePage = ({ data, onPlayerClick }) => {
             }}
             className="inline-flex items-center gap-3 bg-blue-500 hover:bg-blue-400 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm transition-transform hover:-translate-y-1 shadow-[0_10px_30px_rgba(59,130,246,0.3)]"
           >
-            <Shield size={20} /> Aplicar Minha Franquia
+            <Shield size={20} /> Criar meu Clã na MVL
           </button>
         )}
       </div>
