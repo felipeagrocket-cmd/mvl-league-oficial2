@@ -8429,13 +8429,7 @@ const AdminPanel = ({
                         >
                           <Pencil size={18} />
                         </button>
-                        <button
-                          onClick={() => setManageInventoryPlayerId(player.id)}
-                          className="p-2.5 text-slate-500 hover:text-purple-400 hover:bg-purple-400/10 rounded-lg transition-colors"
-                          title="Gerenciar Mochila"
-                        >
-                          <Package size={18} />
-                        </button>
+
                         <button
                           onClick={() => setManageInventoryPlayerId(player.id)}
                           className="p-2.5 text-slate-500 hover:text-purple-400 hover:bg-purple-400/10 rounded-lg transition-colors"
@@ -11857,16 +11851,32 @@ const App = () => {
 
   const approveClanDraft = async (draft) => {
     try {
-      // 1. Cria o Clã com o Teto de Franquia inicial de 80 Milhões
-      await addClan({
+      const clanId = generateId(); // Geramos o ID aqui para poder atrelar o log financeiro
+
+      // 1. Cria o Clã
+      await setDoc(doc(firebaseDb, "clans", clanId), {
+        id: clanId,
         name: draft.name,
         tag: draft.tag,
         logoUrl: draft.logoUrl,
         ownerNick: draft.ownerNick || "",
         ownerGameId: draft.ownerGameId || "",
-        budget: 80000000,
+        budget: 50000000,
       });
-      // 2. Apaga da triagem
+
+      // 2. Injeta o registro do Aporte Inicial na Tesouraria
+      await salvarNoFirebase("financialLogs", {
+        id: generateId(),
+        clanId: clanId,
+        type: "initial",
+        amount: 50000000,
+        oldBalance: 0,
+        newBalance: 50000000,
+        reason: "Aporte Inicial de Franquia",
+        date: new Date().toISOString(),
+      });
+
+      // 3. Apaga da triagem
       await deleteDoc(doc(firebaseDb, "clanDrafts", draft.id));
     } catch (e) {
       console.error(e);
