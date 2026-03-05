@@ -11864,7 +11864,7 @@ const App = () => {
         logoUrl: draft.logoUrl,
         ownerNick: draft.ownerNick || "",
         ownerGameId: draft.ownerGameId || "",
-        budget: 80000000,
+        budget: 80000000, 
       });
       // 2. Apaga da triagem
       await deleteDoc(doc(firebaseDb, "clanDrafts", draft.id));
