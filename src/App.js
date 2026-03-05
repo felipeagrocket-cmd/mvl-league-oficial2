@@ -10319,8 +10319,8 @@ const DraftRegistrationPage = ({ onSubmit, onBack, avatars = [] }) => {
                 className="text-blue-400 shrink-0 mx-auto md:mx-0"
               />
               <span>
-                Faça o upload da sua própria foto{" "}
-                <strong>(Apenas fotos reais)</strong>. Se deixar tudo em branco,
+                Faça o upload da sua foto, personagem ou meme{" "}
+                <strong>(Proibido logos, símbolos ou escudos)</strong>. Se deixar tudo em branco,
                 usaremos um avatar padrão.
               </span>
             </p>
