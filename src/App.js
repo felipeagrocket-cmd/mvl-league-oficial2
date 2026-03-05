@@ -10034,6 +10034,7 @@ const DraftRegistrationPage = ({ onSubmit, onBack }) => {
   const [nickname, setNickname] = useState("");
   const [gameId, setGameId] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false); // NOVO: Estado dos Termos LGPD
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -10131,21 +10132,29 @@ const DraftRegistrationPage = ({ onSubmit, onBack }) => {
               onChange={(e) => setGameId(e.target.value)}
             />
           </div>
+
           <div className="bg-slate-950/50 p-6 rounded-xl border border-slate-800 border-dashed">
-            <label className="block text-slate-400 text-[10px] uppercase font-bold mb-1 tracking-wider text-center md:text-left">
-              Foto de Perfil{" "}
-              <span className="text-slate-500 normal-case font-normal">
-                (Opcional)
+            <div className="flex items-center gap-3 mb-2 justify-center md:justify-start">
+              <label className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+                Foto de Perfil
+              </label>
+              {/* ETIQUETA VERDE CHAMATIVA */}
+              <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest">
+                Opcional
               </span>
-            </label>
-            <p className="text-[10px] text-slate-400 mb-4 text-center md:text-left flex flex-col md:flex-row md:items-center gap-1.5 justify-center md:justify-start bg-amber-500/5 p-2 rounded-lg border border-amber-500/20">
+            </div>
+            <p className="text-[10px] text-slate-400 mb-5 text-center md:text-left flex flex-col md:flex-row md:items-center gap-2 justify-center md:justify-start bg-amber-500/5 p-3 rounded-lg border border-amber-500/20 leading-relaxed">
               <AlertCircle
-                size={14}
+                size={16}
                 className="text-amber-500 shrink-0 mx-auto md:mx-0"
               />
-              A liga aceita apenas fotos reais para manter o padrão. Não utilize
-              memes ou figuras. Se preferir, deixe em branco para usar o avatar
-              padrão.
+              <span>
+                Não quer mandar foto agora? Sem problemas, usaremos um avatar
+                padrão.
+                <br className="hidden md:block" /> Se for enviar,{" "}
+                <strong>use apenas fotos reais</strong> para mantermos o padrão
+                da liga.
+              </span>
             </p>
             <div className="flex flex-col md:flex-row items-center gap-6">
               <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-3.5 px-6 rounded-xl border border-slate-600 transition-all flex items-center gap-2 shadow-lg group">
@@ -10172,12 +10181,42 @@ const DraftRegistrationPage = ({ onSubmit, onBack }) => {
               )}
             </div>
           </div>
+
+          {/* CAIXA DE TERMOS DE USO E LGPD */}
+          <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800 flex items-start gap-3 mt-2 transition-colors hover:border-slate-700">
+            <div className="pt-0.5">
+              <input
+                type="checkbox"
+                id="terms"
+                className="w-4 h-4 accent-amber-500 cursor-pointer"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+              />
+            </div>
+            <label
+              htmlFor="terms"
+              className="text-[10px] text-slate-400 leading-relaxed cursor-pointer select-none"
+            >
+              Declaro que os dados fornecidos e a imagem (se enviada) são de
+              minha autoria. Autorizo o uso do meu Nickname, Game ID e Foto nos
+              rankings, tabelas e materiais da <strong>MVL</strong>. Entendo que
+              posso solicitar a remoção da minha conta a qualquer momento
+              acionando um Administrador.
+            </label>
+          </div>
+
           <button
             onClick={async () => {
               if (!nickname || !gameId)
                 return alert(
                   "Preencha o Nickname e o Game ID para se inscrever!"
                 );
+
+              if (!termsAccepted)
+                return alert(
+                  "Você precisa ler e aceitar os termos de uso para entrar na liga."
+                );
+
               setIsSubmitting(true);
 
               // Se ele não enviou foto, já injeta a imagem padrão do sistema
@@ -10188,8 +10227,12 @@ const DraftRegistrationPage = ({ onSubmit, onBack }) => {
               setIsSubmitting(false);
               setIsSuccess(true);
             }}
-            disabled={isSubmitting}
-            className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-black uppercase py-4 rounded-xl text-sm transition-all shadow-[0_10px_20px_rgba(251,191,36,0.2)] flex justify-center items-center gap-2 mt-4"
+            disabled={isSubmitting || !termsAccepted}
+            className={`w-full font-black uppercase py-4 rounded-xl text-sm transition-all flex justify-center items-center gap-2 mt-2 ${
+              termsAccepted
+                ? "bg-amber-500 hover:bg-amber-400 text-black shadow-[0_10px_20px_rgba(251,191,36,0.2)]"
+                : "bg-slate-800 text-slate-500 cursor-not-allowed"
+            }`}
           >
             {isSubmitting ? (
               "Enviando..."
