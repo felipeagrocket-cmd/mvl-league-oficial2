@@ -301,11 +301,13 @@ const DEFAULT_ADMIN_MENU_ORDER = [
   "news",
   "splits",
   "players",
+  "avatars",
   "bans",
   "settings",
 ];
 
 const ADMIN_MENU_CONFIG = {
+  avatars: { label: "Galeria de Avatares", icon: ImageIcon },
   tournament: { label: "Central do Torneio", icon: Trophy },
   market: { label: "Mercado da Bala", icon: DollarSign },
   clans: { label: "Gerenciar Clãs", icon: Users },
@@ -5930,6 +5932,8 @@ const AdminPanel = ({
   rejectDraft,
   approveClanDraft,
   rejectClanDraft,
+  onAddAvatar,
+  onDeleteAvatar,
 }) => {
   const [manageInventoryPlayerId, setManageInventoryPlayerId] = useState(null);
   const [editingStoreItemId, setEditingStoreItemId] = useState(null);
@@ -5952,6 +5956,7 @@ const AdminPanel = ({
   const [newSponsorIsPremium, setNewSponsorIsPremium] = useState(false);
   const [newSponsorTolerance, setNewSponsorTolerance] = useState("3");
   const [newStoreItemImage, setNewStoreItemImage] = useState("");
+  const [newAvatarImage, setNewAvatarImage] = useState("");
   const [activeTab, setActiveTab] = useState("tournament");
   const [feedback, setFeedback] = useState("");
   const [selectedSplitId, setSelectedSplitId] = useState("");
@@ -9582,6 +9587,79 @@ const AdminPanel = ({
                 </div>
               </div>
             )}
+
+            {activeTab === "avatars" && (
+              <div className="animate-fadeIn">
+                <h3 className="text-xl font-black text-white mb-6 border-b border-slate-800 pb-4 tracking-tight">
+                  Galeria de Avatares (Upload)
+                </h3>
+                <div className="bg-slate-950 p-8 rounded-2xl border border-slate-800 mb-10 shadow-lg">
+                  <h4 className="text-amber-400 font-bold text-xs uppercase mb-4 flex items-center gap-2 tracking-widest">
+                    <Plus size={14} /> Adicionar Novo Avatar
+                  </h4>
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+                    <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-3.5 px-6 rounded-lg border border-slate-600 transition-colors flex items-center gap-2 shadow-lg">
+                      <Upload size={16} /> Escolher Imagem (Recomendado 1:1)
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) =>
+                          handleImageUpload(e, setNewAvatarImage, 600)
+                        }
+                      />
+                    </label>
+                    {newAvatarImage && (
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={newAvatarImage}
+                          className="w-16 h-16 rounded-xl object-cover border-2 border-slate-700 shadow-xl"
+                        />
+                        <button
+                          onClick={() => {
+                            onAddAvatar(newAvatarImage);
+                            setNewAvatarImage("");
+                            triggerFeedback("Avatar adicionado à Galeria!");
+                          }}
+                          className="bg-amber-500 hover:bg-amber-400 text-black font-black uppercase px-6 py-3.5 rounded-lg text-xs transition-all shadow-lg"
+                        >
+                          Salvar Avatar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
+                  {data.avatars?.map((av) => (
+                    <div
+                      key={av.id}
+                      className="relative group rounded-xl overflow-hidden border-2 border-slate-800 hover:border-slate-600 transition-colors"
+                    >
+                      <img
+                        src={av.url}
+                        className="w-full aspect-square object-cover"
+                      />
+                      <button
+                        onClick={() => {
+                          if (window.confirm("Apagar este avatar da galeria?"))
+                            onDeleteAvatar(av.id);
+                        }}
+                        className="absolute inset-0 bg-red-900/80 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm"
+                      >
+                        <Trash2 size={24} />
+                      </button>
+                    </div>
+                  ))}
+                  {(!data.avatars || data.avatars.length === 0) && (
+                    <div className="col-span-full py-10 text-center text-slate-500 text-xs italic border border-dashed border-slate-800 rounded-xl">
+                      Nenhum avatar cadastrado.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {activeTab === "bans" && (
               <div className="animate-fadeIn">
                 <h3 className="text-xl font-black text-white mb-6 border-b border-slate-800 pb-4 tracking-tight">
@@ -10030,13 +10108,39 @@ const StartHerePage = ({ data, onPlayerClick }) => {
   );
 };
 
-const DraftRegistrationPage = ({ onSubmit, onBack }) => {
+const DraftRegistrationPage = ({ onSubmit, onBack, avatars = [] }) => {
   const [nickname, setNickname] = useState("");
   const [gameId, setGameId] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
-  const [termsAccepted, setTermsAccepted] = useState(false); // NOVO: Estado dos Termos LGPD
+  const [selectedGalleryAvatar, setSelectedGalleryAvatar] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // --- LÓGICA DA ROLETA (DRAG TO SCROLL) ---
+  const carouselRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [dragDistance, setDragDistance] = useState(0);
+
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setDragDistance(0);
+    setStartX(e.pageX - carouselRef.current.offsetLeft);
+    setScrollLeft(carouselRef.current.scrollLeft);
+  };
+  const handleMouseLeave = () => setIsDragging(false);
+  const handleMouseUp = () => setIsDragging(false);
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - carouselRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    setDragDistance(Math.abs(walk));
+    carouselRef.current.scrollLeft = scrollLeft - walk;
+  };
+  // ------------------------------------------
 
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
@@ -10059,7 +10163,9 @@ const DraftRegistrationPage = ({ onSubmit, onBack }) => {
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
         setAvatarUrl(canvas.toDataURL("image/webp", 0.8));
+        setSelectedGalleryAvatar(""); // Desmarca a roleta se ele subir do PC
       };
     };
     reader.readAsDataURL(file);
@@ -10090,6 +10196,11 @@ const DraftRegistrationPage = ({ onSubmit, onBack }) => {
 
   return (
     <div className="max-w-2xl mx-auto p-4 animate-fadeIn pb-16">
+      <style>{`
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
+
       <button
         onClick={onBack}
         className="mb-8 text-slate-500 hover:text-white flex items-center gap-2 text-xs font-bold uppercase transition-colors tracking-widest"
@@ -10133,36 +10244,99 @@ const DraftRegistrationPage = ({ onSubmit, onBack }) => {
             />
           </div>
 
-          <div className="bg-slate-950/50 p-6 rounded-xl border border-slate-800 border-dashed">
-            <div className="flex items-center gap-3 mb-2 justify-center md:justify-start">
+          <div className="bg-slate-950/50 p-6 rounded-xl border border-slate-800 border-dashed relative overflow-hidden">
+            <div className="flex items-center gap-3 mb-4 justify-center md:justify-start relative z-10">
               <label className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">
                 Foto de Perfil
               </label>
-              {/* ETIQUETA VERDE CHAMATIVA */}
               <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest">
                 Opcional
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 mb-5 text-center md:text-left flex flex-col md:flex-row md:items-center gap-2 justify-center md:justify-start bg-amber-500/5 p-3 rounded-lg border border-amber-500/20 leading-relaxed">
-              <AlertCircle
-                size={16}
-                className="text-amber-500 shrink-0 mx-auto md:mx-0"
+
+            {avatars.length > 0 && (
+              <div className="mb-8 relative z-10">
+                <p className="text-[10px] text-slate-500 mb-4 text-center md:text-left uppercase font-bold tracking-widest flex items-center gap-2 justify-center md:justify-start">
+                  <ArrowRightLeft size={12} className="text-amber-500" />{" "}
+                  Arraste para escolher um Avatar:
+                </p>
+
+                <div className="absolute left-0 top-10 bottom-0 w-8 md:w-16 bg-gradient-to-r from-slate-950 to-transparent z-20 pointer-events-none"></div>
+                <div className="absolute right-0 top-10 bottom-0 w-8 md:w-16 bg-gradient-to-l from-slate-950 to-transparent z-20 pointer-events-none"></div>
+
+                <div
+                  ref={carouselRef}
+                  onMouseDown={handleMouseDown}
+                  onMouseLeave={handleMouseLeave}
+                  onMouseUp={handleMouseUp}
+                  onMouseMove={handleMouseMove}
+                  className={`flex gap-4 overflow-x-auto pb-6 pt-4 px-4 md:px-8 hide-scroll select-none ${
+                    isDragging ? "cursor-grabbing" : "cursor-grab"
+                  }`}
+                >
+                  {avatars.map((av) => (
+                    <div
+                      key={av.id}
+                      onClick={() => {
+                        if (dragDistance < 10) {
+                          setSelectedGalleryAvatar(av.url);
+                          setAvatarUrl("");
+                        }
+                      }}
+                      className={`relative shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden transition-all duration-300 transform ${
+                        selectedGalleryAvatar === av.url
+                          ? "ring-4 ring-amber-400 scale-110 shadow-[0_15px_30px_rgba(251,191,36,0.4)] z-10"
+                          : "border-2 border-slate-800 hover:border-slate-500 opacity-60 hover:opacity-100 hover:scale-105"
+                      }`}
+                    >
+                      {selectedGalleryAvatar !== av.url && (
+                        <div className="absolute inset-0 bg-black/40 pointer-events-none transition-colors group-hover:bg-transparent"></div>
+                      )}
+                      <img
+                        src={av.url}
+                        className="w-full h-full object-cover pointer-events-none"
+                        alt="Avatar"
+                        draggable="false"
+                      />
+                      {selectedGalleryAvatar === av.url && (
+                        <div className="absolute inset-0 bg-amber-500/20 backdrop-blur-[1px] flex items-center justify-center animate-fadeIn">
+                          <CheckCircle
+                            size={32}
+                            className="text-amber-400 drop-shadow-[0_2px_5px_rgba(0,0,0,0.8)]"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {avatars.length > 0 && (
+              <div className="text-center text-slate-600 text-[10px] font-black uppercase tracking-widest mb-6 relative">
+                <span className="bg-slate-950 px-3 relative z-10">OU</span>
+                <div className="absolute top-1/2 left-0 w-full h-px bg-slate-800 -z-0"></div>
+              </div>
+            )}
+
+            <p className="text-[10px] text-slate-400 mb-5 text-center md:text-left flex flex-col md:flex-row md:items-center gap-2 justify-center md:justify-start bg-slate-900 p-3 rounded-lg border border-slate-800 leading-relaxed relative z-10">
+              <Upload
+                size={14}
+                className="text-blue-400 shrink-0 mx-auto md:mx-0"
               />
               <span>
-                Não quer mandar foto agora? Sem problemas, usaremos um avatar
-                padrão.
-                <br className="hidden md:block" /> Se for enviar,{" "}
-                <strong>use apenas fotos reais</strong> para mantermos o padrão
-                da liga.
+                Faça o upload da sua própria foto{" "}
+                <strong>(Apenas fotos reais)</strong>. Se deixar tudo em branco,
+                usaremos um avatar padrão.
               </span>
             </p>
-            <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
               <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-3.5 px-6 rounded-xl border border-slate-600 transition-all flex items-center gap-2 shadow-lg group">
                 <Upload
                   size={16}
                   className="group-hover:-translate-y-1 transition-transform"
                 />{" "}
-                Carregar Imagem
+                Carregar do PC
                 <input
                   type="file"
                   className="hidden"
@@ -10171,18 +10345,22 @@ const DraftRegistrationPage = ({ onSubmit, onBack }) => {
                 />
               </label>
               {avatarUrl && (
-                <div className="relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-amber-500/50 bg-slate-800 shadow-xl">
+                <div className="relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-blue-500/50 bg-slate-800 shadow-[0_0_20px_rgba(59,130,246,0.3)]">
                   <img
                     src={avatarUrl}
                     className="w-full h-full object-cover"
                     alt="Preview"
                   />
+                  <div className="absolute bottom-1 w-full text-center">
+                    <span className="text-[8px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-bold uppercase">
+                      Upload
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* CAIXA DE TERMOS DE USO E LGPD */}
           <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800 flex items-start gap-3 mt-2 transition-colors hover:border-slate-700">
             <div className="pt-0.5">
               <input
@@ -10198,10 +10376,12 @@ const DraftRegistrationPage = ({ onSubmit, onBack }) => {
               className="text-[10px] text-slate-400 leading-relaxed cursor-pointer select-none"
             >
               Declaro que os dados fornecidos e a imagem (se enviada) são de
-              minha autoria. Autorizo o uso do meu Nickname, Game ID e Foto nos
-              rankings, tabelas e materiais da <strong>MVL</strong>. Entendo que
-              posso solicitar a remoção da minha conta a qualquer momento
-              acionando um Administrador.
+              minha autoria ou de uso permitido. Autorizo o uso do meu Nickname,
+              Game ID e Foto nos rankings, tabelas e materiais da{" "}
+              <strong>MVL</strong>. Entendo que o envio de imagens de terceiros
+              sem autorização resultará em banimento da liga. Caso sua imagem
+              tenha sido usada indevidamente, contate a moderação via Discord
+              para remoção imediata.
             </label>
           </div>
 
@@ -10211,18 +10391,15 @@ const DraftRegistrationPage = ({ onSubmit, onBack }) => {
                 return alert(
                   "Preencha o Nickname e o Game ID para se inscrever!"
                 );
-
               if (!termsAccepted)
                 return alert(
                   "Você precisa ler e aceitar os termos de uso para entrar na liga."
                 );
-
               setIsSubmitting(true);
-
-              // Se ele não enviou foto, já injeta a imagem padrão do sistema
               const finalAvatar =
-                avatarUrl || "https://i.imgur.com/KE2qIR5.png";
-
+                avatarUrl ||
+                selectedGalleryAvatar ||
+                "https://i.imgur.com/KE2qIR5.png";
               await onSubmit({ nickname, gameId, avatarUrl: finalAvatar });
               setIsSubmitting(false);
               setIsSuccess(true);
@@ -10681,6 +10858,7 @@ const App = () => {
     proposals: [],
     drafts: [],
     clanDrafts: [],
+    avatars: [],
   });
 
   const [view, setView] = useState("home");
@@ -10728,6 +10906,7 @@ const App = () => {
       "proposals",
       "drafts",
       "clanDrafts",
+      "avatars",
     ];
 
     const unsubs = colecoes.map((colecao) => {
@@ -11694,9 +11873,13 @@ const App = () => {
     }
   };
 
-  const rejectClanDraft = async (draftId) => {
+  const addAvatar = async (url) => {
+    await salvarNoFirebase("avatars", { id: generateId(), url });
+  };
+
+  const deleteAvatar = async (id) => {
     try {
-      await deleteDoc(doc(firebaseDb, "clanDrafts", draftId));
+      await deleteDoc(doc(firebaseDb, "avatars", id));
     } catch (e) {
       console.error(e);
     }
@@ -12342,6 +12525,7 @@ const App = () => {
             <DraftRegistrationPage
               onSubmit={submitDraft}
               onBack={() => setView("start")}
+              avatars={db.avatars || []}
             />
           )}
 
@@ -12555,6 +12739,8 @@ const App = () => {
               rejectDraft={rejectDraft}
               approveClanDraft={approveClanDraft}
               rejectClanDraft={rejectClanDraft}
+              onAddAvatar={addAvatar}
+              onDeleteAvatar={deleteAvatar}
             />
           )}
           {view === "teams" && (
