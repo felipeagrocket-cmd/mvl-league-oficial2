@@ -5963,6 +5963,8 @@ const AdminPanel = ({
   const [activeMD3Series, setActiveMD3Series] = useState(null);
   const [auditEditMatchId, setAuditEditMatchId] = useState(null); // O Gatilho de Edição Externa
   const [selectedPlayersForMix, setSelectedPlayersForMix] = useState([]);
+  const [newProposalBonus, setNewProposalBonus] = useState("");
+  const [marketSalaryBonus, setMarketSalaryBonus] = useState("");
   const [mixSummary, setMixSummary] = useState(null);
 
   const [newPlayer, setNewPlayer] = useState({ nickname: "", gameId: "" });
@@ -7180,7 +7182,7 @@ const AdminPanel = ({
                   <h4 className="text-amber-400 font-bold text-xs uppercase mb-6 flex items-center gap-2 tracking-widest">
                     <DollarSign size={14} /> Executar Transação
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-4">
                     <div>
                       <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
                         Jogador
@@ -7223,8 +7225,8 @@ const AdminPanel = ({
                     </div>
                     <div>
                       <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider flex items-center">
-                        Valor da Transação
-                        <Tooltip text="Soma do passe do jogador + multa rescisória (se houver quebra de contrato)." />
+                        Custo da Transferência
+                        <Tooltip text="Soma do passe do jogador + multa rescisória." />
                         {isHostilePossible && !isFriendlyAgreement && (
                           <span className="text-red-400 animate-pulse ml-1">
                             (Multa)
@@ -7241,6 +7243,19 @@ const AdminPanel = ({
                         value={marketPriceOverride}
                         onChange={(e) => setMarketPriceOverride(e.target.value)}
                         disabled={isHostilePossible && !isFriendlyAgreement}
+                      />
+                    </div>
+                    {/* NOVO CAMPO DE BÔNUS NA EXECUÇÃO */}
+                    <div>
+                      <label className="block text-blue-400 text-[10px] uppercase font-bold mb-2 tracking-wider flex items-center gap-1">
+                        <TrendingUp size={10} /> Bônus Salarial (Extra/Mapa)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="R$ Extra. Ex: 50000"
+                        className="w-full bg-blue-500/5 border border-blue-500/30 rounded-lg p-3.5 text-blue-400 text-sm outline-none focus:border-blue-400 transition-colors font-mono"
+                        value={marketSalaryBonus}
+                        onChange={(e) => setMarketSalaryBonus(e.target.value)}
                       />
                     </div>
                   </div>
@@ -7266,8 +7281,6 @@ const AdminPanel = ({
                           onChange={(e) => {
                             const isFriendly = e.target.checked;
                             setIsFriendlyAgreement(isFriendly);
-
-                            // Recalcula o preço IMEDIATAMENTE ao marcar/desmarcar
                             const player = data.players.find(
                               (p) => p.id === marketSelectedPlayer
                             );
@@ -7310,27 +7323,25 @@ const AdminPanel = ({
                         );
                         const price = parseFloat(marketPriceOverride);
 
-                        if (player.clanId === marketTargetClan) {
-                          setFeedback("Erro: Jogador já está neste clã.");
-                          return;
-                        }
-
-                        // NOVO: Trava de Segurança Financeira (Bloqueia se não tiver caixa)
-                        if (targetClan.budget < price) {
-                          setFeedback(
+                        if (player.clanId === marketTargetClan)
+                          return setFeedback(
+                            "Erro: Jogador já está neste clã."
+                          );
+                        if (targetClan.budget < price)
+                          return setFeedback(
                             `Erro: Caixa insuficiente! O clã possui apenas ${formatCurrency(
                               targetClan.budget
                             )}.`
                           );
-                          return;
-                        }
+
                         const isHostile =
                           isHostilePossible && !isFriendlyAgreement;
                         onTransferPlayer(
                           player.id,
                           marketTargetClan,
                           price,
-                          isHostile
+                          isHostile,
+                          parseFloat(marketSalaryBonus || 0) // Manda o Bônus pro Firebase!
                         );
                         triggerFeedback(
                           isHostile
@@ -7340,6 +7351,7 @@ const AdminPanel = ({
                         setMarketSelectedPlayer("");
                         setMarketTargetClan("");
                         setMarketPriceOverride("");
+                        setMarketSalaryBonus("");
                         setIsFriendlyAgreement(false);
                       } else {
                         setFeedback("Preencha os dados da negociação.");
@@ -7374,7 +7386,7 @@ const AdminPanel = ({
                     painel para você executar a compra.
                   </p>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <select
                       id="propPlayer"
                       className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white text-sm outline-none focus:border-blue-400"
@@ -7399,18 +7411,30 @@ const AdminPanel = ({
                         </option>
                       ))}
                     </select>
+                    <input
+                      type="number"
+                      placeholder="Bônus Salarial (Extra/Mapa)"
+                      className="w-full bg-blue-500/5 border border-blue-500/30 rounded-lg p-3 text-blue-400 text-sm outline-none focus:border-blue-400 font-mono"
+                      value={newProposalBonus}
+                      onChange={(e) => setNewProposalBonus(e.target.value)}
+                    />
                   </div>
                   <button
                     onClick={async () => {
                       const pId = document.getElementById("propPlayer").value;
                       const cId = document.getElementById("propClan").value;
                       if (pId && cId) {
-                        const propId = await onCreateProposal(pId, cId);
+                        const propId = await onCreateProposal(
+                          pId,
+                          cId,
+                          parseFloat(newProposalBonus || 0)
+                        ); // Passa o Bônus
                         const link = `${window.location.origin}/?proposal=${propId}`;
                         navigator.clipboard.writeText(link);
                         triggerFeedback(
                           "Proposta gerada! Link copiado para sua área de transferência."
                         );
+                        setNewProposalBonus("");
                       } else {
                         alert("Selecione Jogador e Clã.");
                       }
@@ -7482,6 +7506,9 @@ const AdminPanel = ({
                                     onClick={() => {
                                       handlePlayerSelect(p.id); // Puxa todo o cálculo de passe e multa automaticamente!
                                       setMarketTargetClan(c.id);
+                                      setMarketSalaryBonus(
+                                        prop.salaryBonus || ""
+                                      ); // Puxa o bônus da proposta
                                       // Rola a tela pra cima onde fica o Executar Venda
                                       window.scrollTo({
                                         top: 0,
@@ -10520,7 +10547,10 @@ const ProposalPage = ({ proposalId, data, onAnswer }) => {
   const clanPlayers = data.players.filter(
     (p) => p.clanId === clan.id && !p.isPaused
   );
-  const salary = (player.marketValue || 10000000) * 0.005;
+
+  const baseSalary = (player.marketValue || 10000000) * 0.005;
+  const extraBonus = proposal.salaryBonus || 0;
+  const totalSalary = baseSalary + extraBonus;
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
@@ -10594,7 +10624,7 @@ const ProposalPage = ({ proposalId, data, onAnswer }) => {
             </div>
           </div>
 
-          {/* Termos do Contrato */}
+          {/* Termos do Contrato com Destaque para o Bônus */}
           <div className="bg-slate-950/80 rounded-2xl border border-slate-700 p-6 mb-8 relative z-10 shadow-inner">
             <div className="text-center mb-6">
               <p className="text-slate-300 text-sm leading-relaxed">
@@ -10604,27 +10634,45 @@ const ProposalPage = ({ proposalId, data, onAnswer }) => {
                 <span className="text-amber-400 font-mono font-bold">
                   [{clan.tag}]
                 </span>{" "}
-                nos próximos compromissos da liga com os seguintes termos:
+                com os seguintes termos salariais por partida:
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col items-center text-center">
-                <span className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">
-                  Seu Salário / Mapa
+                <span className="text-slate-500 text-[9px] uppercase font-bold tracking-widest mb-1">
+                  Salário Base (0,5%)
                 </span>
-                <span className="text-emerald-400 font-mono font-black text-xl md:text-2xl drop-shadow-[0_0_10px_rgba(52,211,153,0.2)]">
-                  {formatCurrency(salary)}
+                <span className="text-white font-mono font-bold text-lg">
+                  {formatCurrency(baseSalary)}
                 </span>
               </div>
-              <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col items-center text-center">
-                <span className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">
-                  Seu Passe
+              <div className="bg-slate-900 border border-blue-500/30 p-4 rounded-xl flex flex-col items-center text-center shadow-[0_0_15px_rgba(59,130,246,0.1)] relative overflow-hidden">
+                <div className="absolute -right-2 -top-2 text-blue-500/10">
+                  <TrendingUp size={48} />
+                </div>
+                <span className="text-blue-400 text-[9px] uppercase font-bold tracking-widest mb-1 relative z-10">
+                  Bônus Extra / Mapa
                 </span>
-                <span className="text-slate-300 font-mono font-black text-xl md:text-2xl">
-                  {formatCurrency(player.marketValue || 10000000)}
+                <span className="text-blue-400 font-mono font-black text-lg relative z-10">
+                  + {formatCurrency(extraBonus)}
                 </span>
               </div>
+              <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-xl flex flex-col items-center text-center shadow-inner">
+                <span className="text-emerald-500 text-[9px] uppercase font-bold tracking-widest mb-1">
+                  Total a Receber
+                </span>
+                <span className="text-emerald-400 font-mono font-black text-xl drop-shadow-md">
+                  {formatCurrency(totalSalary)}
+                </span>
+              </div>
+            </div>
+
+            <div className="text-center text-slate-500 text-[10px] mt-4 uppercase tracking-widest font-bold border-t border-slate-800 pt-4">
+              Valor do seu Passe Atual:{" "}
+              <span className="text-white">
+                {formatCurrency(player.marketValue || 10000000)}
+              </span>
             </div>
           </div>
 
@@ -11660,11 +11708,12 @@ const App = () => {
     const clanId = player.clanId;
 
     try {
-      // 1. Libera o jogador e tira a multa
+      // 1. Libera o jogador, tira a multa e ZERA O BÔNUS SALARIAL
       await updateDoc(doc(firebaseDb, "players", playerId), {
         clanId: null,
         contractEnd: null,
         releaseClauseMultiplier: 0,
+        salaryBonus: 0, // Zera o bônus salarial ao sair do clã
       });
 
       if (clanId) {
@@ -11727,7 +11776,8 @@ const App = () => {
     playerId,
     targetClanId,
     price,
-    isHostile = false
+    isHostile = false,
+    salaryBonus = 0 // NOVO: Recebe o bônus salarial da transação
   ) => {
     const player = db.players.find((p) => p.id === playerId);
     const fromClan = db.clans.find((c) => c.id === player?.clanId);
@@ -11738,7 +11788,7 @@ const App = () => {
         budget: toClan.budget - price,
       });
 
-      // NOVO: Log financeiro para o clã COMPRADOR
+      // Log financeiro para o clã COMPRADOR
       await salvarNoFirebase("financialLogs", {
         id: generateId(),
         clanId: targetClanId,
@@ -11767,11 +11817,15 @@ const App = () => {
           date: new Date().toISOString(),
         });
       }
+
+      // Atualiza o jogador injetando o Bônus Salarial!
       await updateDoc(doc(firebaseDb, "players", playerId), {
         clanId: targetClanId,
         contractEnd: null,
         releaseClauseMultiplier: 0,
+        salaryBonus: salaryBonus, // Salva o bônus no Firebase
       });
+
       await salvarNoFirebase("transfers", {
         id: generateId(),
         type: fromClan ? "transfer" : "contract",
@@ -11851,12 +11905,13 @@ const App = () => {
     }
   };
 
-  const createProposal = async (playerId, targetClanId) => {
+  const createProposal = async (playerId, targetClanId, bonusAmount = 0) => {
     const id = generateId();
     await salvarNoFirebase("proposals", {
       id,
       playerId,
       targetClanId,
+      salaryBonus: bonusAmount, // O Bônus viaja junto com o link!
       status: "pending",
       date: new Date().toISOString(),
     });
@@ -12067,12 +12122,14 @@ const App = () => {
         checkSponsors(info.clanA_Id, info.winnerSide === "A");
         checkSponsors(info.clanB_Id, info.winnerSide === "B");
 
-        // 2. Paga Salários dos Jogadores e Debita dos Clãs
+        // 2. Paga Salários dos Jogadores (Incluindo BÔNUS) e Debita dos Clãs
         if (isCxC) {
           for (const s of stats) {
             const player = db.players.find((p) => p.id === s.playerId);
             if (player) {
-              const salary = (player.marketValue || 10000000) * 0.005; // 0.5% do passe
+              const baseSalary = (player.marketValue || 10000000) * 0.005; // 0.5% do passe
+              const extraBonus = player.salaryBonus || 0; // O Bônus negociado
+              const salary = baseSalary + extraBonus;
 
               await updateDoc(doc(firebaseDb, "players", player.id), {
                 totalEarnings: (player.totalEarnings || 0) + salary,
@@ -12682,7 +12739,11 @@ const App = () => {
                     O Campo de Batalha Definitivo
                   </h3>
                   <p className="text-slate-400 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
-                    A <span className="text-amber-400 font-bold">MVL</span> transforma as partidas casuais do Bloodline em um ecossistema profissional. Jogue para provar seu valor, assine contratos e mostre que você não é só mais um alvo no servidor.
+                    A <span className="text-amber-400 font-bold">MVL</span>{" "}
+                    transforma as partidas casuais do Bloodline em um
+                    ecossistema profissional. Jogue para provar seu valor,
+                    assine contratos e mostre que você não é só mais um alvo no
+                    servidor.
                   </p>
                 </div>
 
@@ -12696,7 +12757,9 @@ const App = () => {
                       Tiroteio com Propósito
                     </h4>
                     <p className="text-slate-500 text-xs leading-relaxed">
-                      Chega de partidas vazias. Todo abate conta. Jogue no formato MIX para farmar XP ou junte seu Clã em campeonatos oficiais que valem dinheiro pro caixa.
+                      Chega de partidas vazias. Todo abate conta. Jogue no
+                      formato MIX para farmar XP ou junte seu Clã em campeonatos
+                      oficiais que valem dinheiro pro caixa.
                     </p>
                   </div>
 
@@ -12709,7 +12772,9 @@ const App = () => {
                       Sua Mira Vale Grana
                     </h4>
                     <p className="text-slate-500 text-xs leading-relaxed">
-                      Seu talento tem preço. Receba salário automático por partida, negocie luvas para assinar com um Clã e use seu saldo virtual para resgatar recompensas VIP.
+                      Seu talento tem preço. Receba salário automático por
+                      partida, negocie luvas para assinar com um Clã e use seu
+                      saldo virtual para resgatar recompensas VIP.
                     </p>
                   </div>
 
@@ -12722,7 +12787,9 @@ const App = () => {
                       Monte seu Império
                     </h4>
                     <p className="text-slate-500 text-xs leading-relaxed">
-                      Funde seu próprio Clã. Administre os 50 Milhões em caixa, pague multas rescisórias para roubar jogadores rivais e feche patrocínios.
+                      Funde seu próprio Clã. Administre os 50 Milhões em caixa,
+                      pague multas rescisórias para roubar jogadores rivais e
+                      feche patrocínios.
                     </p>
                   </div>
 
@@ -12735,7 +12802,9 @@ const App = () => {
                       Reputação Implacável
                     </h4>
                     <p className="text-slate-500 text-xs leading-relaxed">
-                      O sistema registra absolutamente tudo. K/D, Winrate, evolução e troféus. Construa seu legado e prove com números quem domina o servidor.
+                      O sistema registra absolutamente tudo. K/D, Winrate,
+                      evolução e troféus. Construa seu legado e prove com
+                      números quem domina o servidor.
                     </p>
                   </div>
                 </div>
