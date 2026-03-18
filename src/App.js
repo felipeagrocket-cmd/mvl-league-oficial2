@@ -10580,7 +10580,7 @@ const DraftRegistrationPage = ({ onSubmit, onBack, avatars = [] }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider text-emerald-400">
-                WhatsApp (Uso Interno da Diretoria)
+                WhatsApp (Apenas para contato interno da equipe (STAFF). Esta informação não será exibida publicamente.)
               </label>
               <input
                 type="text"
