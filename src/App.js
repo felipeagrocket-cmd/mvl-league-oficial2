@@ -7097,7 +7097,7 @@ const AdminPanel = ({
                               onClick={() => {
                                 approveClanDraft(draft);
                                 triggerFeedback(
-                                  "Franquia aprovada e inserida na liga com R$ 80 Mi de orçamento!"
+                                  "Franquia aprovada e inserida na liga com R$ 15 Mi de orçamento!"
                                 );
                               }}
                               className="flex-1 md:flex-none text-white bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-lg text-[10px] font-black uppercase shadow-lg transition-transform hover:-translate-y-0.5"
@@ -7816,7 +7816,7 @@ const AdminPanel = ({
                             name: newClanName,
                             tag: newClanTag,
                             logoUrl: newClanLogo,
-                            budget: 50000000,
+                            budget: 15000000,
                           });
                           triggerFeedback("Clã criado com sucesso!");
                         }
@@ -7832,7 +7832,9 @@ const AdminPanel = ({
                         : "bg-amber-400 hover:bg-amber-300 text-black shadow-amber-400/20"
                     }`}
                   >
-                    {editingClanId ? "Salvar Alterações" : "Criar Clã"}
+                                       {" "}
+                    {editingClanId ? "Salvar Alterações" : "Criar Clã"}         
+                           {" "}
                   </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -9901,7 +9903,7 @@ const StartHerePage = ({ data, onPlayerClick }) => {
       border: "border-blue-500/20",
       barColor: "bg-blue-500",
       q: "Como funciona o financeiro do Clã?",
-      a: "Cada Clã (aba A LIGA > EQUIPES) recebe 50 Milhões de orçamento inicial. Esse caixa é usado para contratar jogadores, pagar luvas de patrocinadores e arcar com os salários — que custam 0,5% do passe do atleta e são debitados automaticamente por mapa. Seu trabalho é ser o presidente: negociar jogadores, gerenciar o orçamento e competir.",
+      a: "Cada Clã (aba A LIGA > EQUIPES) recebe 15 Milhões de orçamento inicial. Esse caixa é usado para contratar jogadores, pagar luvas de patrocinadores e arcar com os salários — que custam 0,5% do passe do atleta e são debitados automaticamente por mapa. Seu trabalho é ser o presidente: negociar jogadores, gerenciar o orçamento e competir.",
     },
     {
       id: 2,
@@ -11979,9 +11981,8 @@ const App = () => {
 
   const approveClanDraft = async (draft) => {
     try {
-      const clanId = generateId(); // Geramos o ID aqui para poder atrelar o log financeiro
+      const clanId = generateId(); // Geramos o ID aqui para poder atrelar o log financeiro // 1. Cria o Clã
 
-      // 1. Cria o Clã
       await setDoc(doc(firebaseDb, "clans", clanId), {
         id: clanId,
         name: draft.name,
@@ -11989,22 +11990,20 @@ const App = () => {
         logoUrl: draft.logoUrl,
         ownerNick: draft.ownerNick || "",
         ownerGameId: draft.ownerGameId || "",
-        budget: 50000000,
-      });
+        budget: 15000000,
+      }); // 2. Injeta o registro do Aporte Inicial na Tesouraria
 
-      // 2. Injeta o registro do Aporte Inicial na Tesouraria
       await salvarNoFirebase("financialLogs", {
         id: generateId(),
         clanId: clanId,
         type: "initial",
-        amount: 50000000,
+        amount: 15000000,
         oldBalance: 0,
-        newBalance: 50000000,
+        newBalance: 15000000,
         reason: "Aporte Inicial de Franquia",
         date: new Date().toISOString(),
-      });
+      }); // 3. Apaga da triagem
 
-      // 3. Apaga da triagem
       await deleteDoc(doc(firebaseDb, "clanDrafts", draft.id));
     } catch (e) {
       console.error(e);
