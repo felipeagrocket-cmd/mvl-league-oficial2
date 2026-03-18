@@ -6150,7 +6150,6 @@ const AdminPanel = ({
             </button>
           </div>
         </div>
-
         {treasuryClanId && (
           <TreasuryModal
             clan={data.clans.find((c) => c.id === treasuryClanId)}
@@ -6174,7 +6173,161 @@ const AdminPanel = ({
             }}
           />
         )}
-
+                {/* MODAL DE BANIMENTO (TRIBUNAL MVL) */}       {" "}
+        {showBanModal && selectedPlayerToBan && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn">
+                       {" "}
+            <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden">
+                           {" "}
+              <div className="bg-slate-950 p-5 border-b border-red-500/30 flex justify-between items-center">
+                               {" "}
+                <h3 className="text-red-400 font-bold uppercase flex items-center gap-2 text-sm">
+                                    <Gavel size={18} /> Banir Jogador          
+                       {" "}
+                </h3>
+                               {" "}
+                <button
+                  onClick={() => {
+                    setShowBanModal(false);
+                    setSelectedPlayerToBan(null);
+                  }}
+                  className="text-slate-500 hover:text-white transition-colors"
+                >
+                                    <X size={20} />               {" "}
+                </button>
+                             {" "}
+              </div>
+                           {" "}
+              <div className="p-6 space-y-6">
+                               {" "}
+                <div className="flex items-center gap-4 bg-slate-950 border border-slate-800 p-4 rounded-xl">
+                                   {" "}
+                  <img
+                    src={selectedPlayerToBan.avatarUrl}
+                    className="w-12 h-12 rounded-lg bg-slate-800 object-cover border border-slate-700"
+                  />
+                                   {" "}
+                  <div>
+                                       {" "}
+                    <h4 className="text-white font-bold text-lg leading-tight">
+                                            {selectedPlayerToBan.nickname}     
+                                   {" "}
+                    </h4>
+                                       {" "}
+                    <div className="text-slate-500 text-xs font-mono">
+                                            {selectedPlayerToBan.gameId}       
+                                 {" "}
+                    </div>
+                                     {" "}
+                  </div>
+                                 {" "}
+                </div>
+                               {" "}
+                <div>
+                                   {" "}
+                  <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
+                                        Motivo do Banimento                  {" "}
+                  </label>
+                                   {" "}
+                  <input
+                    type="text"
+                    placeholder="Ex: Toxidade, Uso de Hacks, Anti-jogo..."
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-sm outline-none focus:border-red-500 transition-colors"
+                    value={banReason}
+                    onChange={(e) => setBanReason(e.target.value)}
+                  />
+                                 {" "}
+                </div>
+                               {" "}
+                <div>
+                                   {" "}
+                  <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
+                                        Duração da Punição                  {" "}
+                  </label>
+                                   {" "}
+                  <select
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-sm outline-none focus:border-red-500 transition-colors"
+                    value={banDuration}
+                    onChange={(e) => setBanDuration(e.target.value)}
+                  >
+                                        <option value="7">7 Dias</option>       
+                                <option value="15">15 Dias</option>             
+                          <option value="30">30 Dias</option>                   {" "}
+                    <option value="permanent">Permanente (Ban Eterno)</option> 
+                                   {" "}
+                  </select>
+                                 {" "}
+                </div>
+                               {" "}
+                <button
+                  onClick={() => {
+                    handleConfirmBan();
+                    triggerFeedback("O Martelo bateu! Jogador banido da liga.");
+                  }}
+                  className="w-full bg-red-600 hover:bg-red-500 text-white font-black uppercase py-3.5 rounded-lg text-sm transition-all shadow-lg shadow-red-600/20 flex items-center justify-center gap-2"
+                >
+                                    <Gavel size={16} /> Aplicar Banimento      
+                           {" "}
+                </button>
+                             {" "}
+              </div>
+                         {" "}
+            </div>
+                     {" "}
+          </div>
+        )}
+                {/* MODAL DE PERDÃO / DESBANIR */}       {" "}
+        {showUnbanModal && selectedBanToRevoke && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn">
+                       {" "}
+            <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden">
+                           {" "}
+              <div className="bg-slate-950 p-5 border-b border-green-500/30 flex justify-between items-center">
+                               {" "}
+                <h3 className="text-green-400 font-bold uppercase flex items-center gap-2 text-sm">
+                                    <RefreshCcw size={18} /> Revogar Banimento  
+                               {" "}
+                </h3>
+                               {" "}
+                <button
+                  onClick={() => {
+                    setShowUnbanModal(false);
+                    setSelectedBanToRevoke(null);
+                  }}
+                  className="text-slate-500 hover:text-white transition-colors"
+                >
+                                    <X size={20} />               {" "}
+                </button>
+                             {" "}
+              </div>
+                           {" "}
+              <div className="p-6 space-y-6">
+                               {" "}
+                <div className="text-center text-slate-300 text-sm leading-relaxed">
+                                    Tem certeza que deseja perdoar e reintegrar
+                  o jogador                  {" "}
+                  <strong className="text-white">
+                                        {selectedBanToRevoke.nickname}         
+                           {" "}
+                  </strong>{" "}
+                                    à liga? O contrato com clãs passados não
+                  será reativado.                {" "}
+                </div>
+                               {" "}
+                <button
+                  onClick={handleConfirmUnban}
+                  className="w-full bg-green-600 hover:bg-green-500 text-white font-black uppercase py-3.5 rounded-lg text-sm transition-all shadow-lg shadow-green-600/20 flex items-center justify-center gap-2"
+                >
+                                    <CheckCircle size={16} /> Confirmar Retorno
+                                 {" "}
+                </button>
+                             {" "}
+              </div>
+                         {" "}
+            </div>
+                     {" "}
+          </div>
+        )}
         {manageInventoryPlayerId &&
           (() => {
             const p = data.players.find(
@@ -6256,7 +6409,6 @@ const AdminPanel = ({
               </div>
             );
           })()}
-
         {activeMD3Series && (
           <TournamentMD3Modal
             series={activeMD3Series}
@@ -6275,7 +6427,6 @@ const AdminPanel = ({
             initialEditMatchId={auditEditMatchId} // Passa a instrução de editar
           />
         )}
-
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-2">
             {data.adminMenuOrder.map((menuId, index) => {
