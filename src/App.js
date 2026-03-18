@@ -8578,6 +8578,8 @@ const AdminPanel = ({
                           onUpdatePlayer(editingPlayerId, {
                             nickname: newPlayer.nickname,
                             gameId: newPlayer.gameId,
+                            whatsapp: newPlayer.whatsapp,
+                            discord: newPlayer.discord,
                             avatarUrl: newPlayerImage,
                           });
                           triggerFeedback("Jogador atualizado!");
