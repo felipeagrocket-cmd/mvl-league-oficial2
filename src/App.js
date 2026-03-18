@@ -5341,19 +5341,18 @@ const TournamentMD3Modal = ({
 
   const handleSaveMap = () => {
     if (!newMapName || !winnerSide)
-      return alert("Por favor, selecione o mapa jogado e defina o vencedor.");
+      return alert("Por favor, selecione o mapa jogado e defina o vencedor."); // Pega apenas os slots que têm jogador selecionado
 
-    // Pega apenas os slots que têm jogador selecionado
     const validStatsA = lineupA
       .filter((s) => s.playerId)
       .map((s) => ({ ...s, mapWin: winnerSide === "A" }));
     const validStatsB = lineupB
       .filter((s) => s.playerId)
       .map((s) => ({ ...s, mapWin: winnerSide === "B" }));
-    const consolidatedStats = [...validStatsA, ...validStatsB];
+    const consolidatedStats = [...validStatsA, ...validStatsB]; // CORREÇÃO CRÍTICA: Mesma ID para o Mapa e para a Série
 
-    // CORREÇÃO CRÍTICA: Mesma ID para o Mapa e para a Série
     const matchIdToSave = editingMapId || generateId();
+    const isEditing = !!editingMapId;
 
     onSaveMatch(
       {
@@ -5369,7 +5368,8 @@ const TournamentMD3Modal = ({
       },
       consolidatedStats,
       matchIdToSave,
-      new Date().toISOString()
+      new Date().toISOString(),
+      isEditing
     );
 
     if (!editingMapId) {
@@ -12069,7 +12069,7 @@ const App = () => {
     }
   };
 
-  const saveMatch = async (info, stats, id, date) => {
+  const saveMatch = async (info, stats, id, date, isEdit = false) => {
     const matchId = id || generateId();
     try {
       await setDoc(doc(firebaseDb, "matches", matchId), {
@@ -12078,8 +12078,8 @@ const App = () => {
         date: date || new Date().toISOString(),
       });
 
-      if (id) {
-        const oldStats = db.stats.filter((s) => s.matchId === id);
+      if (isEdit) {
+        const oldStats = db.stats.filter((s) => s.matchId === matchId);
         for (const oldStat of oldStats) {
           await deleteDoc(doc(firebaseDb, "stats", oldStat.id));
         }
@@ -12088,22 +12088,19 @@ const App = () => {
       for (const s of stats) {
         const sid = generateId();
         await setDoc(doc(firebaseDb, "stats", sid), { ...s, id: sid, matchId });
-      }
+      } // Descobre os dados do Split para usar no XP e no Financeiro
 
-      // Descobre os dados do Split para usar no XP e no Financeiro
-      const split = db.splits.find((s) => s.id === info.splitId);
+      const split = db.splits.find((s) => s.id === info.splitId); // --- MOTORES DE LIGA (SÓ RODAM SE FOR PARTIDA NOVA) ---
 
-      // --- MOTOR FINANCEIRO (SÓ SE FOR NOVA PARTIDA) ---
-      if (!id) {
+      if (!isEdit) {
         const isCxC = split?.format === "cxc";
 
         const clanChanges = {};
         const initClanChange = (cId) => {
           if (!clanChanges[cId])
             clanChanges[cId] = { totalChange: 0, logs: [] };
-        };
+        }; // 1. Paga Bônus de Patrocinadores para os Clãs
 
-        // 1. Paga Bônus de Patrocinadores para os Clãs
         const checkSponsors = (cId, isWinner) => {
           if (!cId || cId === "tempA" || cId === "tempB") return;
           const clanSponsors = db.sponsors.filter((s) => s.clanId === cId);
@@ -12120,9 +12117,8 @@ const App = () => {
           });
         };
         checkSponsors(info.clanA_Id, info.winnerSide === "A");
-        checkSponsors(info.clanB_Id, info.winnerSide === "B");
+        checkSponsors(info.clanB_Id, info.winnerSide === "B"); // 2. Paga Salários dos Jogadores (Incluindo BÔNUS) e Debita dos Clãs
 
-        // 2. Paga Salários dos Jogadores (Incluindo BÔNUS) e Debita dos Clãs
         if (isCxC) {
           for (const s of stats) {
             const player = db.players.find((p) => p.id === s.playerId);
@@ -12146,9 +12142,8 @@ const App = () => {
               }
             }
           }
-        }
+        } // 3. Executa as transações consolidadas no banco de dados
 
-        // 3. Executa as transações consolidadas no banco de dados
         for (const [cId, changes] of Object.entries(clanChanges)) {
           const clan = db.clans.find((c) => c.id === cId);
           if (clan) {
@@ -12174,10 +12169,7 @@ const App = () => {
             }
           }
         }
-      }
-      // --- FIM DO MOTOR FINANCEIRO ---
-
-      // --- NOVO: MOTOR DE XP PARA FORMATO MIX (A FASE 2) ---
+      } // --- FIM DO MOTOR FINANCEIRO --- // --- MOTOR DE XP PARA FORMATO MIX (A FASE 2) ---
       const isMix = split?.format === "mix";
       if (isMix) {
         for (const s of stats) {
@@ -12188,13 +12180,11 @@ const App = () => {
               s.mapWin,
               s.kills,
               s.deaths
-            );
+            ); // 2. Calcula o novo saldo de XP
 
-            // 2. Calcula o novo saldo de XP
             const currentXp = player.xp || 0;
-            const newXp = Math.max(0, currentXp + xpResult.xpChange);
+            const newXp = Math.max(0, currentXp + xpResult.xpChange); // 3. Salva no banco de dados o XP total e o extrato
 
-            // 3. Salva no banco de dados o XP total e o extrato
             await updateDoc(doc(firebaseDb, "players", player.id), {
               xp: newXp,
               lastXpChange: xpResult.xpChange,
@@ -12202,8 +12192,7 @@ const App = () => {
             });
           }
         }
-      }
-      // --- FIM DO MOTOR DE XP ---
+      } // --- FIM DO MOTOR DE XP ---
     } catch (e) {
       console.error("Erro ao salvar partida:", e);
     }
