@@ -10570,7 +10570,7 @@ const DraftRegistrationPage = ({ onSubmit, onBack, avatars = [] }) => {
             </label>
             <input
               type="text"
-              placeholder="Ex: FalleN#BR1"
+              placeholder="Ex: 000-0000"
               className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white text-sm outline-none focus:border-amber-400 transition-colors shadow-inner font-mono"
               value={gameId}
               onChange={(e) => setGameId(e.target.value)}
@@ -10580,7 +10580,8 @@ const DraftRegistrationPage = ({ onSubmit, onBack, avatars = [] }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider text-emerald-400">
-                WhatsApp (Apenas para contato interno da equipe (STAFF). Esta informação não será exibida publicamente.)
+                WhatsApp (Apenas para contato interno da equipe (STAFF). Esta
+                informação não será exibida publicamente.)
               </label>
               <input
                 type="text"
