@@ -12085,16 +12085,27 @@ const App = () => {
         }
       }
 
-      for (const s of stats) {
+      const split = db.splits.find((s) => s.id === info.splitId);
+      const isCxC = split?.format !== "mix";
+      const isMix = split?.format === "mix"; // PREPARA OS STATUS COM O SALÁRIO EXATO DAQUELA HORA MÁGICA
+
+      const statsToSave = stats.map((s) => {
+        const player = db.players.find((p) => p.id === s.playerId);
+        let earnedSalary = 0;
+        if (isCxC && !isEdit && player) {
+          const baseSalary = (Number(player.marketValue) || 10000000) * 0.005;
+          const extraBonus = Number(player.salaryBonus) || 0;
+          earnedSalary = baseSalary + extraBonus;
+        }
+        return { ...s, earnedSalary }; // Injetamos a memória financeira!
+      });
+
+      for (const s of statsToSave) {
         const sid = generateId();
         await setDoc(doc(firebaseDb, "stats", sid), { ...s, id: sid, matchId });
-      } // Descobre os dados do Split para usar no XP e no Financeiro
-
-      const split = db.splits.find((s) => s.id === info.splitId); // --- MOTORES DE LIGA (SÓ RODAM SE FOR PARTIDA NOVA) ---
+      } // --- MOTORES DE LIGA (SÓ RODAM SE FOR PARTIDA NOVA) ---
 
       if (!isEdit) {
-        const isCxC = split?.format === "cxc";
-
         const clanChanges = {};
         const initClanChange = (cId) => {
           if (!clanChanges[cId])
@@ -12120,22 +12131,19 @@ const App = () => {
         checkSponsors(info.clanB_Id, info.winnerSide === "B"); // 2. Paga Salários dos Jogadores (Incluindo BÔNUS) e Debita dos Clãs
 
         if (isCxC) {
-          for (const s of stats) {
+          for (const s of statsToSave) {
             const player = db.players.find((p) => p.id === s.playerId);
-            if (player) {
-              const baseSalary = (player.marketValue || 10000000) * 0.005; // 0.5% do passe
-              const extraBonus = player.salaryBonus || 0; // O Bônus negociado
-              const salary = baseSalary + extraBonus;
-
+            if (player && s.earnedSalary > 0) {
               await updateDoc(doc(firebaseDb, "players", player.id), {
-                totalEarnings: (player.totalEarnings || 0) + salary,
+                totalEarnings:
+                  (Number(player.totalEarnings) || 0) + s.earnedSalary,
               });
 
               if (player.clanId) {
                 initClanChange(player.clanId);
-                clanChanges[player.clanId].totalChange -= salary;
+                clanChanges[player.clanId].totalChange -= s.earnedSalary;
                 clanChanges[player.clanId].logs.push({
-                  amount: -salary,
+                  amount: -s.earnedSalary,
                   reason: `Salário: ${player.nickname}`,
                   type: "salary",
                 });
@@ -12169,21 +12177,19 @@ const App = () => {
             }
           }
         }
-      } // --- FIM DO MOTOR FINANCEIRO --- // --- MOTOR DE XP PARA FORMATO MIX (A FASE 2) ---
-      const isMix = split?.format === "mix";
+      } // --- MOTOR DE XP PARA FORMATO MIX (A FASE 2) ---
+
       if (isMix) {
-        for (const s of stats) {
+        for (const s of statsToSave) {
           const player = db.players.find((p) => p.id === s.playerId);
           if (player) {
-            // 1. Passa os dados do jogador pela nossa engrenagem GC Killer
             const xpResult = LevelEngine.calculateMatchXP(
               s.mapWin,
               s.kills,
               s.deaths
-            ); // 2. Calcula o novo saldo de XP
-
+            );
             const currentXp = player.xp || 0;
-            const newXp = Math.max(0, currentXp + xpResult.xpChange); // 3. Salva no banco de dados o XP total e o extrato
+            const newXp = Math.max(0, currentXp + xpResult.xpChange);
 
             await updateDoc(doc(firebaseDb, "players", player.id), {
               xp: newXp,
@@ -12192,7 +12198,7 @@ const App = () => {
             });
           }
         }
-      } // --- FIM DO MOTOR DE XP ---
+      }
     } catch (e) {
       console.error("Erro ao salvar partida:", e);
     }
@@ -12212,7 +12218,7 @@ const App = () => {
         const initClanChange = (cId) => {
           if (!clanChanges[cId])
             clanChanges[cId] = { totalChange: 0, logs: [] };
-        }; // 1. Estorna Bônus de Patrocinadores (Tira do Clã)
+        };
 
         const reverseSponsors = (cId, isWinner) => {
           if (!cId || cId === "tempA" || cId === "tempB") return;
@@ -12236,33 +12242,38 @@ const App = () => {
         reverseSponsors(
           matchToDelete.clanB_Id,
           matchToDelete.winnerSide === "B"
-        ); // 2. Estorna Salários (Tira do Jogador, Devolve pro Clã)
+        );
 
         for (const s of orphanStats) {
           const player = db.players.find((p) => p.id === s.playerId);
           if (player) {
+            // LÊ O SALÁRIO EXATO DA ÉPOCA (se não existir na base antiga, usa o fallback do cálculo atual)
             const baseSalary = (Number(player.marketValue) || 10000000) * 0.005;
             const extraBonus = Number(player.salaryBonus) || 0;
-            const salary = baseSalary + extraBonus;
+            const fallbackSalary = baseSalary + extraBonus;
+            const salaryToRefund =
+              s.earnedSalary !== undefined ? s.earnedSalary : fallbackSalary;
 
-            await updateDoc(doc(firebaseDb, "players", player.id), {
-              totalEarnings: Math.max(
-                0,
-                (Number(player.totalEarnings) || 0) - salary
-              ),
-            });
-
-            if (player.clanId) {
-              initClanChange(player.clanId);
-              clanChanges[player.clanId].totalChange += salary;
-              clanChanges[player.clanId].logs.push({
-                amount: salary,
-                reason: `Estorno Salário: ${player.nickname} (Mapa Excluído)`,
-                type: "salary_refund",
+            if (salaryToRefund > 0) {
+              await updateDoc(doc(firebaseDb, "players", player.id), {
+                totalEarnings: Math.max(
+                  0,
+                  (Number(player.totalEarnings) || 0) - salaryToRefund
+                ),
               });
+
+              if (player.clanId) {
+                initClanChange(player.clanId);
+                clanChanges[player.clanId].totalChange += salaryToRefund;
+                clanChanges[player.clanId].logs.push({
+                  amount: salaryToRefund,
+                  reason: `Estorno Salário: ${player.nickname} (Mapa Excluído)`,
+                  type: "salary_refund",
+                });
+              }
             }
           }
-        } // 3. Aplica estornos no banco
+        }
 
         for (const [cId, changes] of Object.entries(clanChanges)) {
           const clan = db.clans.find((c) => c.id === cId);
@@ -12289,9 +12300,9 @@ const App = () => {
             }
           }
         }
-      } // --- FIM ESTORNO FINANCEIRO ---
+      }
+
       for (const s of orphanStats) {
-        // NOVO: Se a partida excluída for MIX, rouba de volta o XP que o cara ganhou
         if (isMix) {
           const player = db.players.find((p) => p.id === s.playerId);
           if (player) {
@@ -12299,15 +12310,15 @@ const App = () => {
               s.mapWin,
               s.kills,
               s.deaths
-            ); // Subtrai o XP da partida (sem deixar ficar menor que zero)
+            );
             const newXp = Math.max(0, (player.xp || 0) - xpResult.xpChange);
             await updateDoc(doc(firebaseDb, "players", player.id), {
               xp: newXp,
             });
           }
-        } // Deleta o status do jogador nessa partida
+        }
         await deleteDoc(doc(firebaseDb, "stats", s.id));
-      } // Finalmente, deleta a partida
+      }
 
       await deleteDoc(doc(firebaseDb, "matches", id));
     } catch (e) {
