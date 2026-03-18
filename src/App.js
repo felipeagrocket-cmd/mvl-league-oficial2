@@ -7729,63 +7729,97 @@ const AdminPanel = ({
                     <h4 className="text-white font-bold text-sm uppercase mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">
                       <FileText size={16} /> Gestão de Contratos
                     </h4>
-                    <div className="space-y-3 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-800">
-                      {data.players
-                        .filter((p) => p.clanId && !p.isPaused)
-                        .map((p) => {
-                          const status = getContractStatus(p);
-                          return (
-                            <div
-                              key={p.id}
-                              className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex justify-between items-center group"
-                            >
-                              <div className="flex items-center gap-3">
-                                <img
-                                  src={p.avatarUrl}
-                                  className="w-8 h-8 rounded-md bg-slate-900 object-cover"
-                                />
-                                <div>
-                                  <span className="text-white font-bold text-xs">
-                                    {p.nickname}
-                                  </span>
-                                  <div
-                                    className={`text-[9px] uppercase font-bold tracking-wider mt-0.5 ${status.color}`}
-                                  >
-                                    {status.status}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0 mt-3 md:mt-0">
-                                <button
-                                  onClick={() =>
-                                    setManageContractPlayerId(p.id)
-                                  }
-                                  className="px-3 py-1.5 bg-slate-900 hover:bg-amber-400 hover:text-black text-slate-400 text-[10px] font-bold uppercase rounded border border-slate-700 transition-all"
-                                >
-                                  Renovar
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    if (
-                                      window.confirm(
-                                        `Tem certeza que deseja dispensar ${p.nickname}? O clã não receberá nenhum valor de volta e o jogador ficará livre (Free Agent).`
-                                      )
-                                    ) {
-                                      onRemovePlayerFromClan(p.id);
-                                      triggerFeedback(
-                                        `${p.nickname} foi dispensado!`
-                                      );
-                                    }
-                                  }}
-                                  className="px-3 py-1.5 bg-slate-900 hover:bg-red-500 hover:text-white text-slate-400 text-[10px] font-bold uppercase rounded border border-slate-700 transition-all"
-                                  title="Rescisão Amigável"
-                                >
-                                  Dispensar
-                                </button>
-                              </div>
+                    <div className="space-y-4 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-800">
+                      {data.clans.map((clan) => {
+                        const clanPlayers = data.players.filter(
+                          (p) => p.clanId === clan.id && !p.isPaused
+                        );
+
+                        if (clanPlayers.length === 0) return null;
+
+                        return (
+                          <div
+                            key={clan.id}
+                            className="bg-slate-900/50 rounded-2xl border border-slate-800 overflow-hidden"
+                          >
+                            <div className="bg-slate-900 p-3 border-b border-slate-800 flex items-center gap-3">
+                              <img
+                                src={clan.logoUrl}
+                                alt={clan.tag}
+                                className="w-8 h-8 object-contain drop-shadow-md"
+                              />
+                              <span className="text-white font-bold uppercase text-sm">
+                                {clan.name}
+                              </span>
+                              <span className="text-amber-500 font-mono text-[10px] bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 tracking-widest">
+                                [{clan.tag}]
+                              </span>
                             </div>
-                          );
-                        })}
+                            <div className="p-3 space-y-2">
+                              {clanPlayers.map((p) => {
+                                const status = getContractStatus(p);
+                                return (
+                                  <div
+                                    key={p.id}
+                                    className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 flex flex-col md:flex-row justify-between md:items-center gap-4 group hover:border-slate-700 transition-colors"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <img
+                                        src={p.avatarUrl}
+                                        className="w-10 h-10 rounded-lg bg-slate-900 object-cover border border-slate-800"
+                                      />
+                                      <div>
+                                        <span className="text-white font-bold text-sm flex items-center gap-2">
+                                          {p.nickname}
+                                        </span>
+                                        <div
+                                          className={`text-[9px] uppercase font-bold tracking-wider mt-0.5 ${status.color}`}
+                                        >
+                                          {status.status}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                      <button
+                                        onClick={() =>
+                                          setManageContractPlayerId(p.id)
+                                        }
+                                        className="flex-1 md:flex-none px-4 py-2 bg-slate-900 hover:bg-amber-400 hover:text-black text-slate-400 text-[10px] font-bold uppercase rounded-lg border border-slate-700 transition-all shadow-sm"
+                                      >
+                                        Renovar
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          if (
+                                            window.confirm(
+                                              `Tem certeza que deseja dispensar ${p.nickname}? O clã não receberá nenhum valor de volta e o jogador ficará livre (Free Agent).`
+                                            )
+                                          ) {
+                                            onRemovePlayerFromClan(p.id);
+                                            triggerFeedback(
+                                              `${p.nickname} foi dispensado!`
+                                            );
+                                          }
+                                        }}
+                                        className="flex-1 md:flex-none px-4 py-2 bg-slate-900 hover:bg-red-500 hover:text-white text-slate-400 text-[10px] font-bold uppercase rounded-lg border border-slate-700 transition-all shadow-sm"
+                                        title="Rescisão Amigável"
+                                      >
+                                        Dispensar
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {data.players.filter((p) => p.clanId && !p.isPaused)
+                        .length === 0 && (
+                        <div className="text-center py-8 text-slate-600 text-xs italic border border-dashed border-slate-800 rounded-xl">
+                          Nenhum jogador sob contrato.
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div>
