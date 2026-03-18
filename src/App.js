@@ -10579,9 +10579,8 @@ const DraftRegistrationPage = ({ onSubmit, onBack, avatars = [] }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider text-emerald-400">
-                WhatsApp (Apenas para contato interno da equipe (STAFF). Esta
-                informação não será exibida publicamente.)
+              <label className="block text-slate-400 text-[10px] uppercase font-bold mb-1 tracking-wider text-emerald-400">
+                WhatsApp (Staff)
               </label>
               <input
                 type="text"
@@ -10590,9 +10589,13 @@ const DraftRegistrationPage = ({ onSubmit, onBack, avatars = [] }) => {
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
               />
+              <p className="text-[9px] text-slate-500 mt-2 leading-relaxed">
+                Apenas para contato interno da diretoria. Esta informação não
+                será exibida publicamente.
+              </p>
             </div>
             <div>
-              <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider text-indigo-400">
+              <label className="block text-slate-400 text-[10px] uppercase font-bold mb-1 tracking-wider text-indigo-400">
                 Discord (Opcional)
               </label>
               <input
