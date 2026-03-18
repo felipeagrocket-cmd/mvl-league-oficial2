@@ -12679,75 +12679,63 @@ const App = () => {
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-amber-500/5 blur-[120px] pointer-events-none"></div>
                 <div className="text-center mb-12 relative z-10">
                   <h3 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mb-4">
-                    Eleve seu nível de jogo
+                    O Campo de Batalha Definitivo
                   </h3>
                   <p className="text-slate-400 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
-                    A <span className="text-amber-400 font-bold">MVL</span> não
-                    é apenas um torneio. É um ecossistema completo de eSports.
-                    Nós transformamos jogadores casuais em atletas com economia
-                    real, contratos, mercado de transferências e estatísticas
-                    avançadas.
+                    A <span className="text-amber-400 font-bold">MVL</span> transforma as partidas casuais do Bloodline em um ecossistema profissional. Jogue para provar seu valor, assine contratos e mostre que você não é só mais um alvo no servidor.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
                   {/* Card 1 */}
-                  <div className="bg-slate-900/80 p-8 rounded-3xl border border-slate-800 hover:border-blue-500/50 transition-colors group shadow-lg">
+                  <div className="bg-slate-900/80 p-8 rounded-3xl border border-slate-800 hover:border-blue-500/50 transition-colors group shadow-lg flex flex-col items-center text-center">
                     <div className="w-14 h-14 bg-blue-500/10 text-blue-400 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform shadow-inner">
                       <Swords size={28} />
                     </div>
                     <h4 className="text-white font-black text-xl mb-3 uppercase tracking-tight group-hover:text-blue-400 transition-colors">
-                      Formatos Épicos
+                      Tiroteio com Propósito
                     </h4>
                     <p className="text-slate-500 text-xs leading-relaxed">
-                      Dispute a glória em torneios MIX balanceados por
-                      inteligência ou monte sua própria panela no implacável
-                      formato Clã vs Clã.
+                      Chega de partidas vazias. Todo abate conta. Jogue no formato MIX para farmar XP ou junte seu Clã em campeonatos oficiais que valem dinheiro pro caixa.
                     </p>
                   </div>
 
                   {/* Card 2 */}
-                  <div className="bg-slate-900/80 p-8 rounded-3xl border border-slate-800 hover:border-green-500/50 transition-colors group shadow-lg">
+                  <div className="bg-slate-900/80 p-8 rounded-3xl border border-slate-800 hover:border-green-500/50 transition-colors group shadow-lg flex flex-col items-center text-center">
                     <div className="w-14 h-14 bg-green-500/10 text-green-400 rounded-2xl flex items-center justify-center mb-6 border border-green-500/20 group-hover:scale-110 group-hover:-rotate-3 transition-transform shadow-inner">
                       <DollarSign size={28} />
                     </div>
                     <h4 className="text-white font-black text-xl mb-3 uppercase tracking-tight group-hover:text-green-400 transition-colors">
-                      Mercado da Bala
+                      Sua Mira Vale Grana
                     </h4>
                     <p className="text-slate-500 text-xs leading-relaxed">
-                      Seu passe de mercado valoriza conforme seu K/D. Assine
-                      contratos, receba propostas, pague multas rescisórias ou
-                      sofra uma compra hostil!
+                      Seu talento tem preço. Receba salário automático por partida, negocie luvas para assinar com um Clã e use seu saldo virtual para resgatar recompensas VIP.
                     </p>
                   </div>
 
                   {/* Card 3 */}
-                  <div className="bg-slate-900/80 p-8 rounded-3xl border border-slate-800 hover:border-amber-500/50 transition-colors group shadow-lg">
+                  <div className="bg-slate-900/80 p-8 rounded-3xl border border-slate-800 hover:border-amber-500/50 transition-colors group shadow-lg flex flex-col items-center text-center">
                     <div className="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center mb-6 border border-amber-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform shadow-inner">
-                      <Handshake size={28} />
+                      <Shield size={28} />
                     </div>
                     <h4 className="text-white font-black text-xl mb-3 uppercase tracking-tight group-hover:text-amber-400 transition-colors">
-                      Patrocínios Reais
+                      Monte seu Império
                     </h4>
                     <p className="text-slate-500 text-xs leading-relaxed">
-                      Assine com marcas reais para o seu Clã. Cumpra metas de
-                      vitórias para não perder o contrato e gerencie o caixa
-                      para não falir pagando salários.
+                      Funde seu próprio Clã. Administre os 50 Milhões em caixa, pague multas rescisórias para roubar jogadores rivais e feche patrocínios.
                     </p>
                   </div>
 
                   {/* Card 4 */}
-                  <div className="bg-slate-900/80 p-8 rounded-3xl border border-slate-800 hover:border-purple-500/50 transition-colors group shadow-lg">
+                  <div className="bg-slate-900/80 p-8 rounded-3xl border border-slate-800 hover:border-purple-500/50 transition-colors group shadow-lg flex flex-col items-center text-center">
                     <div className="w-14 h-14 bg-purple-500/10 text-purple-400 rounded-2xl flex items-center justify-center mb-6 border border-purple-500/20 group-hover:scale-110 group-hover:-rotate-3 transition-transform shadow-inner">
                       <TrendingUp size={28} />
                     </div>
                     <h4 className="text-white font-black text-xl mb-3 uppercase tracking-tight group-hover:text-purple-400 transition-colors">
-                      Status de Pro
+                      Reputação Implacável
                     </h4>
                     <p className="text-slate-500 text-xs leading-relaxed">
-                      Tenha seu próprio perfil público detalhado com seu Tier,
-                      KD geral, taxa de vitória, mapas favoritos, evolução
-                      histórica e troféus.
+                      O sistema registra absolutamente tudo. K/D, Winrate, evolução e troféus. Construa seu legado e prove com números quem domina o servidor.
                     </p>
                   </div>
                 </div>
