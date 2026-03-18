@@ -10580,7 +10580,7 @@ const DraftRegistrationPage = ({ onSubmit, onBack, avatars = [] }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-slate-400 text-[10px] uppercase font-bold mb-1 tracking-wider text-emerald-400">
-                WhatsApp (Staff)
+                Seu Whatsapp para contato.
               </label>
               <input
                 type="text"
