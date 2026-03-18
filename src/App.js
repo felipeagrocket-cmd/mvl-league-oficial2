@@ -286,6 +286,7 @@ const SEED_STORE_ITEMS = [
 const DEFAULT_SETTINGS = {
   siteName: "MVL",
   heroBackgroundUrl: "https://i.imgur.com/nLNN3Rk.png",
+  heroBackgroundMobileUrl: "", // Adicionando o espaço para o banner de celular na memória
   marketStatus: "open",
   marketReopenDate: "",
 };
@@ -1100,11 +1101,24 @@ const LiveTicker = ({ data, backend }) => {
 const Hero = ({ champion, settings }) => (
   <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden flex items-end justify-center bg-slate-900 border-b border-slate-800">
     {settings.heroBackgroundUrl ? (
-      <img
-        src={settings.heroBackgroundUrl}
-        className="absolute inset-0 w-full h-full object-cover object-center z-0"
-        alt="Banner Principal"
-      />
+      <>
+        {/* BANNER PC (Oculto em telas pequenas se tiver banner mobile) */}
+        <img
+          src={settings.heroBackgroundUrl}
+          className={`absolute inset-0 w-full h-full object-cover object-center z-0 ${
+            settings.heroBackgroundMobileUrl ? "hidden md:block" : ""
+          }`}
+          alt="Banner Principal Desktop"
+        />
+        {/* BANNER MOBILE (Aparece apenas em celular) */}
+        {settings.heroBackgroundMobileUrl && (
+          <img
+            src={settings.heroBackgroundMobileUrl}
+            className="absolute inset-0 w-full h-full object-cover object-top z-0 md:hidden"
+            alt="Banner Principal Mobile"
+          />
+        )}
+      </>
     ) : (
       <div className="absolute inset-0 w-full h-full bg-slate-900 flex items-center justify-center z-0">
         <span className="text-slate-700 font-bold uppercase tracking-widest text-sm">
@@ -10005,46 +10019,111 @@ const AdminPanel = ({
                     <h4 className="text-amber-400 font-bold text-xs uppercase mb-4 flex items-center gap-2 tracking-widest">
                       <ImageIcon size={14} /> Banner Principal (Home)
                     </h4>
-                    <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 border-dashed">
-                      <label className="block text-slate-400 text-[10px] uppercase font-bold mb-4 tracking-wider">
-                        Imagem de Fundo do Banner (Arte Completa)
-                      </label>
-                      <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                        <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-3 px-6 rounded-lg border border-slate-600 transition-colors flex items-center gap-2 shadow-lg">
-                          <Upload size={16} /> Escolher Nova Imagem{" "}
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept="image/*"
-                            onChange={(e) =>
-                              handleImageUpload(e, (url) =>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* CARD DO BANNER PARA PC */}
+                      <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 border-dashed flex flex-col justify-between">
+                        <div>
+                          <label className="block text-slate-400 text-[10px] uppercase font-bold mb-4 tracking-wider flex items-center justify-between">
+                            Banner Desktop (PC)
+                            <span className="bg-slate-800 text-slate-400 px-2 py-0.5 rounded">
+                              1920x500px
+                            </span>
+                          </label>
+                          <label className="cursor-pointer bg-slate-800 w-full hover:bg-slate-700 text-white text-xs font-bold py-3 px-6 rounded-lg border border-slate-600 transition-colors flex items-center justify-center gap-2 shadow-lg mb-4">
+                            <Upload size={16} /> Subir Arte Desktop
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              onChange={(e) =>
+                                handleImageUpload(e, (url) =>
+                                  setSettingsForm({
+                                    ...settingsForm,
+                                    heroBackgroundUrl: url,
+                                  })
+                                )
+                              }
+                            />
+                          </label>
+                        </div>
+                        {settingsForm.heroBackgroundUrl && (
+                          <div className="relative w-full h-24 rounded-xl overflow-hidden border border-amber-400/30 shadow-lg group">
+                            <img
+                              src={settingsForm.heroBackgroundUrl}
+                              className="w-full h-full object-cover"
+                              alt="Preview Desktop"
+                            />
+                            <button
+                              onClick={() =>
                                 setSettingsForm({
                                   ...settingsForm,
-                                  heroBackgroundUrl: url,
+                                  heroBackgroundUrl: "",
                                 })
-                              )
-                            }
-                          />
-                        </label>
-                        <span className="text-slate-500 text-[10px] flex items-center gap-1.5">
-                          <AlertCircle size={14} /> Suba sua arte final com
-                          texto. (1920x1080 recomendado).
-                        </span>
-                      </div>
-                      {settingsForm.heroBackgroundUrl && (
-                        <div className="mt-6 relative w-full h-40 rounded-xl overflow-hidden border border-amber-400/30 shadow-lg group">
-                          <img
-                            src={settingsForm.heroBackgroundUrl}
-                            className="w-full h-full object-cover"
-                            alt="Preview Banner"
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <span className="bg-black/50 text-white text-xs font-bold px-4 py-2 rounded-full backdrop-blur border border-white/10">
-                              Preview do Banner
-                            </span>
+                              }
+                              className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
+                            >
+                              <Trash2 size={24} />
+                            </button>
                           </div>
+                        )}
+                      </div>
+
+                      {/* CARD DO BANNER PARA CELULAR */}
+                      <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 border-dashed flex flex-col justify-between">
+                        <div>
+                          <label className="block text-slate-400 text-[10px] uppercase font-bold mb-4 tracking-wider flex items-center justify-between">
+                            Banner Mobile (Celular)
+                            <span className="bg-slate-800 text-slate-400 px-2 py-0.5 rounded">
+                              1080x1080px
+                            </span>
+                          </label>
+                          <label className="cursor-pointer bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 w-full text-xs font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg mb-4">
+                            <Smartphone size={16} /> Subir Arte Mobile
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              onChange={(e) =>
+                                handleImageUpload(
+                                  e,
+                                  (url) =>
+                                    setSettingsForm({
+                                      ...settingsForm,
+                                      heroBackgroundMobileUrl: url,
+                                    }),
+                                  1080 // Resolução permitida até 1080px pro celular
+                                )
+                              }
+                            />
+                          </label>
                         </div>
-                      )}
+                        {settingsForm.heroBackgroundMobileUrl ? (
+                          <div className="relative w-24 h-24 mx-auto rounded-xl overflow-hidden border border-blue-400/30 shadow-lg group">
+                            <img
+                              src={settingsForm.heroBackgroundMobileUrl}
+                              className="w-full h-full object-cover"
+                              alt="Preview Mobile"
+                            />
+                            <button
+                              onClick={() =>
+                                setSettingsForm({
+                                  ...settingsForm,
+                                  heroBackgroundMobileUrl: "",
+                                })
+                              }
+                              className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
+                            >
+                              <Trash2 size={20} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="text-center text-[10px] text-slate-500">
+                            Se deixado em branco, a imagem de Desktop será
+                            cortada no celular.
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <button
