@@ -12203,9 +12203,93 @@ const App = () => {
       const matchToDelete = db.matches.find((m) => m.id === id);
       const split = db.splits.find((s) => s.id === matchToDelete?.splitId);
       const isMix = split?.format === "mix";
+      const isCxC = split?.format !== "mix";
 
-      const orphanStats = db.stats.filter((s) => s.matchId === id);
+      const orphanStats = db.stats.filter((s) => s.matchId === id); // --- ESTORNO FINANCEIRO (CXC) ---
 
+      if (isCxC && matchToDelete) {
+        const clanChanges = {};
+        const initClanChange = (cId) => {
+          if (!clanChanges[cId])
+            clanChanges[cId] = { totalChange: 0, logs: [] };
+        }; // 1. Estorna Bônus de Patrocinadores (Tira do Clã)
+
+        const reverseSponsors = (cId, isWinner) => {
+          if (!cId || cId === "tempA" || cId === "tempB") return;
+          const clanSponsors = db.sponsors.filter((s) => s.clanId === cId);
+          clanSponsors.forEach((sp) => {
+            if (sp.type === "fixed" || (sp.type === "victory" && isWinner)) {
+              initClanChange(cId);
+              clanChanges[cId].totalChange -= sp.amount;
+              clanChanges[cId].logs.push({
+                amount: -sp.amount,
+                reason: `Estorno Cota ${sp.name} (Mapa Excluído)`,
+                type: "sponsor_refund",
+              });
+            }
+          });
+        };
+        reverseSponsors(
+          matchToDelete.clanA_Id,
+          matchToDelete.winnerSide === "A"
+        );
+        reverseSponsors(
+          matchToDelete.clanB_Id,
+          matchToDelete.winnerSide === "B"
+        ); // 2. Estorna Salários (Tira do Jogador, Devolve pro Clã)
+
+        for (const s of orphanStats) {
+          const player = db.players.find((p) => p.id === s.playerId);
+          if (player) {
+            const baseSalary = (Number(player.marketValue) || 10000000) * 0.005;
+            const extraBonus = Number(player.salaryBonus) || 0;
+            const salary = baseSalary + extraBonus;
+
+            await updateDoc(doc(firebaseDb, "players", player.id), {
+              totalEarnings: Math.max(
+                0,
+                (Number(player.totalEarnings) || 0) - salary
+              ),
+            });
+
+            if (player.clanId) {
+              initClanChange(player.clanId);
+              clanChanges[player.clanId].totalChange += salary;
+              clanChanges[player.clanId].logs.push({
+                amount: salary,
+                reason: `Estorno Salário: ${player.nickname} (Mapa Excluído)`,
+                type: "salary_refund",
+              });
+            }
+          }
+        } // 3. Aplica estornos no banco
+
+        for (const [cId, changes] of Object.entries(clanChanges)) {
+          const clan = db.clans.find((c) => c.id === cId);
+          if (clan) {
+            const newBudget = clan.budget + changes.totalChange;
+            await updateDoc(doc(firebaseDb, "clans", cId), {
+              budget: newBudget,
+            });
+
+            let currentBalance = clan.budget;
+            for (const log of changes.logs) {
+              const newBal = currentBalance + log.amount;
+              await salvarNoFirebase("financialLogs", {
+                id: generateId(),
+                clanId: cId,
+                type: log.type,
+                amount: log.amount,
+                oldBalance: currentBalance,
+                newBalance: newBal,
+                reason: log.reason,
+                date: new Date().toISOString(),
+              });
+              currentBalance = newBal;
+            }
+          }
+        }
+      } // --- FIM ESTORNO FINANCEIRO ---
       for (const s of orphanStats) {
         // NOVO: Se a partida excluída for MIX, rouba de volta o XP que o cara ganhou
         if (isMix) {
@@ -12215,19 +12299,16 @@ const App = () => {
               s.mapWin,
               s.kills,
               s.deaths
-            );
-            // Subtrai o XP da partida (sem deixar ficar menor que zero)
+            ); // Subtrai o XP da partida (sem deixar ficar menor que zero)
             const newXp = Math.max(0, (player.xp || 0) - xpResult.xpChange);
             await updateDoc(doc(firebaseDb, "players", player.id), {
               xp: newXp,
             });
           }
-        }
-        // Deleta o status do jogador nessa partida
+        } // Deleta o status do jogador nessa partida
         await deleteDoc(doc(firebaseDb, "stats", s.id));
-      }
+      } // Finalmente, deleta a partida
 
-      // Finalmente, deleta a partida
       await deleteDoc(doc(firebaseDb, "matches", id));
     } catch (e) {
       console.error(e);
