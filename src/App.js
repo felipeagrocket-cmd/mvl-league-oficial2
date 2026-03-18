@@ -6174,140 +6174,141 @@ const AdminPanel = ({
           />
         )}
         {/* MODAL DE BANIMENTO (TRIBUNAL MVL) */}
-        {showBanModal && selectedPlayerToBan && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-fadeIn">
-            <div className="bg-slate-950 border border-red-900/50 rounded-3xl w-full max-w-md shadow-[0_0_60px_rgba(220,38,38,0.2)] relative overflow-hidden flex flex-col">
-              {/* Cabecalho do Tribunal */}
-              <div className="bg-red-500/10 p-6 border-b border-red-500/20 flex flex-col items-center relative shrink-0">
-                <button
-                  onClick={() => {
-                    setShowBanModal(false);
-                    setSelectedPlayerToBan(null);
-                  }}
-                  className="absolute top-4 right-4 text-red-400 hover:text-white bg-red-950/50 hover:bg-red-500 p-2 rounded-full transition-colors"
-                >
-                  <X size={16} />
-                </button>
-                <div className="w-12 h-12 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-3 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.4)]">
-                  <Gavel size={24} />
-                </div>
-                <h3 className="text-red-500 font-black uppercase text-xl tracking-tight">
-                  Tribunal da Liga
-                </h3>
-                <p className="text-red-400/60 text-[10px] uppercase tracking-widest font-bold mt-1">
-                  Processo de Banimento
-                </p>
-              </div>
+        {showBanModal && selectedPlayerToBan && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-fadeIn">
+            <div className="bg-slate-950 border border-red-900/50 rounded-3xl w-full max-w-md h-fit my-auto max-h-[90vh] shadow-[0_0_60px_rgba(220,38,38,0.2)] relative overflow-y-auto flex flex-col text-left">
+              {/* Cabecalho do Tribunal */}
+              <div className="bg-red-500/10 p-6 border-b border-red-500/20 flex flex-col items-center relative shrink-0">
+                <button
+                  onClick={() => {
+                    setShowBanModal(false);
+                    setSelectedPlayerToBan(null);
+                  }}
+                  className="absolute top-4 right-4 text-red-400 hover:text-white bg-red-950/50 hover:bg-red-500 p-2 rounded-full transition-colors"
+                >
+                  <X size={16} />
+                </button>
+                <div className="w-12 h-12 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-3 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.4)]">
+                  <Gavel size={24} />
+                </div>
+                <h3 className="text-red-500 font-black uppercase text-xl tracking-tight">
+                  Tribunal da Liga
+                </h3>
+                <p className="text-red-400/60 text-[10px] uppercase tracking-widest font-bold mt-1">
+                  Processo de Banimento
+                </p>
+              </div>
 
-              {/* Corpo */}
-              <div className="p-6 md:p-8 space-y-6 bg-slate-900">
-                {/* Ficha Criminal do Jogador */}
-                <div className="flex items-center justify-center gap-4 bg-slate-950 border border-slate-800 p-3 rounded-2xl shadow-inner w-fit mx-auto pr-6">
-                  <img
-                    src={selectedPlayerToBan.avatarUrl}
-                    className="w-14 h-14 rounded-xl bg-slate-800 object-cover border border-slate-700 grayscale"
-                    alt={selectedPlayerToBan.nickname}
-                  />
-                  <div className="text-left">
-                    <h4 className="text-white font-black text-lg leading-none mb-1">
-                      {selectedPlayerToBan.nickname}
-                    </h4>
-                    <div className="text-slate-500 text-[10px] font-mono tracking-widest uppercase">
-                      ID: {selectedPlayerToBan.gameId}
-                    </div>
-                  </div>
-                </div>
+              {/* Corpo */}
+              <div className="p-6 md:p-8 space-y-6 bg-slate-900">
+                {/* Ficha Criminal do Jogador */}
+                <div className="flex items-center justify-center gap-4 bg-slate-950 border border-slate-800 p-3 rounded-2xl shadow-inner w-fit mx-auto pr-6">
+                  <img
+                    src={selectedPlayerToBan.avatarUrl}
+                    className="w-14 h-14 rounded-xl bg-slate-800 object-cover border border-slate-700 grayscale"
+                    alt={selectedPlayerToBan.nickname}
+                  />
+                  <div className="text-left">
+                    <h4 className="text-white font-black text-lg leading-none mb-1">
+                      {selectedPlayerToBan.nickname}
+                    </h4>
+                    <div className="text-slate-500 text-[10px] font-mono tracking-widest uppercase">
+                      ID: {selectedPlayerToBan.gameId}
+                    </div>
+                  </div>
+                </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-red-400 text-[10px] uppercase font-bold mb-1.5 tracking-wider text-center">
-                      Motivo da Punição
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ex: Toxidade, Uso de Hacks..."
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-white text-sm outline-none focus:border-red-500 transition-colors text-center placeholder:text-slate-600"
-                      value={banReason}
-                      onChange={(e) => setBanReason(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-red-400 text-[10px] uppercase font-bold mb-1.5 tracking-wider text-center">
-                      Duração
-                    </label>
-                    <select
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-white text-sm outline-none focus:border-red-500 transition-colors cursor-pointer appearance-none"
-                      value={banDuration}
-                      onChange={(e) => setBanDuration(e.target.value)}
-                      style={{ textAlignLast: "center" }}
-                    >
-                      <option value="7">7 Dias (Aviso)</option>
-                      <option value="15">15 Dias (Suspensão)</option>
-                      <option value="30">30 Dias (Grave)</option>
-                      <option value="permanent">Banimento Eterno</option>
-                    </select>
-                  </div>
-                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-red-400 text-[10px] uppercase font-bold mb-1.5 tracking-wider text-center">
+                      Motivo da Punição
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Toxidade, Uso de Hacks..."
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-white text-sm outline-none focus:border-red-500 transition-colors text-center placeholder:text-slate-600"
+                      value={banReason}
+                      onChange={(e) => setBanReason(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-red-400 text-[10px] uppercase font-bold mb-1.5 tracking-wider text-center">
+                      Duração
+                    </label>
+                    <select
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-white text-sm outline-none focus:border-red-500 transition-colors cursor-pointer appearance-none"
+                      value={banDuration}
+                      onChange={(e) => setBanDuration(e.target.value)}
+                      style={{ textAlignLast: "center" }}
+                    >
+                      <option value="7">7 Dias (Aviso)</option>
+                      <option value="15">15 Dias (Suspensão)</option>
+                      <option value="30">30 Dias (Grave)</option>
+                      <option value="permanent">Banimento Eterno</option>
+                    </select>
+                  </div>
+                </div>
 
-                <button
-                  onClick={() => {
-                    handleConfirmBan();
-                    triggerFeedback("O Martelo bateu! Jogador banido da liga.");
-                  }}
-                  className="w-full bg-red-600 hover:bg-red-500 text-white font-black uppercase py-4 rounded-xl text-sm transition-all shadow-[0_10px_20px_rgba(220,38,38,0.2)] hover:-translate-y-0.5 flex items-center justify-center gap-2 mt-4"
-                >
-                  <Gavel size={18} /> Executar Sentença
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+                <button
+                  onClick={() => {
+                    handleConfirmBan();
+                    triggerFeedback("O Martelo bateu! Jogador banido da liga.");
+                  }}
+                  className="w-full bg-red-600 hover:bg-red-500 text-white font-black uppercase py-4 rounded-xl text-sm transition-all shadow-[0_10px_20px_rgba(220,38,38,0.2)] hover:-translate-y-0.5 flex items-center justify-center gap-2 mt-4"
+                >
+                  <Gavel size={18} /> Executar Sentença
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-        {/* MODAL DE PERDÃO / DESBANIR */}
-        {showUnbanModal && selectedBanToRevoke && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-fadeIn">
-            <div className="bg-slate-950 border border-emerald-900/50 rounded-3xl w-full max-w-md shadow-[0_0_60px_rgba(16,185,129,0.15)] relative overflow-hidden flex flex-col">
-              <div className="bg-emerald-500/10 p-6 border-b border-emerald-500/20 flex flex-col items-center relative shrink-0">
-                <button
-                  onClick={() => {
-                    setShowUnbanModal(false);
-                    setSelectedBanToRevoke(null);
-                  }}
-                  className="absolute top-4 right-4 text-emerald-400 hover:text-white bg-emerald-950/50 hover:bg-emerald-500 p-2 rounded-full transition-colors"
-                >
-                  <X size={16} />
-                </button>
-                <div className="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mb-3 border border-emerald-500/30 shadow-[0_0_15px_rgba(52,211,153,0.4)]">
-                  <RefreshCcw size={24} />
-                </div>
-                <h3 className="text-emerald-400 font-black uppercase text-xl tracking-tight">
-                  Conceder Perdão
-                </h3>
-                <p className="text-emerald-400/60 text-[10px] uppercase tracking-widest font-bold mt-1">
-                  Reintegração Oficial
-                </p>
-              </div>
-              <div className="p-6 md:p-8 space-y-6 bg-slate-900 text-center">
-                <p className="text-slate-300 text-sm leading-relaxed">
-                  Tem certeza que deseja perdoar e reintegrar o jogador{" "}
-                  <strong className="text-white text-lg block mt-2 mb-1">
-                    {selectedBanToRevoke.nickname}
-                  </strong>{" "}
-                  à liga?
-                </p>
-                <div className="text-slate-500 text-xs bg-slate-950 p-3 rounded-lg border border-slate-800">
-                  Ele voltará como <strong>Agente Livre</strong>. Contratos passados com clãs não serão reativados.
-                </div>
-                <button
-                  onClick={handleConfirmUnban}
-                  className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black uppercase py-4 rounded-xl text-sm transition-all shadow-[0_10px_20px_rgba(16,185,129,0.2)] hover:-translate-y-0.5 flex items-center justify-center gap-2 mt-4"
-                >
-                  <CheckCircle size={18} /> Confirmar Retorno
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* MODAL DE PERDÃO / DESBANIR */}
+        {showUnbanModal && selectedBanToRevoke && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-fadeIn">
+            <div className="bg-slate-950 border border-emerald-900/50 rounded-3xl w-full max-w-md h-fit my-auto max-h-[90vh] shadow-[0_0_60px_rgba(16,185,129,0.15)] relative overflow-y-auto flex flex-col text-left">
+              <div className="bg-emerald-500/10 p-6 border-b border-emerald-500/20 flex flex-col items-center relative shrink-0">
+                <button
+                  onClick={() => {
+                    setShowUnbanModal(false);
+                    setSelectedBanToRevoke(null);
+                  }}
+                  className="absolute top-4 right-4 text-emerald-400 hover:text-white bg-emerald-950/50 hover:bg-emerald-500 p-2 rounded-full transition-colors"
+                >
+                  <X size={16} />
+                </button>
+                <div className="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mb-3 border border-emerald-500/30 shadow-[0_0_15px_rgba(52,211,153,0.4)]">
+                  <RefreshCcw size={24} />
+                </div>
+                <h3 className="text-emerald-400 font-black uppercase text-xl tracking-tight">
+                  Conceder Perdão
+                </h3>
+                <p className="text-emerald-400/60 text-[10px] uppercase tracking-widest font-bold mt-1">
+                  Reintegração Oficial
+                </p>
+              </div>
+              <div className="p-6 md:p-8 space-y-6 bg-slate-900 text-center">
+                <p className="text-slate-300 text-sm leading-relaxed">
+                  Tem certeza que deseja perdoar e reintegrar o jogador{" "}
+                  <strong className="text-white text-lg block mt-2 mb-1">
+                    {selectedBanToRevoke.nickname}
+                  </strong>{" "}
+                  à liga?
+                </p>
+                <div className="text-slate-500 text-xs bg-slate-950 p-3 rounded-lg border border-slate-800">
+                  Ele voltará como <strong>Agente Livre</strong>. Contratos
+                  passados com clãs não serão reativados.
+                </div>
+                <button
+                  onClick={handleConfirmUnban}
+                  className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black uppercase py-4 rounded-xl text-sm transition-all shadow-[0_10px_20px_rgba(16,185,129,0.2)] hover:-translate-y-0.5 flex items-center justify-center gap-2 mt-4"
+                >
+                  <CheckCircle size={18} /> Confirmar Retorno
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {manageInventoryPlayerId &&
           (() => {
             const p = data.players.find(
