@@ -5967,7 +5967,12 @@ const AdminPanel = ({
   const [marketSalaryBonus, setMarketSalaryBonus] = useState("");
   const [mixSummary, setMixSummary] = useState(null);
 
-  const [newPlayer, setNewPlayer] = useState({ nickname: "", gameId: "" });
+  const [newPlayer, setNewPlayer] = useState({
+    nickname: "",
+    gameId: "",
+    whatsapp: "",
+    discord: "",
+  });
   const [newPlayerImage, setNewPlayerImage] = useState("");
   const [editingPlayerId, setEditingPlayerId] = useState(null);
   const [showBanModal, setShowBanModal] = useState(false);
@@ -8499,6 +8504,40 @@ const AdminPanel = ({
                         }
                       />
                     </div>
+                    <div>
+                      <label className="block text-emerald-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
+                        WhatsApp (Privado)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: 11999999999"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3.5 text-white text-sm outline-none focus:border-emerald-400 transition-colors font-mono"
+                        value={newPlayer.whatsapp || ""}
+                        onChange={(e) =>
+                          setNewPlayer({
+                            ...newPlayer,
+                            whatsapp: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-indigo-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
+                        Discord (Privado)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: faker#1234"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3.5 text-white text-sm outline-none focus:border-indigo-400 transition-colors font-mono"
+                        value={newPlayer.discord || ""}
+                        onChange={(e) =>
+                          setNewPlayer({
+                            ...newPlayer,
+                            discord: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
                   </div>
                   <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 border-dashed mb-6">
                     <label className="block text-slate-400 text-[10px] uppercase font-bold mb-4 tracking-wider">
@@ -8595,6 +8634,32 @@ const AdminPanel = ({
                           <div className="text-slate-500 text-[10px] font-mono mt-0.5">
                             {player.gameId}
                           </div>
+                          {(player.whatsapp || player.discord) && (
+                            <div className="flex items-center gap-2 mt-2">
+                              {player.whatsapp && (
+                                <a
+                                  href={`https://wa.me/${player.whatsapp.replace(
+                                    /\D/g,
+                                    ""
+                                  )}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-bold flex items-center gap-1 hover:bg-emerald-500/20 transition-colors"
+                                  title="Chamar no WhatsApp"
+                                >
+                                  WA: {player.whatsapp}
+                                </a>
+                              )}
+                              {player.discord && (
+                                <span
+                                  className="text-[9px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded font-bold flex items-center gap-1"
+                                  title="Discord"
+                                >
+                                  DC: {player.discord}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="flex gap-2">
@@ -8614,6 +8679,8 @@ const AdminPanel = ({
                             setNewPlayer({
                               nickname: player.nickname,
                               gameId: player.gameId,
+                              whatsapp: player.whatsapp || "",
+                              discord: player.discord || "",
                             });
                             setNewPlayerImage(player.avatarUrl);
                             setEditingPlayerId(player.id);
@@ -10373,6 +10440,8 @@ const StartHerePage = ({ data, onPlayerClick }) => {
 const DraftRegistrationPage = ({ onSubmit, onBack, avatars = [] }) => {
   const [nickname, setNickname] = useState("");
   const [gameId, setGameId] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [discord, setDiscord] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [selectedGalleryAvatar, setSelectedGalleryAvatar] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -10504,6 +10573,33 @@ const DraftRegistrationPage = ({ onSubmit, onBack, avatars = [] }) => {
               value={gameId}
               onChange={(e) => setGameId(e.target.value)}
             />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider text-emerald-400">
+                WhatsApp (Uso Interno da Diretoria)
+              </label>
+              <input
+                type="text"
+                placeholder="Ex: 11999999999"
+                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white text-sm outline-none focus:border-amber-400 transition-colors shadow-inner font-mono"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider text-indigo-400">
+                Discord (Opcional)
+              </label>
+              <input
+                type="text"
+                placeholder="Ex: fallen#1234"
+                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white text-sm outline-none focus:border-amber-400 transition-colors shadow-inner font-mono"
+                value={discord}
+                onChange={(e) => setDiscord(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="bg-slate-950/50 p-6 rounded-xl border border-slate-800 border-dashed relative overflow-hidden">
@@ -10662,7 +10758,13 @@ const DraftRegistrationPage = ({ onSubmit, onBack, avatars = [] }) => {
                 avatarUrl ||
                 selectedGalleryAvatar ||
                 "https://i.imgur.com/KE2qIR5.png";
-              await onSubmit({ nickname, gameId, avatarUrl: finalAvatar });
+              await onSubmit({
+                nickname,
+                gameId,
+                avatarUrl: finalAvatar,
+                whatsapp,
+                discord,
+              });
               setIsSubmitting(false);
               setIsSuccess(true);
             }}
@@ -11731,6 +11833,8 @@ const App = () => {
       id,
       nickname: playerData.nickname,
       gameId: playerData.gameId,
+      whatsapp: playerData.whatsapp || "",
+      discord: playerData.discord || "",
       avatarUrl: playerData.avatarUrl || "https://i.imgur.com/KE2qIR5.png",
       isPaused: false,
       clanId: null,
@@ -12120,6 +12224,8 @@ const App = () => {
         nickname: draft.nickname,
         gameId: draft.gameId,
         avatarUrl: draft.avatarUrl,
+        whatsapp: draft.whatsapp,
+        discord: draft.discord,
       });
       // 2. Apaga da fila de triagem
       await deleteDoc(doc(firebaseDb, "drafts", draft.id));
