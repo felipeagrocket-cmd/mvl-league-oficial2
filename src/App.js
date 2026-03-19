@@ -11044,15 +11044,6 @@ const ProposalPage = ({ proposalId, data, onAnswer }) => {
                 {formatCurrency(player.marketValue || 10000000)}
               </span>
             </div>
-            {/* BOTÃO DE WHATSAPP PARA NEGOCIAR O JOGADOR */}
-            <a
-              href={`https://wa.me/5511999999999?text=Ol%C3%A1%20Staff%20MVL!%20Gostaria%20de%20negociar%20a%20contrata%C3%A7%C3%A3o%20do%20jogador%20${player.nickname}.`}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-5 w-full bg-emerald-500/10 hover:bg-emerald-500 hover:text-slate-950 text-emerald-400 border border-emerald-500/30 font-black uppercase py-3.5 rounded-xl text-[10px] md:text-xs transition-all flex items-center justify-center gap-2 shadow-lg"
-            >
-              <Briefcase size={16} /> Intermediar Contratação
-            </a>
           </div>
 
           {/* Line-up Preview (Avatares Empilhados) */}
