@@ -4612,6 +4612,9 @@ const MarketPage = ({ data, onPlayerClick }) => {
                     <th className="px-4 py-4 md:p-5 border-b border-slate-800 text-right">
                       Valor do Passe
                     </th>
+                    <th className="px-4 py-4 md:p-5 border-b border-slate-800 text-center w-12">
+                      {/* Coluna vazia para o botão */}
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/50">
@@ -4697,6 +4700,18 @@ const MarketPage = ({ data, onPlayerClick }) => {
                         </td>
                         <td className="px-4 py-3 md:p-5 text-right font-mono font-black text-emerald-400 text-xs md:text-sm whitespace-nowrap">
                           {formatCurrency(p.marketValue || 10000000)}
+                        </td>
+                        <td className="px-4 py-3 md:p-5 text-center">
+                          <a
+                            href={`https://wa.me/16988211957?text=Ol%C3%A1%20Staff%20MVL!%20Gostaria%20de%20negociar%20a%20contrata%C3%A7%C3%A3o%20do%20jogador%20${p.nickname}.`}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center justify-center bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 p-2 md:p-2.5 rounded-lg transition-colors border border-emerald-500/30 shadow-sm"
+                            title="Negociar Jogador"
+                          >
+                            <Briefcase size={16} />
+                          </a>
                         </td>
                       </tr>
                     );
