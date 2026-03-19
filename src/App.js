@@ -6061,7 +6061,6 @@ const AdminPanel = ({
       img.onload = () => {
         const canvas = document.createElement("canvas");
 
-        // Agora ele respeita se pedirmos resolução maior!
         const MAX_WIDTH = customMaxWidth;
         const scaleSize = MAX_WIDTH / img.width;
 
@@ -6074,12 +6073,12 @@ const AdminPanel = ({
         }
 
         const ctx = canvas.getContext("2d");
-        // Limpa o fundo para garantir que fique 100% transparente
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-        // Troca de JPEG para WEBP (Mantém a transparência e comprime em 80%)
-        const compressedBase64 = canvas.toDataURL("image/webp", 0.8);
+        // A MÁGICA DA QUALIDADE: Se a imagem for gigante (Banner), usa 96% de qualidade. Se for avatar, usa 80%.
+        const qualidade = MAX_WIDTH > 1000 ? 0.96 : 0.8;
+        const compressedBase64 = canvas.toDataURL("image/webp", qualidade);
         setter(compressedBase64);
       };
     };
