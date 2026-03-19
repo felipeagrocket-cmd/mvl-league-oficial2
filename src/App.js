@@ -285,8 +285,8 @@ const SEED_STORE_ITEMS = [
 
 const DEFAULT_SETTINGS = {
   siteName: "MVL",
-  heroBackgroundUrl: "https://i.imgur.com/nLNN3Rk.png",
-  heroBackgroundMobileUrl: "", // Adicionando o espaço para o banner de celular na memória
+  heroBackgroundUrl: "", // Deixamos vazio para não piscar a imagem antiga enquanto o banco carrega
+  heroBackgroundMobileUrl: "",
   marketStatus: "open",
   marketReopenDate: "",
 };
