@@ -3079,7 +3079,7 @@ const StorePage = ({ items, players }) => {
                   : "Item MVL"}
               </span>
 
-              <div className="pt-4 flex items-center justify-between border-t border-slate-800/50">
+              <div className="pt-4 flex items-center justify-between border-t border-slate-800/50 mb-4">
                 <div className="text-slate-500 text-[10px] uppercase font-bold">
                   Preço
                 </div>
@@ -3093,6 +3093,14 @@ const StorePage = ({ items, players }) => {
                   </div>
                 )}
               </div>
+              <a
+                href={`https://wa.me/16988211957?text=Ol%C3%A1%20Staff%20MVL!%20Gostaria%20de%20adquirir%20o%20item%20${item.name}%20da%20Loja.`}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-auto w-full bg-slate-800 hover:bg-blue-500 hover:text-white text-slate-300 border border-slate-700 hover:border-blue-500 font-black uppercase py-3 rounded-lg text-[10px] transition-all flex items-center justify-center gap-2 shadow-md"
+              >
+                <ShoppingCart size={14} /> Solicitar com a Staff
+              </a>
             </div>
           </div>
         ))}
@@ -4812,12 +4820,17 @@ const MarketPage = ({ data, onPlayerClick }) => {
                   </div>
 
                   {isAvailable ? (
-                    <div className="flex items-center justify-center gap-2 py-2 md:py-2.5 px-3 rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest border transition-colors bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+                    <a
+                      href={`https://wa.me/16988211957?text=Ol%C3%A1%20Staff%20MVL!%20Sou%20dono%20de%20Cl%C3%A3%20e%20tenho%20interesse%20em%20assinar%20o%20patroc%C3%ADnio%20da%20marca%20${sponsor.name}.`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-center gap-2 py-2 md:py-2.5 px-3 rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest border transition-all bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500 hover:text-slate-950 shadow-lg"
+                    >
                       <span className="leading-none text-xs md:text-sm mt-px">
                         ✅
                       </span>
-                      <span className="truncate">Aguardando Proposta</span>
-                    </div>
+                      <span className="truncate">Adquirir Patrocínio</span>
+                    </a>
                   ) : (
                     <div className="flex items-center justify-center gap-2 py-2 md:py-2.5 px-3 rounded-lg text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-widest border transition-colors bg-blue-500/10 text-blue-400 border-blue-500/30">
                       <span className="leading-none text-xs md:text-sm mt-px">
@@ -11026,11 +11039,20 @@ const ProposalPage = ({ proposalId, data, onAnswer }) => {
             </div>
 
             <div className="text-center text-slate-500 text-[10px] mt-4 uppercase tracking-widest font-bold border-t border-slate-800 pt-4">
-              Valor do seu Passe Atual:{" "}
+              Valor do Passe Atual:{" "}
               <span className="text-white">
                 {formatCurrency(player.marketValue || 10000000)}
               </span>
             </div>
+            {/* BOTÃO DE WHATSAPP PARA NEGOCIAR O JOGADOR */}
+            <a
+              href={`https://wa.me/5511999999999?text=Ol%C3%A1%20Staff%20MVL!%20Gostaria%20de%20negociar%20a%20contrata%C3%A7%C3%A3o%20do%20jogador%20${player.nickname}.`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-5 w-full bg-emerald-500/10 hover:bg-emerald-500 hover:text-slate-950 text-emerald-400 border border-emerald-500/30 font-black uppercase py-3.5 rounded-xl text-[10px] md:text-xs transition-all flex items-center justify-center gap-2 shadow-lg"
+            >
+              <Briefcase size={16} /> Intermediar Contratação
+            </a>
           </div>
 
           {/* Line-up Preview (Avatares Empilhados) */}
