@@ -10037,11 +10037,14 @@ const AdminPanel = ({
                               className="hidden"
                               accept="image/*"
                               onChange={(e) =>
-                                handleImageUpload(e, (url) =>
-                                  setSettingsForm({
-                                    ...settingsForm,
-                                    heroBackgroundUrl: url,
-                                  })
+                                handleImageUpload(
+                                  e,
+                                  (url) =>
+                                    setSettingsForm({
+                                      ...settingsForm,
+                                      heroBackgroundUrl: url,
+                                    }),
+                                  1920 // A MÁGICA DA QUALIDADE: Força 1920px de resolução!
                                 )
                               }
                             />
@@ -11389,6 +11392,17 @@ const App = () => {
       });
     });
 
+    // NOVO: Puxa as configurações gerais (Banner, Nome do site) do Firebase em tempo real
+    const unsubSettings = onSnapshot(
+      doc(firebaseDb, "configuracoes", "global"),
+      (docSnap) => {
+        if (docSnap.exists()) {
+          setDb((prev) => ({ ...prev, settings: docSnap.data() }));
+        }
+      }
+    );
+    unsubs.push(unsubSettings);
+
     return () => unsubs.forEach((unsub) => unsub());
   }, []);
 
@@ -11816,8 +11830,13 @@ const App = () => {
     }
   };
 
-  const updateSettings = (newSettings) =>
-    setDb((prev) => ({ ...prev, settings: newSettings }));
+  const updateSettings = async (newSettings) => {
+    try {
+      await setDoc(doc(firebaseDb, "configuracoes", "global"), newSettings);
+    } catch (e) {
+      console.error("Erro ao salvar config:", e);
+    }
+  };
   const updateAdminMenuOrder = (newOrder) =>
     setDb((prev) => ({ ...prev, adminMenuOrder: newOrder }));
   const addSeries = (seriesData) => {
