@@ -8109,6 +8109,29 @@ const AdminPanel = ({
                           </div>
                         </div>
                         <div className="flex gap-2">
+                          {/* BOTÃO DE GERAR LINK DE ACESSO (NOVO) */}
+                          {!clan.ownerPassword ? (
+                            <button
+                              onClick={() => {
+                                const link = `${window.location.origin}/?setupClan=${clan.id}`;
+                                navigator.clipboard.writeText(link);
+                                triggerFeedback(
+                                  "Link de Primeiro Acesso copiado para a área de transferência!"
+                                );
+                              }}
+                              className="text-slate-500 hover:text-emerald-400 hover:bg-emerald-400/10 p-2.5 rounded-lg transition-colors"
+                              title="Copiar Link de Primeiro Acesso"
+                            >
+                              <UserPlus size={18} />
+                            </button>
+                          ) : (
+                            <div
+                              className="p-2.5 text-emerald-500/50"
+                              title="Acesso do Clã já foi configurado!"
+                            >
+                              <CheckCircle size={18} />
+                            </div>
+                          )}
                           <button
                             onClick={() => setManagingMembersClanId(clan.id)}
                             className="text-slate-500 hover:text-white hover:bg-slate-800 p-2.5 rounded-lg transition-colors"
@@ -11371,6 +11394,124 @@ const ClanRegistrationPage = ({ onSubmit, onBack }) => {
   );
 };
 
+// --- TELA DE PRIMEIRO ACESSO DO CLÃ (VIA LINK MÁGICO) ---
+const ClanSetupPage = ({ clanId, data, onSetup, onBack }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const clan = data.clans.find((c) => c.id === clanId);
+
+  if (!clan) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-center">
+        <div className="text-white">Clã não encontrado ou link inválido.</div>
+      </div>
+    );
+  }
+
+  if (clan.ownerPassword) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-center">
+        <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl max-w-md w-full">
+          <Shield size={48} className="text-emerald-500 mx-auto mb-4" />
+          <h2 className="text-white font-black uppercase text-xl mb-2">
+            Acesso Já Configurado
+          </h2>
+          <p className="text-slate-400 text-sm">
+            Este clã já possui credenciais ativas. Use o botão "Área da
+            Franquia" no topo do site para logar.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isSuccess) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 animate-fadeIn text-center">
+        <div className="w-20 h-20 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mb-6 border-2 border-emerald-500/50 shadow-[0_0_30px_rgba(52,211,153,0.2)]">
+          <CheckCircle size={40} />
+        </div>
+        <h2 className="text-3xl font-black text-white uppercase tracking-tight mb-2">
+          Acesso Criado!
+        </h2>
+        <p className="text-slate-400 max-w-md mb-8">
+          Suas credenciais foram salvas. A partir de agora, use-as para entrar
+          na sua Sala VIP.
+        </p>
+        <button
+          onClick={onBack}
+          className="bg-emerald-500 text-black font-black uppercase px-8 py-4 rounded-xl shadow-lg"
+        >
+          Ir para a Home e Logar
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-blue-500/10 blur-[100px] pointer-events-none rounded-full"></div>
+      <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-[2rem] w-full max-w-md shadow-2xl relative z-10 overflow-hidden p-8 md:p-10">
+        <div className="text-center mb-8">
+          <img
+            src={clan.logoUrl}
+            className="w-24 h-24 mx-auto object-contain mb-4 drop-shadow-2xl"
+            alt="Logo"
+          />
+          <h4 className="text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] mb-1">
+            Bem-vindo(a) à Diretoria
+          </h4>
+          <h2 className="text-2xl font-black text-white uppercase tracking-tight">
+            {clan.name}
+          </h2>
+          <p className="text-slate-400 text-xs mt-2">
+            Crie suas credenciais definitivas para acessar o Painel da sua
+            Franquia.
+          </p>
+        </div>
+        <div className="space-y-4 mb-8">
+          <div>
+            <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
+              Seu E-mail de Acesso
+            </label>
+            <input
+              type="email"
+              placeholder="Digite seu e-mail..."
+              className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white text-sm outline-none focus:border-blue-400 transition-colors shadow-inner"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
+              Crie uma Senha Forte
+            </label>
+            <input
+              type="password"
+              placeholder="Sua senha secreta..."
+              className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white text-sm outline-none focus:border-blue-400 transition-colors shadow-inner font-mono"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+        </div>
+        <button
+          onClick={async () => {
+            if (!email || !password) return alert("Preencha e-mail e senha!");
+            await onSetup(clan.id, email, password);
+            setIsSuccess(true);
+          }}
+          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black uppercase py-4 rounded-xl text-sm transition-all shadow-[0_10px_25px_rgba(59,130,246,0.3)] hover:-translate-y-1 flex items-center justify-center gap-2"
+        >
+          <Lock size={18} /> Salvar Credenciais
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const App = () => {
   const [db, setDb] = useState({
     players: [],
@@ -11402,6 +11543,11 @@ const App = () => {
   const [loginPassword, setLoginPassword] = useState("");
   const [showLogin, setShowLogin] = useState(false);
   const [activeProposalId, setActiveProposalId] = useState(null);
+  const [activeSetupClanId, setActiveSetupClanId] = useState(null); // Memória do link de convite
+  const [loggedClanId, setLoggedClanId] = useState(null); // Memória de qual clã está logado
+  const [showManagerLogin, setShowManagerLogin] = useState(false); // Modal de login
+  const [managerLoginEmail, setManagerLoginEmail] = useState("");
+  const [managerLoginPass, setManagerLoginPass] = useState("");
 
   // Leitor de Link Secreto de Proposta
   useEffect(() => {
@@ -11417,6 +11563,13 @@ const App = () => {
     }
     if (params.get("newclan") === "true") {
       setView("clanForm");
+    }
+
+    // NOVO: Lendo o link de Primeiro Acesso do Clã
+    const setupId = params.get("setupClan");
+    if (setupId) {
+      setActiveSetupClanId(setupId);
+      setView("setupClan");
     }
   }, []);
 
@@ -11574,6 +11727,26 @@ const App = () => {
     setView("profile");
     window.scrollTo(0, 0);
   };
+  // --- LOGIN DO PRESIDENTE DA FRANQUIA ---
+  const handleManagerLogin = (e) => {
+    e.preventDefault();
+    const clan = db.clans.find(
+      (c) =>
+        c.ownerEmail === managerLoginEmail &&
+        c.ownerPassword === managerLoginPass
+    );
+
+    if (clan) {
+      setLoggedClanId(clan.id);
+      setView("managerDashboard");
+      setShowManagerLogin(false);
+      setManagerLoginEmail("");
+      setManagerLoginPass("");
+    } else {
+      alert("Acesso Negado: E-mail ou Senha incorretos.");
+    }
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
@@ -12355,6 +12528,17 @@ const App = () => {
     return id;
   };
 
+  const setupClanCredentials = async (clanId, email, password) => {
+    try {
+      await updateDoc(doc(firebaseDb, "clans", clanId), {
+        ownerEmail: email,
+        ownerPassword: password, // Salvando a senha criada pelo dono!
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const answerProposal = async (id, response) => {
     try {
       await updateDoc(doc(firebaseDb, "proposals", id), {
@@ -12866,6 +13050,24 @@ const App = () => {
                 <Rocket size={14} /> Comece Aqui
               </button>
 
+              {/* NOVO: BOTÃO ÁREA DA FRANQUIA */}
+              <button
+                onClick={() => {
+                  if (loggedClanId) {
+                    setView("managerDashboard");
+                  } else {
+                    setShowManagerLogin(true);
+                  }
+                }}
+                className={`flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all duration-300 px-3 py-2 rounded-lg shrink-0 ${
+                  view === "managerDashboard"
+                    ? "text-emerald-400 bg-emerald-400/10 shadow-[0_0_10px_rgba(52,211,153,0.1)]"
+                    : "text-slate-400 hover:text-emerald-400 hover:bg-slate-800/50"
+                }`}
+              >
+                <Shield size={14} /> Área da Franquia
+              </button>
+
               <div className="relative group">
                 <button
                   className={`flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all duration-300 px-3 py-2 rounded-lg shrink-0 ${
@@ -13167,7 +13369,70 @@ const App = () => {
         </div>
       )}
 
+      {/* MODAL DE LOGIN DO PRESIDENTE (MANAGER) */}
+      {showManagerLogin && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-fadeIn">
+          <div className="bg-slate-900 border border-slate-700 p-10 rounded-3xl w-full max-w-md shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-blue-600"></div>
+            <h2 className="text-3xl font-black text-white mb-2 uppercase flex items-center justify-center gap-3 tracking-tight">
+              <Shield className="text-blue-400" size={28} /> Área VIP
+            </h2>
+            <p className="text-slate-400 text-xs text-center mb-8 font-medium">
+              Acesso exclusivo para Presidentes de Franquias.
+            </p>
+            <form onSubmit={handleManagerLogin} className="space-y-6">
+              <div className="space-y-4 w-full mb-6">
+                <input
+                  type="email"
+                  placeholder="E-mail da Franquia"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white text-center focus:border-blue-400 outline-none transition-all placeholder:text-slate-600 shadow-inner"
+                  value={managerLoginEmail}
+                  onChange={(e) => setManagerLoginEmail(e.target.value)}
+                  required
+                  autoFocus
+                />
+                <input
+                  type="password"
+                  placeholder="Sua Senha Mestra"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white text-center focus:border-blue-400 outline-none transition-all placeholder:text-slate-600 shadow-inner font-mono"
+                  value={managerLoginPass}
+                  onChange={(e) => setManagerLoginPass(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => setShowManagerLogin(false)}
+                  className="flex-1 bg-slate-800 text-slate-300 font-bold py-4 rounded-xl uppercase text-sm hover:bg-slate-700 transition-colors"
+                >
+                  Voltar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold py-4 rounded-xl uppercase text-sm hover:from-blue-400 hover:to-blue-500 transition-all shadow-lg shadow-blue-500/20"
+                >
+                  Acessar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="pt-28 md:pt-20 flex-grow flex flex-col">
+        {view === "setupClan" && activeSetupClanId && (
+          <ClanSetupPage
+            clanId={activeSetupClanId}
+            data={db}
+            onSetup={setupClanCredentials}
+            onBack={() => {
+              setView("home");
+              setActiveSetupClanId(null);
+              window.history.pushState({}, document.title, "/"); // Limpa a URL pra ficar bonito
+            }}
+          />
+        )}
         {view === "home" && (
           <>
             {/* O Banner Principal */}
