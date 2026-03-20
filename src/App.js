@@ -11539,6 +11539,8 @@ const ManagerDashboard = ({
   backend,
   onLogout,
   onCreateProposal,
+  onUpdateSponsor,
+  onUpdateClanFinancials,
 }) => {
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -11547,6 +11549,8 @@ const ManagerDashboard = ({
   const [proposalTransferOffer, setProposalTransferOffer] = useState("");
   const [proposalBonus, setProposalBonus] = useState("");
   const [proposalPitch, setProposalPitch] = useState("");
+
+  const [sponsorModalItem, setSponsorModalItem] = useState(null); // Memória do Patrocínio
 
   const clan = data.clans.find((c) => c.id === clanId);
   if (!clan) return null;
@@ -11647,6 +11651,7 @@ const ManagerDashboard = ({
             { id: "squad", label: "Meu Elenco", icon: Users },
             { id: "finance", label: "Extrato Financeiro", icon: Landmark },
             { id: "scout", label: "Scout & Mercado", icon: Search },
+            { id: "sponsors", label: "Patrocínios", icon: Handshake },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -12288,6 +12293,270 @@ const ManagerDashboard = ({
             </div>
           </div>
         )}
+
+        {/* =========================================
+            ABA: PATROCÍNIOS (VITRINE DO CLÃ)
+        ============================================= */}
+        {activeTab === "sponsors" &&
+          (() => {
+            const availableSponsors =
+              data.sponsors?.filter((s) => !s.clanId) || [];
+            return (
+              <div className="animate-fadeIn">
+                <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                  <div>
+                    <h3 className="text-2xl font-black text-white uppercase tracking-tight flex items-center gap-3">
+                      <Handshake className="text-blue-400" /> Fechar Patrocínios
+                    </h3>
+                    <p className="text-slate-400 text-xs mt-1">
+                      Marcas disponíveis no mercado buscando uma franquia para
+                      representar.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {availableSponsors.map((sponsor) => (
+                    <div
+                      key={sponsor.id}
+                      onClick={() => setSponsorModalItem(sponsor)}
+                      className="bg-slate-900/80 border border-slate-700/50 rounded-3xl p-6 backdrop-blur-md shadow-xl flex flex-col group hover:border-blue-500/50 transition-all cursor-pointer hover:-translate-y-1"
+                    >
+                      {sponsor.isPremium && (
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-amber-600 rounded-t-3xl"></div>
+                      )}
+                      <div className="flex items-center gap-4 mb-4">
+                        <div
+                          className={`w-14 h-14 bg-white rounded-xl p-1.5 flex items-center justify-center shadow-inner shrink-0 ${
+                            sponsor.isPremium ? "ring-2 ring-amber-400" : ""
+                          }`}
+                        >
+                          <img
+                            src={sponsor.logoUrl}
+                            className="max-w-full max-h-full object-contain"
+                            alt={sponsor.name}
+                          />
+                        </div>
+                        <div>
+                          <h4 className="text-white font-black text-lg uppercase tracking-tight leading-tight">
+                            {sponsor.name}
+                          </h4>
+                          {sponsor.isPremium && (
+                            <span className="text-[8px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-gradient-to-r from-amber-400 to-amber-600 text-black shadow-md mt-1 inline-block">
+                              Premium Vitalício
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 flex justify-between items-center mt-auto">
+                        <div>
+                          <div className="text-slate-500 text-[9px] uppercase font-bold tracking-widest">
+                            {sponsor.type === "victory"
+                              ? "Por Vitória"
+                              : "Por Mapa"}
+                          </div>
+                          <div className="text-emerald-400 font-mono font-bold text-base">
+                            {formatCurrency(sponsor.amount)}
+                          </div>
+                        </div>
+                        <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                          <ChevronRight size={16} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {availableSponsors.length === 0 && (
+                    <div className="col-span-full py-16 text-center border border-dashed border-slate-800 rounded-3xl text-slate-500">
+                      <Handshake
+                        size={48}
+                        className="mx-auto mb-4 opacity-20"
+                      />
+                      <p className="text-sm font-bold uppercase tracking-widest">
+                        Nenhuma marca disponível no mercado.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+        {/* MODAL DE ASSINATURA DE PATROCÍNIO */}
+        {sponsorModalItem &&
+          (() => {
+            const sp = sponsorModalItem;
+            const myTitlesCount = backend.getClanTitles(clan.id).length;
+
+            const meetsTitles = myTitlesCount >= (sp.reqTitles || 0);
+            const meetsBudget = clan.budget >= (sp.cost || 0);
+            const isEligible = meetsTitles && meetsBudget;
+
+            return (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fadeIn">
+                <div className="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-md shadow-2xl relative overflow-hidden flex flex-col">
+                  <div className="bg-slate-950 p-6 border-b border-slate-800 flex justify-between items-center shrink-0">
+                    <h3 className="text-white font-black uppercase flex items-center gap-2 text-lg tracking-tight">
+                      <FileText className="text-blue-500" size={24} /> Contrato
+                      de Marca
+                    </h3>
+                    <button
+                      onClick={() => setSponsorModalItem(null)}
+                      className="text-slate-500 hover:text-white bg-slate-800 p-2 rounded-full transition-colors"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  <div className="p-6 md:p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+                    <div className="text-center mb-8">
+                      <div
+                        className={`w-24 h-24 bg-white rounded-2xl p-2 mx-auto flex items-center justify-center shadow-xl mb-4 ${
+                          sp.isPremium
+                            ? "ring-4 ring-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.3)]"
+                            : ""
+                        }`}
+                      >
+                        <img
+                          src={sp.logoUrl}
+                          className="max-w-full max-h-full object-contain"
+                          alt={sp.name}
+                        />
+                      </div>
+                      <h2 className="text-2xl font-black text-white uppercase tracking-tight">
+                        {sp.name}
+                      </h2>
+                      <p className="text-slate-400 text-xs mt-2">
+                        Termos e Requisitos para patrocínio.
+                      </p>
+                    </div>
+
+                    <div className="space-y-4 mb-8">
+                      <div className="bg-slate-950 p-4 rounded-xl border border-emerald-500/20 flex justify-between items-center shadow-inner">
+                        <span className="text-emerald-500/70 text-[10px] uppercase font-bold tracking-widest">
+                          Pagamento (
+                          {sp.type === "victory" ? "Por Vitória" : "Por Mapa"})
+                        </span>
+                        <span className="text-emerald-400 font-mono font-black text-xl">
+                          {formatCurrency(sp.amount)}
+                        </span>
+                      </div>
+
+                      {!sp.isPremium && (
+                        <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-4">
+                          <div className="flex justify-between items-center border-b border-slate-800/50 pb-3">
+                            <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
+                              <Trophy size={12} /> Títulos Exigidos
+                            </span>
+                            <span
+                              className={`font-mono font-bold text-sm ${
+                                meetsTitles
+                                  ? "text-emerald-400"
+                                  : "text-red-400"
+                              }`}
+                            >
+                              {myTitlesCount} / {sp.reqTitles || 0}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
+                              <Landmark size={12} /> Luvas (Custo Inicial)
+                            </span>
+                            <div className="text-right">
+                              <span
+                                className={`font-mono font-bold text-sm block ${
+                                  meetsBudget
+                                    ? "text-emerald-400"
+                                    : "text-red-400"
+                                }`}
+                              >
+                                {formatCurrency(sp.cost || 0)}
+                              </span>
+                              <span className="text-[8px] text-slate-500 font-mono">
+                                Caixa: {formatCurrency(clan.budget)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {sp.tolerance > 0 && (
+                        <div className="bg-red-500/10 border border-red-500/30 p-3 rounded-xl flex items-center gap-3">
+                          <AlertTriangle
+                            size={16}
+                            className="text-red-400 shrink-0"
+                          />
+                          <span className="text-red-300/80 text-[10px] leading-relaxed">
+                            <strong>Atenção:</strong> Esta marca exige
+                            performance. O contrato será rompido automaticamente
+                            se o clã sofrer{" "}
+                            <strong>
+                              {sp.tolerance} derrotas consecutivas
+                            </strong>
+                            .
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {sp.isPremium ? (
+                      <a
+                        href={`https://wa.me/${STAFF_WHATSAPP}?text=Ol%C3%A1%20Staff!%20Sou%20presidente%20da%20franquia%20${clan.name}%20e%20quero%20comprar%20a%20cota%20PREMIUM%20da%20marca%20${sp.name}.`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black uppercase py-4 rounded-xl text-sm transition-transform hover:-translate-y-1 shadow-[0_10px_25px_rgba(251,191,36,0.3)] flex items-center justify-center gap-2"
+                      >
+                        <Crown size={18} /> Adquirir via Staff (Pix)
+                      </a>
+                    ) : (
+                      <button
+                        disabled={!isEligible}
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              `Assinar contrato com a ${sp.name}? ${
+                                sp.cost > 0
+                                  ? `Será debitado ${formatCurrency(
+                                      sp.cost
+                                    )} do seu caixa imediatamente.`
+                                  : ""
+                              }`
+                            )
+                          ) {
+                            if (sp.cost > 0) {
+                              onUpdateClanFinancials(
+                                clan.id,
+                                clan.budget - sp.cost,
+                                `Luvas de Patrocínio: ${sp.name}`,
+                                "sponsor_fee"
+                              );
+                            }
+                            onUpdateSponsor(sp.id, { ...sp, clanId: clan.id });
+                            alert(
+                              "Contrato assinado com sucesso! A marca já patrocina sua equipe."
+                            );
+                            setSponsorModalItem(null);
+                          }
+                        }}
+                        className={`w-full font-black uppercase py-4 rounded-xl text-sm transition-transform flex items-center justify-center gap-2 ${
+                          isEligible
+                            ? "bg-blue-600 hover:bg-blue-500 text-white hover:-translate-y-1 shadow-[0_10px_25px_rgba(59,130,246,0.3)]"
+                            : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                        }`}
+                      >
+                        {isEligible ? (
+                          <>
+                            <Check size={18} /> Assinar Contrato
+                          </>
+                        ) : (
+                          "Requisitos Não Atendidos"
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
         {/* MODAL DE PROPOSTA DE CONTRATAÇÃO (SEM BLOQUEIO) */}
         {proposalModalPlayer &&
@@ -14428,6 +14697,8 @@ const App = () => {
               setView("home");
             }}
             onCreateProposal={createProposal}
+            onUpdateSponsor={updateSponsor}
+            onUpdateClanFinancials={updateClanFinancials}
           />
         )}
 
