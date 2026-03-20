@@ -12261,8 +12261,20 @@ const ManagerDashboard = ({
 
                       <button
                         onClick={() => {
+                          const baseValue = p.marketValue || 10000000;
+                          const contract = getContractStatus(p);
+                          const penalty =
+                            contract.isValid &&
+                            p.releaseClauseMultiplier > 0 &&
+                            p.clanId !== null
+                              ? calculateReleaseClause(
+                                  baseValue,
+                                  p.releaseClauseMultiplier
+                                )
+                              : 0;
+
                           setProposalModalPlayer(p);
-                          setProposalTransferOffer(p.marketValue || 10000000);
+                          setProposalTransferOffer(baseValue + penalty);
                           setProposalBonus("");
                           setProposalPitch("");
                         }}
@@ -12277,7 +12289,7 @@ const ManagerDashboard = ({
           </div>
         )}
 
-        {/* MODAL DE PROPOSTA DE CONTRATAÇÃO (NOVO) */}
+        {/* MODAL DE PROPOSTA DE CONTRATAÇÃO (SEM BLOQUEIO) */}
         {proposalModalPlayer &&
           (() => {
             const p = proposalModalPlayer;
@@ -12286,6 +12298,13 @@ const ManagerDashboard = ({
               contract.isValid &&
               p.releaseClauseMultiplier > 0 &&
               p.clanId !== null;
+
+            const baseValue = p.marketValue || 10000000;
+            const penaltyValue = hasReleaseClause
+              ? calculateReleaseClause(baseValue, p.releaseClauseMultiplier)
+              : 0;
+            const minOffer = baseValue + penaltyValue;
+
             const currentOffer = parseFloat(proposalTransferOffer) || 0;
             const isBankrupting = currentOffer > clan.budget;
 
@@ -12295,7 +12314,7 @@ const ManagerDashboard = ({
                   <div className="bg-slate-950 p-6 border-b border-slate-800 flex justify-between items-center shrink-0">
                     <h3 className="text-white font-black uppercase flex items-center gap-2 text-lg tracking-tight">
                       <Briefcase className="text-amber-500" size={24} />
-                      {hasReleaseClause ? "Contrato Blindado" : "Nova Oferta"}
+                      {hasReleaseClause ? "Compra Hostil" : "Nova Oferta"}
                     </h3>
                     <button
                       onClick={() => setProposalModalPlayer(null)}
@@ -12319,143 +12338,138 @@ const ManagerDashboard = ({
                         <div className="text-slate-500 text-[10px] font-mono tracking-widest uppercase mt-0.5">
                           Passe:{" "}
                           <span className="text-emerald-400 font-bold">
-                            {formatCurrency(p.marketValue || 10000000)}
+                            {formatCurrency(baseValue)}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    {hasReleaseClause ? (
-                      <div className="text-center space-y-6">
-                        <div className="w-20 h-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto border-2 border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
-                          <Lock size={36} />
-                        </div>
-                        <div>
-                          <h4 className="text-red-400 font-black uppercase text-lg mb-2">
-                            Compra Hostil Necessária
-                          </h4>
-                          <p className="text-slate-400 text-sm leading-relaxed">
-                            Este jogador possui uma Multa Rescisória ativa. Para
-                            quebrar o contrato atual e forçar a compra, você
-                            deve acionar a <strong>Diretoria da MVL</strong>.
-                          </p>
-                        </div>
-                        <a
-                          href={`https://wa.me/${STAFF_WHATSAPP}?text=Ol%C3%A1%20Staff!%20Sou%20presidente%20da%20${clan.name}%20e%20gostaria%20de%20pagar%20a%20Multa%20Rescis%C3%B3ria%20para%20realizar%20a%20COMPRA%20HOSTIL%20do%20jogador%20${p.nickname}.`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center justify-center gap-3 w-full bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase py-4 rounded-xl text-sm transition-transform hover:-translate-y-1 shadow-[0_10px_25px_rgba(16,185,129,0.3)] mt-4"
-                        >
-                          <Shield size={18} /> Acionar Staff via WhatsApp
-                        </a>
-                      </div>
-                    ) : (
-                      <div className="space-y-6">
-                        <div>
-                          <label className="flex justify-between items-end mb-2">
-                            <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">
-                              Oferta de Transferência
-                            </span>
-                            <span className="text-[9px] text-slate-500 font-mono">
-                              Min: {formatCurrency(p.marketValue || 10000000)}
-                            </span>
-                          </label>
-                          <input
-                            type="number"
-                            min={p.marketValue || 10000000}
-                            className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white text-lg outline-none focus:border-amber-400 transition-colors shadow-inner font-mono font-black"
-                            value={proposalTransferOffer}
-                            onChange={(e) =>
-                              setProposalTransferOffer(e.target.value)
-                            }
+                    <div className="space-y-6">
+                      {/* AVISO DE MULTA RESCISÓRIA EM COMPRA HOSTIL */}
+                      {hasReleaseClause && (
+                        <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-xl flex items-start gap-3">
+                          <Lock
+                            className="text-red-400 shrink-0 mt-0.5"
+                            size={16}
                           />
-                        </div>
-
-                        <div>
-                          <label className="block text-blue-400 text-[10px] uppercase font-bold mb-2 tracking-wider flex items-center gap-2">
-                            <TrendingUp size={12} /> Bônus Salarial (Extra por
-                            Mapa)
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            placeholder="Ex: 50000 para atrair o jogador"
-                            className="w-full bg-blue-500/5 border border-blue-500/30 rounded-xl p-4 text-blue-400 text-sm outline-none focus:border-blue-400 transition-colors shadow-inner font-mono font-bold"
-                            value={proposalBonus}
-                            onChange={(e) => setProposalBonus(e.target.value)}
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider flex items-center gap-2">
-                            <FileText size={12} /> Carta de Apresentação (Pitch)
-                          </label>
-                          <textarea
-                            placeholder="Escreva uma mensagem para convencer o atleta a assinar..."
-                            rows={3}
-                            className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white text-sm outline-none focus:border-amber-400 transition-colors shadow-inner resize-none"
-                            value={proposalPitch}
-                            onChange={(e) => setProposalPitch(e.target.value)}
-                          ></textarea>
-                        </div>
-
-                        <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="text-slate-500 text-[10px] uppercase font-bold">
-                              Custo Total:
-                            </span>
-                            <span
-                              className={`font-mono font-black text-lg ${
-                                isBankrupting
-                                  ? "text-red-400"
-                                  : "text-amber-400"
-                              }`}
-                            >
-                              {formatCurrency(currentOffer)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-slate-500 text-[10px] uppercase font-bold">
-                              Caixa do Clã:
-                            </span>
-                            <span className="font-mono text-xs text-slate-400">
-                              {formatCurrency(clan.budget)}
-                            </span>
+                          <div>
+                            <div className="text-red-400 font-bold text-xs uppercase tracking-widest mb-1">
+                              Jogador Blindado
+                            </div>
+                            <div className="text-red-300/80 text-[10px] leading-relaxed">
+                              A Multa Rescisória de{" "}
+                              <strong>{formatCurrency(penaltyValue)}</strong> já
+                              foi embutida no valor mínimo da oferta. Ao enviar
+                              a proposta, isso configura uma{" "}
+                              <strong>Compra Hostil</strong>.
+                            </div>
                           </div>
                         </div>
+                      )}
 
-                        <button
-                          disabled={
-                            isBankrupting ||
-                            currentOffer < (p.marketValue || 10000000)
+                      <div>
+                        <label className="flex justify-between items-end mb-2">
+                          <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+                            Oferta de Transferência
+                          </span>
+                          <span className="text-[9px] text-slate-500 font-mono">
+                            Min: {formatCurrency(minOffer)}
+                          </span>
+                        </label>
+                        <input
+                          type="number"
+                          min={minOffer}
+                          className={`w-full bg-slate-950 border rounded-xl p-4 text-white text-lg outline-none transition-colors shadow-inner font-mono font-black ${
+                            hasReleaseClause
+                              ? "border-red-500/50 focus:border-red-400"
+                              : "border-slate-700 focus:border-amber-400"
+                          }`}
+                          value={proposalTransferOffer}
+                          onChange={(e) =>
+                            setProposalTransferOffer(e.target.value)
                           }
-                          onClick={async () => {
-                            const propId = await onCreateProposal(
-                              p.id,
-                              clan.id,
-                              parseFloat(proposalBonus || 0),
-                              currentOffer,
-                              proposalPitch
-                            );
-                            const link = `${window.location.origin}/?proposal=${propId}`;
-                            navigator.clipboard.writeText(link);
-                            alert(
-                              "A proposta foi criada e o LINK SECRETO foi copiado! Cole no WhatsApp do jogador."
-                            );
-                            setProposalModalPlayer(null);
-                          }}
-                          className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-black font-black uppercase py-4 rounded-xl text-sm transition-transform hover:-translate-y-1 shadow-[0_10px_25px_rgba(251,191,36,0.3)] flex items-center justify-center gap-2"
-                        >
-                          {isBankrupting ? (
-                            "Caixa Insuficiente"
-                          ) : (
-                            <>
-                              <Check size={18} /> Gerar e Copiar Link
-                            </>
-                          )}
-                        </button>
+                        />
                       </div>
-                    )}
+
+                      <div>
+                        <label className="block text-blue-400 text-[10px] uppercase font-bold mb-2 tracking-wider flex items-center gap-2">
+                          <TrendingUp size={12} /> Bônus Salarial (Extra por
+                          Mapa)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          placeholder="Ex: 50000 para atrair o jogador"
+                          className="w-full bg-blue-500/5 border border-blue-500/30 rounded-xl p-4 text-blue-400 text-sm outline-none focus:border-blue-400 transition-colors shadow-inner font-mono font-bold"
+                          value={proposalBonus}
+                          onChange={(e) => setProposalBonus(e.target.value)}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider flex items-center gap-2">
+                          <FileText size={12} /> Carta de Apresentação (Pitch)
+                        </label>
+                        <textarea
+                          placeholder="Escreva uma mensagem para convencer o atleta a assinar..."
+                          rows={3}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white text-sm outline-none focus:border-amber-400 transition-colors shadow-inner resize-none"
+                          value={proposalPitch}
+                          onChange={(e) => setProposalPitch(e.target.value)}
+                        ></textarea>
+                      </div>
+
+                      <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-slate-500 text-[10px] uppercase font-bold">
+                            Custo Total da Operação:
+                          </span>
+                          <span
+                            className={`font-mono font-black text-lg ${
+                              isBankrupting ? "text-red-400" : "text-amber-400"
+                            }`}
+                          >
+                            {formatCurrency(currentOffer)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-500 text-[10px] uppercase font-bold">
+                            Caixa do Clã:
+                          </span>
+                          <span className="font-mono text-xs text-slate-400">
+                            {formatCurrency(clan.budget)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        disabled={isBankrupting || currentOffer < minOffer}
+                        onClick={async () => {
+                          const propId = await onCreateProposal(
+                            p.id,
+                            clan.id,
+                            parseFloat(proposalBonus || 0),
+                            currentOffer,
+                            proposalPitch
+                          );
+                          const link = `${window.location.origin}/?proposal=${propId}`;
+                          navigator.clipboard.writeText(link);
+                          alert(
+                            "A proposta foi criada e o LINK SECRETO foi copiado! Cole no WhatsApp do jogador."
+                          );
+                          setProposalModalPlayer(null);
+                        }}
+                        className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-black font-black uppercase py-4 rounded-xl text-sm transition-transform hover:-translate-y-1 shadow-[0_10px_25px_rgba(251,191,36,0.3)] flex items-center justify-center gap-2"
+                      >
+                        {isBankrupting ? (
+                          "Caixa Insuficiente"
+                        ) : (
+                          <>
+                            <Check size={18} /> Gerar e Copiar Link Secreto
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
