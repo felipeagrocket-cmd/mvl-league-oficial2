@@ -8978,9 +8978,9 @@ const AdminPanel = ({
                     {/* CUSTOS E REQUISITOS (SOMENTE SE NÃO FOR PREMIUM) */}
                     {!newSponsorIsPremium && (
                       <>
-                        <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800 border-dashed">
+                        <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800 border-dashed md:col-span-2">
                           <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2">
-                            Custo de Assinatura (R$ do Jogo)
+                            Custo de Assinatura / Luvas (R$)
                           </label>
                           <input
                             type="number"
@@ -8990,21 +8990,75 @@ const AdminPanel = ({
                             onChange={(e) => setNewSponsorCost(e.target.value)}
                           />
                         </div>
-                        <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800 border-dashed">
-                          <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2">
-                            Exigência de Títulos (Mínimo)
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            placeholder="Ex: 1"
-                            className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-sm outline-none font-mono focus:border-amber-400"
-                            value={newSponsorReqTitles}
-                            onChange={(e) =>
-                              setNewSponsorReqTitles(e.target.value)
-                            }
-                          />
+
+                        {/* NOVOS CAMPOS DE GAMIFICAÇÃO */}
+                        <div className="bg-slate-900/50 p-5 rounded-xl border border-slate-800 border-dashed md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5 shadow-inner">
+                          <div>
+                            <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 flex items-center gap-1.5">
+                              <Trophy size={14} className="text-amber-400" />{" "}
+                              Títulos Exigidos
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="Ex: 1"
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-sm outline-none font-mono focus:border-amber-400"
+                              value={newSponsorReqTitles}
+                              onChange={(e) =>
+                                setNewSponsorReqTitles(e.target.value)
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 flex items-center gap-1.5">
+                              <Swords size={14} className="text-amber-400" />{" "}
+                              Vitórias em Mapas
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="Ex: 5"
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-sm outline-none font-mono focus:border-amber-400"
+                              value={newSponsorReqWins}
+                              onChange={(e) =>
+                                setNewSponsorReqWins(e.target.value)
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 flex items-center gap-1.5">
+                              <Activity size={14} className="text-amber-400" />{" "}
+                              Giro no Mercado (R$)
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="Ex: 10000000"
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-sm outline-none font-mono focus:border-amber-400"
+                              value={newSponsorReqTurnover}
+                              onChange={(e) =>
+                                setNewSponsorReqTurnover(e.target.value)
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 flex items-center gap-1.5">
+                              <Users size={14} className="text-amber-400" />{" "}
+                              Jogadores Vendidos
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="Ex: 2"
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-sm outline-none font-mono focus:border-amber-400"
+                              value={newSponsorReqPlayersSold}
+                              onChange={(e) =>
+                                setNewSponsorReqPlayersSold(e.target.value)
+                              }
+                            />
+                          </div>
                         </div>
+
                         <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800 border-dashed md:col-span-2">
                           <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2">
                             Tolerância à Má Fase (Rompimento de Contrato)
@@ -12397,84 +12451,181 @@ const ManagerDashboard = ({
           (() => {
             const sp = sponsorModalItem;
             const myTitlesCount = backend.getClanTitles(clan.id).length;
-            
+
             // Calculando Vitórias, Giro (Turnover) e Vendas lendo o Histórico e o Extrato (Logs)
-            const myWinsCount = clanHistory.filter(m => m.isWin).length;
-            
+            const myWinsCount = clanHistory.filter((m) => m.isWin).length;
+
             // Giro: Soma tudo que tem "venda", "compra", "transfer" ou "multa" na descrição do log financeiro
-            const myTurnover = clanLogs.filter(l => l.reason.toLowerCase().includes("venda") || l.reason.toLowerCase().includes("compra") || l.reason.toLowerCase().includes("transfer") || l.reason.toLowerCase().includes("multa")).reduce((acc, l) => acc + Math.abs(l.amount), 0);
-            
+            const myTurnover = clanLogs
+              .filter(
+                (l) =>
+                  l.reason.toLowerCase().includes("venda") ||
+                  l.reason.toLowerCase().includes("compra") ||
+                  l.reason.toLowerCase().includes("transfer") ||
+                  l.reason.toLowerCase().includes("multa")
+              )
+              .reduce((acc, l) => acc + Math.abs(l.amount), 0);
+
             // Vendas: Conta quantas vezes o dinheiro ENTROU (+) por motivo de "venda" ou "multa" rescisória
-            const myPlayersSold = clanLogs.filter(l => l.amount > 0 && (l.reason.toLowerCase().includes("venda") || l.reason.toLowerCase().includes("multa"))).length;
+            const myPlayersSold = clanLogs.filter(
+              (l) =>
+                l.amount > 0 &&
+                (l.reason.toLowerCase().includes("venda") ||
+                  l.reason.toLowerCase().includes("multa"))
+            ).length;
 
             const meetsTitles = myTitlesCount >= (sp.reqTitles || 0);
             const meetsWins = myWinsCount >= (sp.reqWins || 0);
             const meetsTurnover = myTurnover >= (sp.reqTurnover || 0);
             const meetsSales = myPlayersSold >= (sp.reqPlayersSold || 0);
             const meetsBudget = clan.budget >= (sp.cost || 0);
-            
-            const isEligible = meetsTitles && meetsWins && meetsTurnover && meetsSales && meetsBudget;
+
+            const isEligible =
+              meetsTitles &&
+              meetsWins &&
+              meetsTurnover &&
+              meetsSales &&
+              meetsBudget;
 
             return (
               <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fadeIn">
                 <div className="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-md max-h-[90vh] shadow-2xl relative overflow-hidden flex flex-col">
                   <div className="bg-slate-950 p-6 border-b border-slate-800 flex justify-between items-center shrink-0">
                     <h3 className="text-white font-black uppercase flex items-center gap-2 text-lg tracking-tight">
-                      <FileText className="text-blue-500" size={24} /> Contrato de Marca
+                      <FileText className="text-blue-500" size={24} /> Contrato
+                      de Marca
                     </h3>
-                    <button onClick={() => setSponsorModalItem(null)} className="text-slate-500 hover:text-white bg-slate-800 p-2 rounded-full transition-colors">
+                    <button
+                      onClick={() => setSponsorModalItem(null)}
+                      className="text-slate-500 hover:text-white bg-slate-800 p-2 rounded-full transition-colors"
+                    >
                       <X size={16} />
                     </button>
                   </div>
 
                   <div className="p-6 md:p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
                     <div className="text-center mb-8">
-                      <div className={`w-24 h-24 bg-white rounded-2xl p-2 mx-auto flex items-center justify-center shadow-xl mb-4 ${sp.isPremium ? "ring-4 ring-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.3)]" : ""}`}>
-                        <img src={sp.logoUrl} className="max-w-full max-h-full object-contain" alt={sp.name} />
+                      <div
+                        className={`w-24 h-24 bg-white rounded-2xl p-2 mx-auto flex items-center justify-center shadow-xl mb-4 ${
+                          sp.isPremium
+                            ? "ring-4 ring-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.3)]"
+                            : ""
+                        }`}
+                      >
+                        <img
+                          src={sp.logoUrl}
+                          className="max-w-full max-h-full object-contain"
+                          alt={sp.name}
+                        />
                       </div>
-                      <h2 className="text-2xl font-black text-white uppercase tracking-tight">{sp.name}</h2>
-                      <p className="text-slate-400 text-xs mt-2">Termos e Requisitos para patrocínio.</p>
+                      <h2 className="text-2xl font-black text-white uppercase tracking-tight">
+                        {sp.name}
+                      </h2>
+                      <p className="text-slate-400 text-xs mt-2">
+                        Termos e Requisitos para patrocínio.
+                      </p>
                     </div>
 
                     <div className="space-y-4 mb-8">
                       <div className="bg-slate-950 p-4 rounded-xl border border-emerald-500/20 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 shadow-inner">
-                        <span className="text-emerald-500/70 text-[10px] uppercase font-bold tracking-widest">Pagamento ({sp.type === "victory" ? "Por Vitória" : "Por Mapa"})</span>
-                        <span className="text-emerald-400 font-mono font-black text-xl">{formatCurrency(sp.amount)}</span>
+                        <span className="text-emerald-500/70 text-[10px] uppercase font-bold tracking-widest">
+                          Pagamento (
+                          {sp.type === "victory" ? "Por Vitória" : "Por Mapa"})
+                        </span>
+                        <span className="text-emerald-400 font-mono font-black text-xl">
+                          {formatCurrency(sp.amount)}
+                        </span>
                       </div>
 
                       {!sp.isPremium && (
                         <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-4">
                           {sp.reqTitles > 0 && (
                             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-800/50 pb-3">
-                              <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5"><Trophy size={12} className="shrink-0"/> Títulos Exigidos</span>
-                              <span className={`font-mono font-bold text-sm text-left sm:text-right ${meetsTitles ? "text-emerald-400" : "text-red-400"}`}>{myTitlesCount} / {sp.reqTitles}</span>
+                              <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
+                                <Trophy size={12} className="shrink-0" />{" "}
+                                Títulos Exigidos
+                              </span>
+                              <span
+                                className={`font-mono font-bold text-sm text-left sm:text-right ${
+                                  meetsTitles
+                                    ? "text-emerald-400"
+                                    : "text-red-400"
+                                }`}
+                              >
+                                {myTitlesCount} / {sp.reqTitles}
+                              </span>
                             </div>
                           )}
                           {sp.reqWins > 0 && (
                             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-800/50 pb-3">
-                              <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5"><Swords size={12} className="shrink-0"/> Vitórias em Mapas</span>
-                              <span className={`font-mono font-bold text-sm text-left sm:text-right ${meetsWins ? "text-emerald-400" : "text-red-400"}`}>{myWinsCount} / {sp.reqWins}</span>
+                              <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
+                                <Swords size={12} className="shrink-0" />{" "}
+                                Vitórias em Mapas
+                              </span>
+                              <span
+                                className={`font-mono font-bold text-sm text-left sm:text-right ${
+                                  meetsWins
+                                    ? "text-emerald-400"
+                                    : "text-red-400"
+                                }`}
+                              >
+                                {myWinsCount} / {sp.reqWins}
+                              </span>
                             </div>
                           )}
                           {sp.reqTurnover > 0 && (
                             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-800/50 pb-3">
-                              <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5"><Activity size={12} className="shrink-0"/> Giro no Mercado</span>
-                              <span className={`font-mono font-bold text-xs text-left sm:text-right ${meetsTurnover ? "text-emerald-400" : "text-red-400"}`}>{formatCurrency(myTurnover)} / {formatCurrency(sp.reqTurnover)}</span>
+                              <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
+                                <Activity size={12} className="shrink-0" /> Giro
+                                no Mercado
+                              </span>
+                              <span
+                                className={`font-mono font-bold text-xs text-left sm:text-right ${
+                                  meetsTurnover
+                                    ? "text-emerald-400"
+                                    : "text-red-400"
+                                }`}
+                              >
+                                {formatCurrency(myTurnover)} /{" "}
+                                {formatCurrency(sp.reqTurnover)}
+                              </span>
                             </div>
                           )}
                           {sp.reqPlayersSold > 0 && (
                             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-800/50 pb-3">
-                              <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5"><Users size={12} className="shrink-0"/> Jogadores Vendidos</span>
-                              <span className={`font-mono font-bold text-sm text-left sm:text-right ${meetsSales ? "text-emerald-400" : "text-red-400"}`}>{myPlayersSold} / {sp.reqPlayersSold}</span>
+                              <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
+                                <Users size={12} className="shrink-0" />{" "}
+                                Jogadores Vendidos
+                              </span>
+                              <span
+                                className={`font-mono font-bold text-sm text-left sm:text-right ${
+                                  meetsSales
+                                    ? "text-emerald-400"
+                                    : "text-red-400"
+                                }`}
+                              >
+                                {myPlayersSold} / {sp.reqPlayersSold}
+                              </span>
                             </div>
                           )}
                           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                            <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5"><Landmark size={12} className="shrink-0"/> Luvas (Custo Inicial)</span>
+                            <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
+                              <Landmark size={12} className="shrink-0" /> Luvas
+                              (Custo Inicial)
+                            </span>
                             <div className="text-left sm:text-right mt-1 sm:mt-0">
-                              <span className={`font-mono font-bold text-sm block ${meetsBudget ? "text-emerald-400" : "text-red-400"}`}>
+                              <span
+                                className={`font-mono font-bold text-sm block ${
+                                  meetsBudget
+                                    ? "text-emerald-400"
+                                    : "text-red-400"
+                                }`}
+                              >
                                 {formatCurrency(sp.cost || 0)}
                               </span>
-                              <span className="text-[8px] text-slate-500 font-mono">Caixa: {formatCurrency(clan.budget)}</span>
+                              <span className="text-[8px] text-slate-500 font-mono">
+                                Caixa: {formatCurrency(clan.budget)}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -12482,18 +12633,28 @@ const ManagerDashboard = ({
 
                       {sp.tolerance > 0 && (
                         <div className="bg-red-500/10 border border-red-500/30 p-3 rounded-xl flex items-center gap-3">
-                          <AlertTriangle size={16} className="text-red-400 shrink-0" />
+                          <AlertTriangle
+                            size={16}
+                            className="text-red-400 shrink-0"
+                          />
                           <span className="text-red-300/80 text-[10px] leading-relaxed">
-                            <strong>Atenção:</strong> Esta marca exige performance. O contrato será rompido automaticamente se o clã sofrer <strong>{sp.tolerance} derrotas consecutivas</strong>.
+                            <strong>Atenção:</strong> Esta marca exige
+                            performance. O contrato será rompido automaticamente
+                            se o clã sofrer{" "}
+                            <strong>
+                              {sp.tolerance} derrotas consecutivas
+                            </strong>
+                            .
                           </span>
                         </div>
                       )}
                     </div>
 
                     {sp.isPremium ? (
-                      <a 
+                      <a
                         href={`https://wa.me/${STAFF_WHATSAPP}?text=Ol%C3%A1%20Staff!%20Sou%20presidente%20da%20franquia%20${clan.name}%20e%20quero%20comprar%20a%20cota%20PREMIUM%20da%20marca%20${sp.name}.`}
-                        target="_blank" rel="noreferrer"
+                        target="_blank"
+                        rel="noreferrer"
                         className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black uppercase py-4 rounded-xl text-sm transition-transform hover:-translate-y-1 shadow-[0_10px_25px_rgba(251,191,36,0.3)] flex items-center justify-center gap-2"
                       >
                         <Crown size={18} /> Adquirir via Staff (Pix)
@@ -12502,22 +12663,45 @@ const ManagerDashboard = ({
                       <button
                         disabled={!isEligible}
                         onClick={() => {
-                          if (window.confirm(`Assinar contrato com a ${sp.name}? ${sp.cost > 0 ? `Será debitado ${formatCurrency(sp.cost)} do seu caixa imediatamente.` : ""}`)) {
+                          if (
+                            window.confirm(
+                              `Assinar contrato com a ${sp.name}? ${
+                                sp.cost > 0
+                                  ? `Será debitado ${formatCurrency(
+                                      sp.cost
+                                    )} do seu caixa imediatamente.`
+                                  : ""
+                              }`
+                            )
+                          ) {
                             if (sp.cost > 0) {
-                              onUpdateClanFinancials(clan.id, clan.budget - sp.cost, `Luvas de Patrocínio: ${sp.name}`, "sponsor_fee");
+                              onUpdateClanFinancials(
+                                clan.id,
+                                clan.budget - sp.cost,
+                                `Luvas de Patrocínio: ${sp.name}`,
+                                "sponsor_fee"
+                              );
                             }
                             onUpdateSponsor(sp.id, { ...sp, clanId: clan.id });
-                            alert("Contrato assinado com sucesso! A marca já patrocina sua equipe.");
+                            alert(
+                              "Contrato assinado com sucesso! A marca já patrocina sua equipe."
+                            );
                             setSponsorModalItem(null);
                           }
                         }}
                         className={`w-full font-black uppercase py-4 rounded-xl text-sm transition-transform flex items-center justify-center gap-2 ${
-                          isEligible 
-                            ? "bg-blue-600 hover:bg-blue-500 text-white hover:-translate-y-1 shadow-[0_10px_25px_rgba(59,130,246,0.3)]" 
+                          isEligible
+                            ? "bg-blue-600 hover:bg-blue-500 text-white hover:-translate-y-1 shadow-[0_10px_25px_rgba(59,130,246,0.3)]"
                             : "bg-slate-800 text-slate-500 cursor-not-allowed"
                         }`}
                       >
-                        {isEligible ? <><Check size={18} /> Assinar Contrato</> : "Requisitos Não Atendidos"}
+                        {isEligible ? (
+                          <>
+                            <Check size={18} /> Assinar Contrato
+                          </>
+                        ) : (
+                          "Requisitos Não Atendidos"
+                        )}
                       </button>
                     )}
                   </div>
