@@ -6037,6 +6037,7 @@ const AdminPanel = ({
   const [newClanName, setNewClanName] = useState("");
   const [newClanTag, setNewClanTag] = useState("");
   const [newClanLogo, setNewClanLogo] = useState("");
+  const [newClanEmail, setNewClanEmail] = useState("");
   const [editingClanId, setEditingClanId] = useState(null);
   const [managingMembersClanId, setManagingMembersClanId] = useState(null);
   const [selectedPlayerToAdd, setSelectedPlayerToAdd] = useState("");
@@ -7981,6 +7982,18 @@ const AdminPanel = ({
                         }
                       />
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-blue-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
+                        E-mail do Presidente (Para Login)
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="Ex: admin@clã.com"
+                        className="w-full bg-slate-900 border border-blue-500/30 rounded-lg p-3.5 text-white text-sm outline-none focus:border-blue-400 transition-colors"
+                        value={newClanEmail}
+                        onChange={(e) => setNewClanEmail(e.target.value)}
+                      />
+                    </div>
                   </div>
                   <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 border-dashed mb-6">
                     <label className="block text-slate-400 text-[10px] uppercase font-bold mb-4 tracking-wider">
@@ -8021,6 +8034,7 @@ const AdminPanel = ({
                             name: newClanName,
                             tag: newClanTag,
                             logoUrl: newClanLogo,
+                            ownerEmail: newClanEmail,
                           });
                           triggerFeedback("Clã atualizado com sucesso!");
                         } else {
@@ -8028,6 +8042,7 @@ const AdminPanel = ({
                             name: newClanName,
                             tag: newClanTag,
                             logoUrl: newClanLogo,
+                            ownerEmail: newClanEmail,
                             budget: 15000000,
                           });
                           triggerFeedback("Clã criado com sucesso!");
@@ -8035,6 +8050,7 @@ const AdminPanel = ({
                         setNewClanName("");
                         setNewClanTag("");
                         setNewClanLogo("");
+                        setNewClanEmail("");
                         setEditingClanId(null);
                       }
                     }}
@@ -8105,6 +8121,7 @@ const AdminPanel = ({
                               setNewClanName(clan.name);
                               setNewClanTag(clan.tag);
                               setNewClanLogo(clan.logoUrl);
+                              setNewClanEmail(clan.ownerEmail || "");
                               setEditingClanId(clan.id);
                               window.scrollTo({ top: 0, behavior: "smooth" });
                             }}
@@ -11139,6 +11156,7 @@ const ClanRegistrationPage = ({ onSubmit, onBack }) => {
   const [tag, setTag] = useState("");
   const [ownerNick, setOwnerNick] = useState("");
   const [ownerGameId, setOwnerGameId] = useState("");
+  const [ownerEmail, setOwnerEmail] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -11254,6 +11272,19 @@ const ClanRegistrationPage = ({ onSubmit, onBack }) => {
           </div>
 
           <div>
+            <label className="block text-blue-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
+              E-mail do Presidente (Para Acessar o Painel VIP)
+            </label>
+            <input
+              type="email"
+              placeholder="Ex: fallen@loud.gg"
+              className="w-full bg-slate-950 border border-blue-500/30 rounded-xl p-4 text-white text-sm outline-none focus:border-blue-400 transition-colors shadow-inner"
+              value={ownerEmail}
+              onChange={(e) => setOwnerEmail(e.target.value)}
+            />
+          </div>
+
+          <div>
             <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
               TAG Oficial (3 ou 4 letras)
             </label>
@@ -11310,12 +11341,15 @@ const ClanRegistrationPage = ({ onSubmit, onBack }) => {
               const finalLogo =
                 logoUrl ||
                 "https://cdn-icons-png.flaticon.com/512/9406/9406324.png"; // Escudo genérico
+              if (!ownerEmail)
+                return alert("O E-mail de acesso é obrigatório!");
               await onSubmit({
                 name,
                 tag,
                 logoUrl: finalLogo,
                 ownerNick,
                 ownerGameId,
+                ownerEmail,
               });
               setIsSubmitting(false);
               setIsSuccess(true);
@@ -12393,6 +12427,7 @@ const App = () => {
         logoUrl: draft.logoUrl,
         ownerNick: draft.ownerNick || "",
         ownerGameId: draft.ownerGameId || "",
+        ownerEmail: draft.ownerEmail || "",
         budget: 15000000,
       }); // 2. Injeta o registro do Aporte Inicial na Tesouraria
 
