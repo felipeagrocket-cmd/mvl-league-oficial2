@@ -13894,24 +13894,6 @@ const App = () => {
                 <Rocket size={14} /> Comece Aqui
               </button>
 
-              {/* NOVO: BOTÃO ÁREA DA FRANQUIA */}
-              <button
-                onClick={() => {
-                  if (loggedClanId) {
-                    setView("managerDashboard");
-                  } else {
-                    setShowManagerLogin(true);
-                  }
-                }}
-                className={`flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all duration-300 px-3 py-2 rounded-lg shrink-0 ${
-                  view === "managerDashboard"
-                    ? "text-emerald-400 bg-emerald-400/10 shadow-[0_0_10px_rgba(52,211,153,0.1)]"
-                    : "text-slate-400 hover:text-emerald-400 hover:bg-slate-800/50"
-                }`}
-              >
-                <Shield size={14} /> Área da Franquia
-              </button>
-
               <div className="relative group">
                 <button
                   className={`flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all duration-300 px-3 py-2 rounded-lg shrink-0 ${
@@ -14057,6 +14039,26 @@ const App = () => {
                   </div>
                 </div>
               </div>
+
+              {/* BOTÃO LOGIN DO CLÃ (DESTACADO NA EXTREMA DIREITA) */}
+              <button
+                onClick={() => {
+                  if (loggedClanId) {
+                    setView("managerDashboard");
+                  } else {
+                    setShowManagerLogin(true);
+                  }
+                }}
+                className={`ml-4 flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all duration-300 px-5 py-2.5 rounded-lg shrink-0 border-2 ${
+                  view === "managerDashboard" || loggedClanId
+                    ? "bg-emerald-500 text-slate-950 border-emerald-500 shadow-[0_0_15px_rgba(52,211,153,0.4)]"
+                    : "text-emerald-400 border-emerald-500/50 hover:bg-emerald-500/10 hover:border-emerald-400"
+                }`}
+                title="Acesso exclusivo para Donos de Clã"
+              >
+                <Lock size={14} />{" "}
+                {loggedClanId ? "Painel do Clã" : "Login Clã"}
+              </button>
             </div>
           </div>
 
@@ -14156,6 +14158,24 @@ const App = () => {
                 }`}
               >
                 <ShoppingCart size={14} /> Loja
+              </button>
+
+              <button
+                onClick={() => {
+                  if (loggedClanId) {
+                    setView("managerDashboard");
+                  } else {
+                    setShowManagerLogin(true);
+                  }
+                }}
+                className={`snap-start shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ml-2 ${
+                  view === "managerDashboard" || loggedClanId
+                    ? "bg-emerald-500 text-slate-950 border-emerald-500"
+                    : "text-emerald-400 border-emerald-500/50 bg-slate-900"
+                }`}
+              >
+                <Lock size={14} />{" "}
+                {loggedClanId ? "Painel do Clã" : "Login Clã"}
               </button>
             </div>
             {/* Instrução visual animada */}
