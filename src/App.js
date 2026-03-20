@@ -5994,7 +5994,10 @@ const AdminPanel = ({
 
   // NOVOS CAMPOS DE ESTRATÉGIA E PREMIUM:
   const [newSponsorCost, setNewSponsorCost] = useState("");
-  const [newSponsorReqTitles, setNewSponsorReqTitles] = useState("0");
+  const [newSponsorReqTitles, setNewSponsorReqTitles] = useState("");
+  const [newSponsorReqWins, setNewSponsorReqWins] = useState("");
+  const [newSponsorReqTurnover, setNewSponsorReqTurnover] = useState("");
+  const [newSponsorReqPlayersSold, setNewSponsorReqPlayersSold] = useState("");
   const [newSponsorIsPremium, setNewSponsorIsPremium] = useState(false);
   const [newSponsorTolerance, setNewSponsorTolerance] = useState("3");
   const [newStoreItemImage, setNewStoreItemImage] = useState("");
@@ -8868,6 +8871,9 @@ const AdminPanel = ({
                           setNewSponsorClan("");
                           setNewSponsorCost("");
                           setNewSponsorReqTitles("0");
+                          setNewSponsorReqWins("");
+                          setNewSponsorReqTurnover("");
+                          setNewSponsorReqPlayersSold("");
                           setNewSponsorTolerance("3");
                           setNewSponsorIsPremium(false);
                           setEditingSponsorId(null);
@@ -9061,6 +9067,10 @@ const AdminPanel = ({
                           reqTitles: newSponsorIsPremium
                             ? 0
                             : parseInt(newSponsorReqTitles || 0),
+                          reqWins: parseInt(newSponsorReqWins) || 0,
+                          reqTurnover: parseFloat(newSponsorReqTurnover) || 0,
+                          reqPlayersSold:
+                            parseInt(newSponsorReqPlayersSold) || 0,
                           tolerance: newSponsorIsPremium
                             ? 0
                             : parseInt(newSponsorTolerance || 3),
@@ -9219,7 +9229,14 @@ const AdminPanel = ({
                                 sponsor.isPremium || false
                               );
                               setNewSponsorCost(sponsor.cost || "");
-                              setNewSponsorReqTitles(sponsor.reqTitles || "0");
+                              setNewSponsorReqTitles(sponsor.reqTitles || "");
+                              setNewSponsorReqWins(sponsor.reqWins || "");
+                              setNewSponsorReqTurnover(
+                                sponsor.reqTurnover || ""
+                              );
+                              setNewSponsorReqPlayersSold(
+                                sponsor.reqPlayersSold || ""
+                              );
                               setNewSponsorTolerance(
                                 sponsor.tolerance?.toString() || "3"
                               );
@@ -11666,7 +11683,6 @@ const ManagerDashboard = ({
             </button>
           ))}
         </div>
-
         {/* =========================================
             ABA: VISÃO GERAL (DASHBOARD)
         ============================================= */}
@@ -11931,7 +11947,6 @@ const ManagerDashboard = ({
             </div>
           </div>
         )}
-
         {/* =========================================
             ABA: MEU ELENCO
         ============================================= */}
@@ -12025,7 +12040,6 @@ const ManagerDashboard = ({
             </div>
           </div>
         )}
-
         {/* =========================================
             ABA: EXTRATO FINANCEIRO
         ============================================= */}
@@ -12104,7 +12118,6 @@ const ManagerDashboard = ({
             </div>
           </div>
         )}
-
         {/* =========================================
             ABA: SCOUT & MERCADO
         ============================================= */}
@@ -12293,7 +12306,6 @@ const ManagerDashboard = ({
             </div>
           </div>
         )}
-
         {/* =========================================
             ABA: PATROCÍNIOS (VITRINE DO CLÃ)
         ============================================= */}
@@ -12380,16 +12392,40 @@ const ManagerDashboard = ({
               </div>
             );
           })()}
-
-        {/* MODAL DE ASSINATURA DE PATROCÍNIO */}
+        {/* MODAL DE ASSINATURA DE PATROCÍNIO */}       {" "}
         {sponsorModalItem &&
           (() => {
             const sp = sponsorModalItem;
-            const myTitlesCount = backend.getClanTitles(clan.id).length;
+            const myTitlesCount = backend.getClanTitles(clan.id).length; // Calculando Vitórias, Giro (Turnover) e Vendas lendo o Histórico e o Extrato (Logs)
+
+            const myWinsCount = clanHistory.filter((m) => m.isWin).length; // Giro: Soma tudo que tem "venda", "compra", "transfer" ou "multa" na descrição do log financeiro
+            const myTurnover = clanLogs
+              .filter(
+                (l) =>
+                  l.reason.toLowerCase().includes("venda") ||
+                  l.reason.toLowerCase().includes("compra") ||
+                  l.reason.toLowerCase().includes("transfer") ||
+                  l.reason.toLowerCase().includes("multa")
+              )
+              .reduce((acc, l) => acc + Math.abs(l.amount), 0); // Vendas: Conta quantas vezes o dinheiro ENTROU (+) por motivo de "venda" ou "multa" rescisória
+            const myPlayersSold = clanLogs.filter(
+              (l) =>
+                l.amount > 0 &&
+                (l.reason.toLowerCase().includes("venda") ||
+                  l.reason.toLowerCase().includes("multa"))
+            ).length;
 
             const meetsTitles = myTitlesCount >= (sp.reqTitles || 0);
+            const meetsWins = myWinsCount >= (sp.reqWins || 0);
+            const meetsTurnover = myTurnover >= (sp.reqTurnover || 0);
+            const meetsSales = myPlayersSold >= (sp.reqPlayersSold || 0);
             const meetsBudget = clan.budget >= (sp.cost || 0);
-            const isEligible = meetsTitles && meetsBudget;
+            const isEligible =
+              meetsTitles &&
+              meetsWins &&
+              meetsTurnover &&
+              meetsSales &&
+              meetsBudget;
 
             return (
               <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fadeIn">
@@ -12443,25 +12479,96 @@ const ManagerDashboard = ({
 
                       {!sp.isPremium && (
                         <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-4">
-                          <div className="flex justify-between items-center border-b border-slate-800/50 pb-3">
-                            <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
-                              <Trophy size={12} /> Títulos Exigidos
-                            </span>
-                            <span
-                              className={`font-mono font-bold text-sm ${
-                                meetsTitles
-                                  ? "text-emerald-400"
-                                  : "text-red-400"
-                              }`}
-                            >
-                              {myTitlesCount} / {sp.reqTitles || 0}
-                            </span>
-                          </div>
+                                                   {" "}
+                          {sp.reqTitles > 0 && (
+                            <div className="flex justify-between items-center border-b border-slate-800/50 pb-3">
+                                                           {" "}
+                              <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
+                                <Trophy size={12} /> Títulos Exigidos
+                              </span>
+                                                           {" "}
+                              <span
+                                className={`font-mono font-bold text-sm ${
+                                  meetsTitles
+                                    ? "text-emerald-400"
+                                    : "text-red-400"
+                                }`}
+                              >
+                                {myTitlesCount} / {sp.reqTitles}
+                              </span>
+                                                         {" "}
+                            </div>
+                          )}
+                                                   {" "}
+                          {sp.reqWins > 0 && (
+                            <div className="flex justify-between items-center border-b border-slate-800/50 pb-3">
+                                                           {" "}
+                              <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
+                                <Swords size={12} /> Vitórias em Mapas
+                              </span>
+                                                           {" "}
+                              <span
+                                className={`font-mono font-bold text-sm ${
+                                  meetsWins
+                                    ? "text-emerald-400"
+                                    : "text-red-400"
+                                }`}
+                              >
+                                {myWinsCount} / {sp.reqWins}
+                              </span>
+                                                         {" "}
+                            </div>
+                          )}
+                                                   {" "}
+                          {sp.reqTurnover > 0 && (
+                            <div className="flex justify-between items-center border-b border-slate-800/50 pb-3">
+                                                           {" "}
+                              <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
+                                <Activity size={12} /> Giro no Mercado
+                              </span>
+                                                           {" "}
+                              <span
+                                className={`font-mono font-bold text-xs ${
+                                  meetsTurnover
+                                    ? "text-emerald-400"
+                                    : "text-red-400"
+                                }`}
+                              >
+                                {formatCurrency(myTurnover)} /{" "}
+                                {formatCurrency(sp.reqTurnover)}
+                              </span>
+                                                         {" "}
+                            </div>
+                          )}
+                                                   {" "}
+                          {sp.reqPlayersSold > 0 && (
+                            <div className="flex justify-between items-center border-b border-slate-800/50 pb-3">
+                                                           {" "}
+                              <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
+                                <Users size={12} /> Jogadores Vendidos
+                              </span>
+                                                           {" "}
+                              <span
+                                className={`font-mono font-bold text-sm ${
+                                  meetsSales
+                                    ? "text-emerald-400"
+                                    : "text-red-400"
+                                }`}
+                              >
+                                {myPlayersSold} / {sp.reqPlayersSold}
+                              </span>
+                                                         {" "}
+                            </div>
+                          )}
+                                                   {" "}
                           <div className="flex justify-between items-center">
+                                                       {" "}
                             <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
                               <Landmark size={12} /> Luvas (Custo Inicial)
                             </span>
+                                                       {" "}
                             <div className="text-right">
+                                                           {" "}
                               <span
                                 className={`font-mono font-bold text-sm block ${
                                   meetsBudget
@@ -12469,13 +12576,19 @@ const ManagerDashboard = ({
                                     : "text-red-400"
                                 }`}
                               >
-                                {formatCurrency(sp.cost || 0)}
+                                                               {" "}
+                                {formatCurrency(sp.cost || 0)}                 
+                                           {" "}
                               </span>
+                                                           {" "}
                               <span className="text-[8px] text-slate-500 font-mono">
                                 Caixa: {formatCurrency(clan.budget)}
                               </span>
+                                                         {" "}
                             </div>
+                                                     {" "}
                           </div>
+                                                 {" "}
                         </div>
                       )}
 
@@ -12557,7 +12670,6 @@ const ManagerDashboard = ({
               </div>
             );
           })()}
-
         {/* MODAL DE PROPOSTA DE CONTRATAÇÃO (SEM BLOQUEIO) */}
         {proposalModalPlayer &&
           (() => {
