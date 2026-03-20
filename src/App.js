@@ -5999,6 +5999,7 @@ const AdminPanel = ({
   const [newSponsorReqTurnover, setNewSponsorReqTurnover] = useState("");
   const [newSponsorReqPlayersSold, setNewSponsorReqPlayersSold] = useState("");
   const [newSponsorIsPremium, setNewSponsorIsPremium] = useState(false);
+  const [newSponsorTier, setNewSponsorTier] = useState("1"); // 1, 2 ou 3
   const [newSponsorTolerance, setNewSponsorTolerance] = useState("3");
   const [newStoreItemImage, setNewStoreItemImage] = useState("");
   const [newAvatarImage, setNewAvatarImage] = useState("");
@@ -8925,6 +8926,20 @@ const AdminPanel = ({
 
                     <div>
                       <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2">
+                        Nível da Marca (Tier)
+                      </label>
+                      <select
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3.5 text-white text-sm outline-none focus:border-amber-400"
+                        value={newSponsorTier}
+                        onChange={(e) => setNewSponsorTier(e.target.value)}
+                      >
+                        <option value="1">Tier 1 (Base / Apoiador)</option>
+                        <option value="2">Tier 2 (Pro / Crescimento)</option>
+                        <option value="3">Tier 3 (Elite / Gigante)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2">
                         Formato de Pagamento
                       </label>
                       <select
@@ -9115,6 +9130,7 @@ const AdminPanel = ({
                           amount: parseFloat(newSponsorAmount),
                           clanId: newSponsorClan || null,
                           isPremium: newSponsorIsPremium,
+                          tier: newSponsorTier,
                           cost: newSponsorIsPremium
                             ? 0
                             : parseFloat(newSponsorCost || 0),
@@ -9173,6 +9189,7 @@ const AdminPanel = ({
                         setNewSponsorReqTitles("0");
                         setNewSponsorTolerance("3");
                         setNewSponsorIsPremium(false);
+                        setNewSponsorTier("1");
                         setEditingSponsorId(null);
                       } else {
                         triggerFeedback("Preencha nome, logo e valor pago!");
@@ -9243,6 +9260,17 @@ const AdminPanel = ({
                                   </span>
                                 ) : (
                                   <>
+                                    <span
+                                      className={`text-[8px] font-black uppercase px-2 py-0.5 rounded border ${
+                                        sponsor.tier === "3"
+                                          ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                                          : sponsor.tier === "2"
+                                          ? "bg-slate-300/10 text-slate-300 border-slate-400/30"
+                                          : "bg-orange-700/10 text-orange-500 border-orange-700/30"
+                                      }`}
+                                    >
+                                      Tier {sponsor.tier || "1"}
+                                    </span>
                                     {sponsor.cost > 0 && (
                                       <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
                                         Custo: {formatCurrency(sponsor.cost)}
@@ -9282,6 +9310,7 @@ const AdminPanel = ({
                               setNewSponsorIsPremium(
                                 sponsor.isPremium || false
                               );
+                              setNewSponsorTier(sponsor.tier || "1");
                               setNewSponsorCost(sponsor.cost || "");
                               setNewSponsorReqTitles(sponsor.reqTitles || "");
                               setNewSponsorReqWins(sponsor.reqWins || "");
@@ -11907,10 +11936,23 @@ const ManagerDashboard = ({
                           alt={sp.name}
                         />
                         <div>
-                          <div className="text-white font-bold text-sm uppercase">
+                          <div className="text-white font-bold text-sm uppercase flex items-center gap-2">
                             {sp.name}
+                            {!sp.isPremium && (
+                              <span
+                                className={`text-[7px] px-1.5 py-0.5 rounded border font-black tracking-wider ${
+                                  sp.tier === "3"
+                                    ? "bg-amber-500/10 border-amber-500/50 text-amber-400"
+                                    : sp.tier === "2"
+                                    ? "bg-slate-300/10 border-slate-400/50 text-slate-300"
+                                    : "bg-orange-700/10 border-orange-700/50 text-orange-500"
+                                }`}
+                              >
+                                T{sp.tier || "1"}
+                              </span>
+                            )}
                           </div>
-                          <div className="text-emerald-400 font-mono font-bold text-xs">
+                          <div className="text-emerald-400 font-mono font-bold text-xs mt-0.5">
                             {formatCurrency(sp.amount)}{" "}
                             <span className="text-[9px] text-slate-500 uppercase">
                               {sp.type === "victory" ? "/ Vitória" : "/ Mapa"}
@@ -12404,14 +12446,28 @@ const ManagerDashboard = ({
                           />
                         </div>
                         <div>
-                          <h4 className="text-white font-black text-lg uppercase tracking-tight leading-tight">
+                          <h4 className="text-white font-black text-lg uppercase tracking-tight leading-tight flex items-center gap-2">
                             {sponsor.name}
                           </h4>
-                          {sponsor.isPremium && (
-                            <span className="text-[8px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-gradient-to-r from-amber-400 to-amber-600 text-black shadow-md mt-1 inline-block">
-                              Premium Vitalício
-                            </span>
-                          )}
+                          <div className="flex items-center gap-2 mt-1">
+                            {sponsor.isPremium ? (
+                              <span className="text-[8px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-gradient-to-r from-amber-400 to-amber-600 text-black shadow-md flex items-center gap-1">
+                                <Crown size={10} /> Premium Vitalício
+                              </span>
+                            ) : (
+                              <span
+                                className={`text-[8px] font-black uppercase px-2 py-0.5 rounded border ${
+                                  sponsor.tier === "3"
+                                    ? "bg-amber-500/10 text-amber-400 border-amber-500/30 shadow-[0_0_10px_rgba(251,191,36,0.2)]"
+                                    : sponsor.tier === "2"
+                                    ? "bg-slate-300/10 text-slate-300 border-slate-400/30"
+                                    : "bg-orange-700/10 text-orange-500 border-orange-700/30"
+                                }`}
+                              >
+                                TIER {sponsor.tier || "1"}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 flex justify-between items-center mt-auto">
