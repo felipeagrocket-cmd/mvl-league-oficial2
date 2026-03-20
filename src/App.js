@@ -11512,6 +11512,624 @@ const ClanSetupPage = ({ clanId, data, onSetup, onBack }) => {
   );
 };
 
+// ============================================================================
+// PAINEL VIP DO PRESIDENTE DA FRANQUIA (MANAGER DASHBOARD)
+// ============================================================================
+const ManagerDashboard = ({ clanId, data, backend, onLogout }) => {
+  const [activeTab, setActiveTab] = useState("overview");
+
+  const clan = data.clans.find((c) => c.id === clanId);
+  if (!clan) return null;
+
+  const clanPlayers = data.players.filter(
+    (p) => p.clanId === clan.id && !p.isPaused
+  );
+  const clanSponsors = data.sponsors?.filter((s) => s.clanId === clan.id) || [];
+  const clanLogs =
+    data.financialLogs
+      ?.filter((l) => l.clanId === clan.id)
+      .sort((a, b) => new Date(b.date) - new Date(a.date)) || [];
+
+  // --- MATEMÁTICA FINANCEIRA DO CLÃ ---
+  const squadValue = clanPlayers.reduce(
+    (acc, p) => acc + (p.marketValue || 10000000),
+    0
+  );
+
+  const payrollPerMatch = clanPlayers.reduce((acc, p) => {
+    const base = (p.marketValue || 10000000) * 0.005;
+    const bonus = p.salaryBonus || 0;
+    return acc + base + bonus;
+  }, 0);
+
+  // Quantos mapas o clã aguenta jogar antes de falir?
+  const survivalMaps =
+    payrollPerMatch > 0
+      ? Math.floor(clan.budget / payrollPerMatch)
+      : "Ilimitado";
+  const isBankrupt = clan.budget < 0;
+  const isCritical = typeof survivalMaps === "number" && survivalMaps <= 5;
+
+  // --- SISTEMA DE ALERTA DE PATROCÍNIOS (CRISE) ---
+  const clanHistory = backend.getClanHistory(clan.id);
+  let losingStreak = 0;
+  for (const match of clanHistory) {
+    if (!match.isWin) losingStreak++;
+    else break;
+  }
+
+  // Número do WhatsApp da Staff para os botões de ação
+  const STAFF_WHATSAPP = "16988211957";
+
+  return (
+    <div className="min-h-screen bg-slate-950 pb-16 font-sans selection:bg-blue-500 selection:text-white">
+      {/* Efeito de Fundo Premium */}
+      <div className="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-blue-900/20 to-transparent pointer-events-none"></div>
+      <div className="fixed -top-40 -right-40 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+      {/* NAVBAR DO MANAGER */}
+      <nav className="relative z-10 bg-slate-900/60 backdrop-blur-xl border-b border-slate-800/80 shadow-2xl sticky top-0">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-slate-950 rounded-xl p-1 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+              <img
+                src={clan.logoUrl}
+                alt={clan.tag}
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div>
+              <h1 className="text-white font-black text-xl uppercase tracking-tight leading-none">
+                {clan.name}
+              </h1>
+              <span className="text-blue-400 text-[10px] font-bold uppercase tracking-widest">
+                Painel da Presidência
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={onLogout}
+            className="flex items-center gap-2 text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500 border border-red-500/20 hover:border-red-500 px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all shadow-lg"
+          >
+            <LogOut size={14} /> Sair
+          </button>
+        </div>
+      </nav>
+
+      <div className="max-w-7xl mx-auto px-6 pt-10 relative z-10">
+        {/* ABAS DE NAVEGAÇÃO INTERNA */}
+        <div className="flex flex-wrap gap-2 mb-10 bg-slate-900/50 p-1.5 rounded-2xl border border-slate-800/50 w-fit backdrop-blur-sm">
+          {[
+            { id: "overview", label: "Visão Geral", icon: Activity },
+            { id: "squad", label: "Meu Elenco", icon: Users },
+            { id: "finance", label: "Extrato Financeiro", icon: Landmark },
+            { id: "scout", label: "Scout & Mercado", icon: Search },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                activeTab === tab.id
+                  ? "bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.3)] scale-105"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800"
+              }`}
+            >
+              <tab.icon size={16} /> {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* =========================================
+            ABA: VISÃO GERAL (DASHBOARD)
+        ============================================= */}
+        {activeTab === "overview" && (
+          <div className="animate-fadeIn space-y-8">
+            {/* Métricas Principais (Glassmorphism) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Caixa */}
+              <div
+                className={`p-6 rounded-3xl border backdrop-blur-md relative overflow-hidden shadow-xl ${
+                  isBankrupt
+                    ? "bg-red-950/40 border-red-500/30"
+                    : "bg-slate-900/80 border-slate-700/50"
+                }`}
+              >
+                {isBankrupt && (
+                  <div className="absolute inset-0 bg-red-500/5 animate-pulse pointer-events-none"></div>
+                )}
+                <div className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-2 flex items-center gap-2">
+                  <Landmark
+                    size={14}
+                    className={isBankrupt ? "text-red-400" : "text-emerald-400"}
+                  />{" "}
+                  Caixa Atual
+                </div>
+                <div
+                  className={`text-3xl font-mono font-black ${
+                    isBankrupt ? "text-red-400" : "text-emerald-400"
+                  }`}
+                >
+                  {formatCurrency(clan.budget)}
+                </div>
+                {isBankrupt && (
+                  <div className="text-[10px] text-red-400 font-bold uppercase mt-2 bg-red-500/10 px-2 py-1 rounded w-fit border border-red-500/20">
+                    ⚠️ Franquia Falida
+                  </div>
+                )}
+              </div>
+
+              {/* Folha Salarial */}
+              <div className="bg-slate-900/80 border border-slate-700/50 p-6 rounded-3xl backdrop-blur-md shadow-xl relative overflow-hidden">
+                <div className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-2 flex items-center gap-2">
+                  <Banknote size={14} className="text-red-400" /> Custo por Mapa
+                </div>
+                <div className="text-3xl font-mono font-black text-white">
+                  {formatCurrency(payrollPerMatch)}
+                </div>
+                <div className="text-[10px] text-slate-500 mt-2">
+                  Soma dos salários de todos os titulares.
+                </div>
+              </div>
+
+              {/* Sobrevivência */}
+              <div
+                className={`p-6 rounded-3xl border backdrop-blur-md shadow-xl relative overflow-hidden ${
+                  isCritical
+                    ? "bg-orange-950/40 border-orange-500/30"
+                    : "bg-slate-900/80 border-slate-700/50"
+                }`}
+              >
+                {isCritical && !isBankrupt && (
+                  <div className="absolute inset-0 bg-orange-500/5 animate-pulse pointer-events-none"></div>
+                )}
+                <div className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-2 flex items-center gap-2">
+                  <Activity
+                    size={14}
+                    className={isCritical ? "text-orange-400" : "text-blue-400"}
+                  />{" "}
+                  Sobrevivência
+                </div>
+                <div
+                  className={`text-3xl font-mono font-black ${
+                    isCritical ? "text-orange-400" : "text-blue-400"
+                  }`}
+                >
+                  {survivalMaps}{" "}
+                  <span className="text-sm text-slate-500 uppercase font-bold tracking-widest">
+                    Mapas
+                  </span>
+                </div>
+                <div className="text-[10px] text-slate-500 mt-2">
+                  Até o caixa zerar.
+                </div>
+              </div>
+
+              {/* Valor do Elenco */}
+              <div className="bg-slate-900/80 border border-slate-700/50 p-6 rounded-3xl backdrop-blur-md shadow-xl relative overflow-hidden">
+                <div className="absolute -right-6 -bottom-6 text-slate-800/50">
+                  <Users size={100} />
+                </div>
+                <div className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-2 flex items-center gap-2 relative z-10">
+                  <TrendingUp size={14} className="text-purple-400" /> Valor do
+                  Elenco
+                </div>
+                <div className="text-3xl font-mono font-black text-purple-400 relative z-10">
+                  {formatCurrency(squadValue)}
+                </div>
+              </div>
+            </div>
+
+            {/* Alertas de Crise de Patrocínio */}
+            {clanSponsors.some(
+              (s) => s.tolerance > 0 && s.tolerance - losingStreak <= 1
+            ) && (
+              <div className="bg-red-950/50 border border-red-500/50 p-6 rounded-2xl shadow-[0_0_30px_rgba(239,68,68,0.2)] flex items-start gap-4 animate-pulse">
+                <AlertTriangle size={32} className="text-red-500 shrink-0" />
+                <div>
+                  <h4 className="text-red-400 font-black uppercase tracking-widest text-sm mb-1">
+                    Alerta de Diretoria: Risco de Rescisão
+                  </h4>
+                  <p className="text-red-300/80 text-xs leading-relaxed">
+                    A equipe está em uma sequência de {losingStreak} derrotas.
+                    Temos patrocinadores prestes a romper o contrato se o time
+                    perder a próxima partida. Vençam o próximo jogo
+                    imediatamente!
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Marcas Atuais */}
+              <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 md:p-8 backdrop-blur-sm">
+                <h4 className="text-white font-black uppercase tracking-tight text-lg mb-6 flex items-center gap-2 border-b border-slate-800 pb-4">
+                  <Handshake className="text-blue-400" /> Nossos Patrocinadores
+                </h4>
+                <div className="space-y-4">
+                  {clanSponsors.map((sp) => (
+                    <div
+                      key={sp.id}
+                      className="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={sp.logoUrl}
+                          className="w-12 h-12 object-contain bg-white rounded-lg p-1"
+                          alt={sp.name}
+                        />
+                        <div>
+                          <div className="text-white font-bold text-sm uppercase">
+                            {sp.name}
+                          </div>
+                          <div className="text-emerald-400 font-mono font-bold text-xs">
+                            {formatCurrency(sp.amount)}{" "}
+                            <span className="text-[9px] text-slate-500 uppercase">
+                              {sp.type === "victory" ? "/ Vitória" : "/ Mapa"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      {sp.tolerance > 0 && (
+                        <div className="text-right">
+                          <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1">
+                            Tolerância
+                          </div>
+                          <div
+                            className={`text-xs font-black px-2 py-1 rounded border ${
+                              losingStreak >= sp.tolerance - 1
+                                ? "bg-red-500/10 text-red-500 border-red-500/30"
+                                : "bg-slate-900 text-slate-400 border-slate-700"
+                            }`}
+                          >
+                            {losingStreak} / {sp.tolerance} Fails
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {clanSponsors.length === 0 && (
+                    <div className="text-slate-500 text-xs italic text-center py-6 border border-dashed border-slate-800 rounded-xl">
+                      Nenhum patrocinador ativo. Visite o Mercado.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Histórico Recente */}
+              <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 md:p-8 backdrop-blur-sm">
+                <h4 className="text-white font-black uppercase tracking-tight text-lg mb-6 flex items-center gap-2 border-b border-slate-800 pb-4">
+                  <HistoryIcon className="text-amber-400" /> Últimos Jogos
+                </h4>
+                <div className="space-y-3">
+                  {clanHistory.slice(0, 5).map((m) => (
+                    <div
+                      key={m.id}
+                      className="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between"
+                    >
+                      <div>
+                        <div className="text-white font-bold text-sm uppercase">
+                          {m.mapName}
+                        </div>
+                        <div className="text-slate-500 text-[10px] uppercase font-bold tracking-widest">
+                          {m.splitName}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="font-mono text-lg font-black text-slate-300">
+                          <span
+                            className={
+                              m.isWin
+                                ? "text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.5)]"
+                                : ""
+                            }
+                          >
+                            {m.myScore}
+                          </span>
+                          <span className="text-slate-700 mx-2">x</span>
+                          <span className={!m.isWin ? "text-red-400" : ""}>
+                            {m.enemyScore}
+                          </span>
+                        </div>
+                        <div
+                          className={`text-[9px] px-2 py-1 rounded font-black uppercase tracking-wider ${
+                            m.isWin
+                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                              : "bg-red-500/10 text-red-500 border border-red-500/20"
+                          }`}
+                        >
+                          {m.isWin ? "WIN" : "LOSS"}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {clanHistory.length === 0 && (
+                    <div className="text-slate-500 text-xs italic text-center py-6 border border-dashed border-slate-800 rounded-xl">
+                      O time ainda não estreou nos servidores.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* =========================================
+            ABA: MEU ELENCO
+        ============================================= */}
+        {activeTab === "squad" && (
+          <div className="animate-fadeIn">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {clanPlayers.map((p) => {
+                const contract = getContractStatus(p);
+                const salary =
+                  (p.marketValue || 10000000) * 0.005 + (p.salaryBonus || 0);
+
+                return (
+                  <div
+                    key={p.id}
+                    className="bg-slate-900/80 border border-slate-700/50 rounded-3xl p-6 backdrop-blur-md shadow-xl flex flex-col relative overflow-hidden group"
+                  >
+                    <div className="flex items-center gap-4 mb-6 relative z-10">
+                      <img
+                        src={p.avatarUrl}
+                        className="w-16 h-16 rounded-2xl object-cover bg-slate-950 border border-slate-700 shadow-lg group-hover:scale-110 transition-transform"
+                        alt={p.nickname}
+                      />
+                      <div>
+                        <h4 className="text-white font-black text-lg uppercase tracking-tight leading-none mb-1">
+                          {p.nickname}
+                        </h4>
+                        <div className="text-slate-500 text-[10px] font-mono">
+                          {p.gameId}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 mb-6 relative z-10 flex-1">
+                      <div className="bg-slate-950/50 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+                        <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest">
+                          Valor do Passe
+                        </span>
+                        <span className="text-emerald-400 font-mono font-bold text-sm">
+                          {formatCurrency(p.marketValue || 10000000)}
+                        </span>
+                      </div>
+                      <div className="bg-slate-950/50 p-3 rounded-xl border border-blue-500/20 flex justify-between items-center shadow-[0_0_10px_rgba(59,130,246,0.05)]">
+                        <span className="text-blue-400 text-[10px] uppercase font-bold tracking-widest">
+                          Salário Combinado
+                        </span>
+                        <span className="text-blue-400 font-mono font-bold text-sm">
+                          {formatCurrency(salary)}{" "}
+                          <span className="text-[8px] text-slate-500">
+                            / MAPA
+                          </span>
+                        </span>
+                      </div>
+                      <div className="bg-slate-950/50 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+                        <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest">
+                          Vínculo
+                        </span>
+                        <span
+                          className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${contract.color} border-current opacity-80`}
+                        >
+                          {contract.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 relative z-10 mt-auto">
+                      <a
+                        href={`https://wa.me/${STAFF_WHATSAPP}?text=Ol%C3%A1%20Staff!%20Sou%20o%20presidente%20da%20${clan.name}%20e%20gostaria%20de%20RENOVAR%20o%20contrato%20do%20jogador%20${p.nickname}.`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex-1 bg-amber-500 hover:bg-amber-400 text-black font-bold uppercase text-[10px] py-3 rounded-xl text-center transition-colors shadow-lg shadow-amber-500/20"
+                      >
+                        Negociar Renovação
+                      </a>
+                      <a
+                        href={`https://wa.me/${STAFF_WHATSAPP}?text=Ol%C3%A1%20Staff!%20Sou%20o%20presidente%20da%20${clan.name}%20e%20solicito%20a%20DISPENSA%20do%20jogador%20${p.nickname}%20do%20meu%20elenco.`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex-1 bg-slate-800 hover:bg-red-500 hover:text-white text-slate-300 font-bold uppercase text-[10px] py-3 rounded-xl text-center transition-colors border border-slate-700 hover:border-red-500"
+                      >
+                        Dispensar
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+              {clanPlayers.length === 0 && (
+                <div className="col-span-full py-20 text-center border border-dashed border-slate-800 rounded-3xl text-slate-500">
+                  Seu elenco está vazio. Vá até a aba de Scout para contratar!
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* =========================================
+            ABA: EXTRATO FINANCEIRO
+        ============================================= */}
+        {activeTab === "finance" && (
+          <div className="animate-fadeIn max-w-4xl mx-auto">
+            <div className="bg-slate-900/80 border border-slate-700/50 rounded-3xl p-6 md:p-10 backdrop-blur-md shadow-2xl">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-6 mb-6">
+                <div>
+                  <h3 className="text-2xl font-black text-white uppercase tracking-tight flex items-center gap-3">
+                    <Landmark className="text-emerald-400" /> Extrato Oficial
+                  </h3>
+                  <p className="text-slate-400 text-xs mt-1">
+                    Acompanhe todas as movimentações do caixa da sua franquia.
+                  </p>
+                </div>
+                <div className="bg-slate-950 px-6 py-3 rounded-2xl border border-slate-800 shadow-inner">
+                  <div className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">
+                    Saldo em Caixa
+                  </div>
+                  <div
+                    className={`text-2xl font-mono font-black ${
+                      isBankrupt ? "text-red-400" : "text-emerald-400"
+                    }`}
+                  >
+                    {formatCurrency(clan.budget)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {clanLogs.map((log) => {
+                  const isPositive = log.amount > 0;
+                  const isNeutral = log.amount === 0;
+                  return (
+                    <div
+                      key={log.id}
+                      className="bg-slate-950 p-4 md:p-5 rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-slate-700 transition-colors"
+                    >
+                      <div>
+                        <div className="text-white font-bold text-sm mb-1">
+                          {log.reason}
+                        </div>
+                        <div className="text-slate-500 text-[10px] flex items-center gap-2">
+                          <span>{new Date(log.date).toLocaleString()}</span>
+                          <span className="uppercase font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-700 text-[8px] tracking-widest">
+                            {log.type}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-left md:text-right border-t border-slate-800/50 md:border-none pt-3 md:pt-0">
+                        <div
+                          className={`font-mono font-black text-lg ${
+                            isPositive
+                              ? "text-emerald-400"
+                              : isNeutral
+                              ? "text-slate-400"
+                              : "text-red-400"
+                          }`}
+                        >
+                          {isPositive ? "+" : ""}
+                          {formatCurrency(log.amount)}
+                        </div>
+                        <div className="text-slate-600 text-[10px] font-mono mt-0.5">
+                          Saldo: {formatCurrency(log.newBalance)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {clanLogs.length === 0 && (
+                  <div className="text-center py-12 text-slate-500 text-sm italic border border-dashed border-slate-800 rounded-2xl">
+                    Nenhuma movimentação registrada.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* =========================================
+            ABA: SCOUT & MERCADO
+        ============================================= */}
+        {activeTab === "scout" && (
+          <div className="animate-fadeIn">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+              <div>
+                <h3 className="text-2xl font-black text-white uppercase tracking-tight flex items-center gap-3">
+                  <Search className="text-amber-400" /> Mercado de Atletas
+                </h3>
+                <p className="text-slate-400 text-xs mt-1">
+                  Busque novos talentos para reforçar sua equipe.
+                </p>
+              </div>
+              <a
+                href={`https://wa.me/${STAFF_WHATSAPP}?text=Ol%C3%A1%20Staff!%20Sou%20presidente%20da%20${clan.name}%20e%20gostaria%20de%20assinar%20com%20um%20novo%20patrocinador%20para%20o%20meu%20time.`}
+                target="_blank"
+                rel="noreferrer"
+                className="bg-blue-600 hover:bg-blue-500 text-white font-bold uppercase text-[10px] px-6 py-3 rounded-xl shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all flex items-center gap-2"
+              >
+                <Handshake size={14} /> Ver Patrocinadores
+              </a>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {data.players
+                .filter((p) => p.clanId !== clan.id && !p.isPaused)
+                .sort((a, b) => b.marketValue - a.marketValue)
+                .map((p) => {
+                  const pClan = data.clans.find((c) => c.id === p.clanId);
+                  const contract = getContractStatus(p);
+                  const penalty = calculateReleaseClause(
+                    p.marketValue || 10000000,
+                    p.releaseClauseMultiplier
+                  );
+
+                  return (
+                    <div
+                      key={p.id}
+                      className="bg-slate-900/80 border border-slate-700/50 rounded-3xl p-5 backdrop-blur-md shadow-xl flex flex-col group hover:border-amber-500/30 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={p.avatarUrl}
+                            className="w-12 h-12 rounded-xl object-cover bg-slate-950 border border-slate-700"
+                            alt={p.nickname}
+                          />
+                          <div>
+                            <div className="text-white font-bold text-sm uppercase">
+                              {p.nickname}
+                            </div>
+                            <div className="text-slate-500 text-[10px] uppercase font-bold tracking-widest">
+                              {pClan ? pClan.tag : "Free Agent"}
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          className={`text-[8px] font-black uppercase px-2 py-1 rounded border ${contract.color} border-current opacity-80`}
+                        >
+                          {contract.status}
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-950/50 p-3 rounded-xl border border-slate-800 flex justify-between items-center mb-4">
+                        <div>
+                          <div className="text-slate-500 text-[9px] uppercase font-bold tracking-widest">
+                            Passe Oficial
+                          </div>
+                          <div className="text-emerald-400 font-mono font-bold text-sm">
+                            {formatCurrency(p.marketValue || 10000000)}
+                          </div>
+                        </div>
+                        {contract.isValid && penalty > 0 && (
+                          <div className="text-right">
+                            <div className="text-red-400 text-[9px] uppercase font-bold tracking-widest flex items-center gap-1 justify-end">
+                              <Lock size={10} /> Multa
+                            </div>
+                            <div className="text-red-400 font-mono font-bold text-xs">
+                              +{formatCurrency(penalty)}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <a
+                        href={`https://wa.me/${STAFF_WHATSAPP}?text=Ol%C3%A1%20Staff!%20Sou%20presidente%20da%20${clan.name}%20e%20gostaria%20de%20fazer%20uma%20PROPOSTA%20DE%20CONTRATA%C3%87%C3%83O%20para%20o%20jogador%20${p.nickname}.`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-full bg-slate-800 hover:bg-amber-400 hover:text-black text-slate-300 font-bold uppercase text-[10px] py-3 rounded-xl text-center transition-colors border border-slate-700 mt-auto flex items-center justify-center gap-2"
+                      >
+                        <Briefcase size={14} /> Fazer Proposta
+                      </a>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const App = () => {
   const [db, setDb] = useState({
     players: [],
@@ -13421,6 +14039,20 @@ const App = () => {
       )}
 
       <div className="pt-28 md:pt-20 flex-grow flex flex-col">
+        {/* RENDERIZA O PAINEL DO PRESIDENTE SE ELE ESTIVER LOGADO E NA ROTA CERTA */}
+        {view === "managerDashboard" && loggedClanId && (
+          <ManagerDashboard
+            clanId={loggedClanId}
+            data={db}
+            backend={backend}
+            onLogout={() => {
+              setLoggedClanId(null);
+              setView("home");
+            }}
+          />
+        )}
+
+        {/* RENDERIZA A TELA DE PRIMEIRO ACESSO SE TIVER COM O LINK */}
         {view === "setupClan" && activeSetupClanId && (
           <ClanSetupPage
             clanId={activeSetupClanId}
