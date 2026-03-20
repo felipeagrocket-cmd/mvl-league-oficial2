@@ -6038,6 +6038,7 @@ const AdminPanel = ({
   const [newClanTag, setNewClanTag] = useState("");
   const [newClanLogo, setNewClanLogo] = useState("");
   const [newClanEmail, setNewClanEmail] = useState("");
+  const [newClanPassword, setNewClanPassword] = useState(""); // Memória da Senha
   const [editingClanId, setEditingClanId] = useState(null);
   const [managingMembersClanId, setManagingMembersClanId] = useState(null);
   const [selectedPlayerToAdd, setSelectedPlayerToAdd] = useState("");
@@ -7982,9 +7983,9 @@ const AdminPanel = ({
                         }
                       />
                     </div>
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-1">
                       <label className="block text-blue-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
-                        E-mail do Presidente (Para Login)
+                        E-mail de Acesso
                       </label>
                       <input
                         type="email"
@@ -7992,6 +7993,19 @@ const AdminPanel = ({
                         className="w-full bg-slate-900 border border-blue-500/30 rounded-lg p-3.5 text-white text-sm outline-none focus:border-blue-400 transition-colors"
                         value={newClanEmail}
                         onChange={(e) => setNewClanEmail(e.target.value)}
+                      />
+                    </div>
+                    <div className="md:col-span-1">
+                      <label className="block text-blue-400 text-[10px] uppercase font-bold mb-2 tracking-wider">
+                        Senha de Acesso
+                      </label>
+                      {/* O type="text" permite que você (Admin) veja a senha real escrita */}
+                      <input
+                        type="text"
+                        placeholder="Senha do Presidente..."
+                        className="w-full bg-slate-900 border border-blue-500/30 rounded-lg p-3.5 text-white text-sm outline-none focus:border-blue-400 transition-colors font-mono"
+                        value={newClanPassword}
+                        onChange={(e) => setNewClanPassword(e.target.value)}
                       />
                     </div>
                   </div>
@@ -8035,6 +8049,7 @@ const AdminPanel = ({
                             tag: newClanTag,
                             logoUrl: newClanLogo,
                             ownerEmail: newClanEmail,
+                            ownerPassword: newClanPassword, // Salvando a nova senha!
                           });
                           triggerFeedback("Clã atualizado com sucesso!");
                         } else {
@@ -8043,6 +8058,7 @@ const AdminPanel = ({
                             tag: newClanTag,
                             logoUrl: newClanLogo,
                             ownerEmail: newClanEmail,
+                            ownerPassword: newClanPassword,
                             budget: 15000000,
                           });
                           triggerFeedback("Clã criado com sucesso!");
@@ -8051,6 +8067,7 @@ const AdminPanel = ({
                         setNewClanTag("");
                         setNewClanLogo("");
                         setNewClanEmail("");
+                        setNewClanPassword("");
                         setEditingClanId(null);
                       }
                     }}
@@ -8145,6 +8162,7 @@ const AdminPanel = ({
                               setNewClanTag(clan.tag);
                               setNewClanLogo(clan.logoUrl);
                               setNewClanEmail(clan.ownerEmail || "");
+                              setNewClanPassword(clan.ownerPassword || ""); // Puxando a senha pra tela!
                               setEditingClanId(clan.id);
                               window.scrollTo({ top: 0, behavior: "smooth" });
                             }}
