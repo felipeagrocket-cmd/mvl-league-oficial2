@@ -11437,8 +11437,8 @@ const ClanSetupPage = ({ clanId, data, onSetup, onBack }) => {
             Acesso Já Configurado
           </h2>
           <p className="text-slate-400 text-sm">
-            Este clã já possui credenciais ativas. Use o botão "Área da
-            Franquia" no topo do site para logar.
+            Este clã já possui credenciais ativas. Use o botão "LOGIN CLÃ" no
+            topo do site para logar.
           </p>
         </div>
       </div>
