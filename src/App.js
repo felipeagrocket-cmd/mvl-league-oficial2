@@ -11580,6 +11580,19 @@ const ManagerDashboard = ({
   const isBankrupt = clan.budget < 0;
   const isCritical = typeof survivalMaps === "number" && survivalMaps <= 5;
 
+  // --- SISTEMA DE RADAR DE MERCADO (PROPOSTAS) ---
+  // 1. Propostas feitas PELO Clã (Minhas Propostas)
+  const outgoingProposals =
+    data.proposals?.filter((prop) => prop.targetClanId === clan.id) || [];
+
+  // 2. Propostas recebidas POR jogadores do Clã (Assédio de Mercado)
+  const incomingProposals =
+    data.proposals?.filter(
+      (prop) =>
+        prop.status === "pending" &&
+        clanPlayers.some((p) => p.id === prop.playerId)
+    ) || [];
+
   // --- SISTEMA DE ALERTA DE PATROCÍNIOS (CRISE) ---
   const clanHistory = backend.getClanHistory(clan.id);
   let losingStreak = 0;
@@ -11768,6 +11781,37 @@ const ManagerDashboard = ({
                 </div>
               </div>
             )}
+
+            {/* NOVO: Alertas de Assédio de Mercado */}
+            {incomingProposals.map((prop) => {
+              const targetPlayer = clanPlayers.find(
+                (p) => p.id === prop.playerId
+              );
+              const buyerClan = data.clans.find(
+                (c) => c.id === prop.targetClanId
+              );
+              return (
+                <div
+                  key={prop.id}
+                  className="bg-amber-950/40 border border-amber-500/40 p-6 rounded-2xl shadow-[0_0_30px_rgba(251,191,36,0.1)] flex items-start gap-4 animate-pulse mt-6"
+                >
+                  <Briefcase size={32} className="text-amber-500 shrink-0" />
+                  <div>
+                    <h4 className="text-amber-400 font-black uppercase tracking-widest text-sm mb-1">
+                      Atenção: Assédio de Mercado
+                    </h4>
+                    <p className="text-amber-300/80 text-xs leading-relaxed">
+                      Detectamos uma <strong>proposta em andamento</strong> de{" "}
+                      {formatCurrency(prop.transferOffer || 0)} do clã{" "}
+                      <strong>{buyerClan?.name || "Desconhecido"}</strong> para
+                      o seu jogador <strong>{targetPlayer?.nickname}</strong>.
+                      Caso ele aceite e a multa seja paga, você perderá este
+                      atleta!
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Marcas Atuais */}
@@ -12061,6 +12105,80 @@ const ManagerDashboard = ({
         ============================================= */}
         {activeTab === "scout" && (
           <div className="animate-fadeIn">
+            {/* NOVO: STATUS DAS MINHAS PROPOSTAS ENVIADAS */}
+            {outgoingProposals.length > 0 && (
+              <div className="mb-10 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 md:p-8 backdrop-blur-sm">
+                <h4 className="text-white font-black uppercase tracking-tight text-lg mb-6 flex items-center gap-2 border-b border-slate-800 pb-4">
+                  <FileText className="text-blue-400" /> Status das Minhas
+                  Propostas
+                </h4>
+                <div className="space-y-4">
+                  {outgoingProposals.map((prop) => {
+                    const p = data.players.find((x) => x.id === prop.playerId);
+                    if (!p) return null;
+                    return (
+                      <div
+                        key={prop.id}
+                        className="bg-slate-950 p-4 md:p-5 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 transition-colors hover:border-slate-700"
+                      >
+                        <div className="flex items-center gap-4 w-full md:w-auto">
+                          <img
+                            src={p.avatarUrl}
+                            className="w-12 h-12 rounded-xl bg-slate-800 object-cover border border-slate-700"
+                            alt={p.nickname}
+                          />
+                          <div>
+                            <div className="text-white font-bold text-sm uppercase">
+                              {p.nickname}
+                            </div>
+                            <div className="text-slate-500 text-[10px] font-mono mt-0.5">
+                              Oferta:{" "}
+                              <span className="text-emerald-400 font-bold">
+                                {formatCurrency(prop.transferOffer || 0)}
+                              </span>{" "}
+                              | Bônus: {formatCurrency(prop.salaryBonus || 0)}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+                          {prop.status === "pending" && (
+                            <>
+                              <span className="text-[9px] md:text-[10px] text-amber-500 uppercase font-bold border border-amber-500/30 px-2 py-1 rounded bg-amber-500/10 animate-pulse">
+                                Aguardando Jogador
+                              </span>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(
+                                    `${window.location.origin}/?proposal=${prop.id}`
+                                  );
+                                  alert(
+                                    "Link copiado para a área de transferência!"
+                                  );
+                                }}
+                                className="text-blue-400 hover:text-blue-300 hover:underline text-[9px] md:text-[10px] uppercase font-bold"
+                              >
+                                Copiar Link
+                              </button>
+                            </>
+                          )}
+                          {prop.status === "accepted" && (
+                            <span className="text-[9px] md:text-[10px] text-emerald-400 uppercase font-black border border-emerald-500/30 px-2 py-1 rounded bg-emerald-500/10">
+                              Aceita! (Aguardando Admin)
+                            </span>
+                          )}
+                          {prop.status === "rejected" && (
+                            <span className="text-[9px] md:text-[10px] text-red-400 uppercase font-bold border border-red-500/30 px-2 py-1 rounded bg-red-500/10">
+                              Recusada
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
               <div>
                 <h3 className="text-2xl font-black text-white uppercase tracking-tight flex items-center gap-3">
