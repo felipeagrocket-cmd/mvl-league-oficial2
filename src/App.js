@@ -12544,6 +12544,7 @@ const ManagerDashboard = ({
                               <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
                                 <Trophy size={12} className="shrink-0" />{" "}
                                 Títulos Exigidos
+                                <Tooltip text="Soma de todos os campeonatos oficiais vencidos pela sua franquia na liga." />
                               </span>
                               <span
                                 className={`font-mono font-bold text-sm text-left sm:text-right ${
@@ -12561,6 +12562,7 @@ const ManagerDashboard = ({
                               <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
                                 <Swords size={12} className="shrink-0" />{" "}
                                 Vitórias em Mapas
+                                <Tooltip text="Número total de vitórias em mapas oficiais conquistadas pela sua line-up." />
                               </span>
                               <span
                                 className={`font-mono font-bold text-sm text-left sm:text-right ${
@@ -12578,6 +12580,11 @@ const ManagerDashboard = ({
                               <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
                                 <Activity size={12} className="shrink-0" /> Giro
                                 no Mercado
+                                <Tooltip
+                                  text={`Para assinar com esta marca, sua franquia precisa ter movimentado no mínimo ${formatCurrency(
+                                    sp.reqTurnover
+                                  )} no mercado (somando compras, vendas ou multas).`}
+                                />
                               </span>
                               <span
                                 className={`font-mono font-bold text-xs text-left sm:text-right ${
@@ -12596,6 +12603,9 @@ const ManagerDashboard = ({
                               <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
                                 <Users size={12} className="shrink-0" />{" "}
                                 Jogadores Vendidos
+                                <Tooltip
+                                  text={`A marca exige que sua franquia já tenha efetuado a venda de pelo menos ${sp.reqPlayersSold} jogador(es) no mercado para provar sua capacidade de negociação.`}
+                                />
                               </span>
                               <span
                                 className={`font-mono font-bold text-sm text-left sm:text-right ${
@@ -12612,6 +12622,7 @@ const ManagerDashboard = ({
                             <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
                               <Landmark size={12} className="shrink-0" /> Luvas
                               (Custo Inicial)
+                              <Tooltip text="Taxa inicial cobrada pela marca no momento da assinatura. Esse valor será debitado imediatamente do caixa do clã se você aceitar." />
                             </span>
                             <div className="text-left sm:text-right mt-1 sm:mt-0">
                               <span
