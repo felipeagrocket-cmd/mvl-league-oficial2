@@ -11664,6 +11664,11 @@ const ManagerDashboard = ({
   onRemovePlayerFromClan,
   onUpdateClan,
 }) => {
+  // 1. PRIMEIRO A GENTE BUSCA O CLÃ!
+  const clan = data.clans.find((c) => c.id === clanId);
+  if (!clan) return null;
+
+  // 2. AGORA SIM CRIAMOS AS MEMÓRIAS (pois a variável 'clan' já existe)
   const [activeTab, setActiveTab] = useState("overview");
 
   // Memórias do Modal de Proposta
@@ -11679,10 +11684,10 @@ const ManagerDashboard = ({
   const [dismissModalPlayer, setDismissModalPlayer] = useState(null); // Memória da Dispensa
 
   // --- NOVOS: MEMÓRIAS DA ABA DE MARCA ---
-  const [rebrandName, setRebrandName] = useState(clan?.name || "");
-  const [rebrandTag, setRebrandTag] = useState(clan?.tag || "");
-  const [rebrandLogo, setRebrandLogo] = useState(clan?.logoUrl || "");
-  const [brandBanner, setBrandBanner] = useState(clan?.bannerUrl || "");
+  const [rebrandName, setRebrandName] = useState(clan.name || "");
+  const [rebrandTag, setRebrandTag] = useState(clan.tag || "");
+  const [rebrandLogo, setRebrandLogo] = useState(clan.logoUrl || "");
+  const [brandBanner, setBrandBanner] = useState(clan.bannerUrl || "");
 
   // Sistema simples de Upload para o próprio Manager usar
   const handleLocalImageUpload = (e, setter) => {
@@ -11705,9 +11710,6 @@ const ManagerDashboard = ({
     };
     reader.readAsDataURL(file);
   };
-
-  const clan = data.clans.find((c) => c.id === clanId);
-  if (!clan) return null;
 
   const clanPlayers = data.players.filter(
     (p) => p.clanId === clan.id && !p.isPaused
