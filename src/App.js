@@ -11686,6 +11686,104 @@ const ManagerDashboard = ({
   const [rebrandTag, setRebrandTag] = useState(clan?.tag || "");
   const [rebrandLogo, setRebrandLogo] = useState(clan?.logoUrl || "");
   const [brandBanner, setBrandBanner] = useState(clan?.bannerUrl || "");
+  // --- NOVAS: MEMÓRIAS DO SIMULADOR DE CONFRONTOS ---
+  const [simEnemyClan, setSimEnemyClan] = useState("");
+  const [simMyLineup, setSimMyLineup] = useState([
+    null,
+    null,
+    null,
+    null,
+    null,
+  ]);
+  const [simEnemyLineup, setSimEnemyLineup] = useState([
+    null,
+    null,
+    null,
+    null,
+    null,
+  ]);
+
+  useEffect(() => {
+    // Puxa os 5 melhores do seu clã automaticamente
+    const myTop = data.players
+      .filter((p) => p.clanId === clan?.id && !p.isPaused)
+      .slice(0, 5)
+      .map((p) => p.id);
+    setSimMyLineup([...myTop, null, null, null, null, null].slice(0, 5));
+
+    // Puxa os 5 melhores do inimigo se ele for selecionado
+    if (simEnemyClan) {
+      const enemyTop = data.players
+        .filter((p) => p.clanId === simEnemyClan && !p.isPaused)
+        .slice(0, 5)
+        .map((p) => p.id);
+      setSimEnemyLineup(
+        [...enemyTop, null, null, null, null, null].slice(0, 5)
+      );
+    } else {
+      setSimEnemyLineup([null, null, null, null, null]);
+    }
+  }, [simEnemyClan, clan?.id, data.players]);
+
+  // Função interna para calcular a força do time selecionado no simulador
+  const getSimTeamStats = (lineupIds) => {
+    let totalKd = 0,
+      totalWinRate = 0,
+      totalValue = 0,
+      validPlayers = 0;
+    lineupIds.forEach((id) => {
+      if (!id) return;
+      const p = data.players.find((x) => x.id === id);
+      if (!p) return;
+      const prof = backend.getPlayerFullProfile(id);
+      totalKd += prof?.stats?.totalKD || 1;
+      totalWinRate += prof?.stats?.winRate || 50;
+      totalValue += p.marketValue || 10000000;
+      validPlayers++;
+    });
+    if (validPlayers === 0) return { kd: 0, wr: 0, value: 0, count: 0 };
+    return {
+      kd: Number((totalKd / validPlayers).toFixed(2)),
+      wr: Number((totalWinRate / validPlayers).toFixed(1)),
+      value: totalValue,
+      count: validPlayers,
+    };
+  };
+
+  const simMyStats = getSimTeamStats(simMyLineup);
+  const simEnemyStats = getSimTeamStats(simEnemyLineup);
+
+  // Calcula as Odds (Chances de Vitória)
+  let myOdds = 50;
+  let enemyOdds = 50;
+
+  if (simEnemyClan && simMyStats.count > 0 && simEnemyStats.count > 0) {
+    let myScore = 0;
+    let enemyScore = 0;
+
+    // Peso 1: K/D (40% de importância)
+    if (simMyStats.kd + simEnemyStats.kd > 0) {
+      myScore += (simMyStats.kd / (simMyStats.kd + simEnemyStats.kd)) * 40;
+      enemyScore +=
+        (simEnemyStats.kd / (simMyStats.kd + simEnemyStats.kd)) * 40;
+    }
+    // Peso 2: Experiência/WinRate (40% de importância)
+    if (simMyStats.wr + simEnemyStats.wr > 0) {
+      myScore += (simMyStats.wr / (simMyStats.wr + simEnemyStats.wr)) * 40;
+      enemyScore +=
+        (simEnemyStats.wr / (simMyStats.wr + simEnemyStats.wr)) * 40;
+    }
+    // Peso 3: Valor de Mercado (20% de importância)
+    if (simMyStats.value + simEnemyStats.value > 0) {
+      myScore +=
+        (simMyStats.value / (simMyStats.value + simEnemyStats.value)) * 20;
+      enemyScore +=
+        (simEnemyStats.value / (simMyStats.value + simEnemyStats.value)) * 20;
+    }
+
+    myOdds = Math.round(myScore);
+    enemyOdds = Math.round(enemyScore);
+  }
 
   // Sistema simples de Upload para o próprio Manager usar
   const handleLocalImageUpload = (e, setter) => {
@@ -11827,6 +11925,7 @@ const ManagerDashboard = ({
             { id: "scout", label: "Scout & Mercado", icon: Search },
             { id: "listings", label: "Anúncios Mercado", icon: Tag },
             { id: "sponsors", label: "Patrocínios", icon: Handshake },
+            { id: "simulator", label: "Simulador", icon: Target },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -13116,6 +13215,250 @@ const ManagerDashboard = ({
               </div>
             );
           })()}
+
+        {/* =========================================
+            ABA: SIMULADOR DE CONFRONTOS
+        ============================================= */}
+        {activeTab === "simulator" && (
+          <div className="animate-fadeIn space-y-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-6">
+              <div>
+                <h3 className="text-2xl font-black text-white uppercase tracking-tight flex items-center gap-3">
+                  <Target className="text-amber-400" size={28} /> Simulador
+                  Tático
+                </h3>
+                <p className="text-slate-400 text-xs mt-1">
+                  Escale seu time, escolha o adversário e deixe nosso analista
+                  calcular o favoritismo.
+                </p>
+              </div>
+              <div className="w-full md:w-auto">
+                <select
+                  className="w-full md:w-64 bg-slate-900 border border-amber-500/30 rounded-xl p-3.5 text-white text-sm font-bold uppercase tracking-wider outline-none focus:border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.1)]"
+                  value={simEnemyClan}
+                  onChange={(e) => setSimEnemyClan(e.target.value)}
+                >
+                  <option value="">Selecionar Adversário...</option>
+                  {data.clans
+                    .filter((c) => c.id !== clan.id)
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>
+                        VS {c.tag} - {c.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </div>
+
+            {simEnemyClan ? (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Lado Esquerdo (Meu Time) */}
+                <div className="lg:col-span-4 bg-slate-900/60 p-6 rounded-3xl border border-blue-500/30 shadow-xl backdrop-blur-sm">
+                  <h4 className="text-blue-400 font-black uppercase text-center mb-6 border-b border-blue-500/20 pb-3">
+                    Sua Line-up
+                  </h4>
+                  <div className="space-y-3">
+                    {simMyLineup.map((playerId, idx) => {
+                      const p = data.players.find((x) => x.id === playerId);
+                      return (
+                        <div
+                          key={`my-${idx}`}
+                          className="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center gap-3"
+                        >
+                          <span className="text-slate-600 font-mono font-black text-[10px] w-4">
+                            {idx + 1}
+                          </span>
+                          <select
+                            className="flex-1 bg-transparent text-white text-xs outline-none font-bold truncate"
+                            value={playerId || ""}
+                            onChange={(e) => {
+                              const newArr = [...simMyLineup];
+                              newArr[idx] = e.target.value;
+                              setSimMyLineup(newArr);
+                            }}
+                          >
+                            <option value="">(Vazio)</option>
+                            {data.players
+                              .filter(
+                                (x) => x.clanId === clan.id && !x.isPaused
+                              )
+                              .map((x) => (
+                                <option key={x.id} value={x.id}>
+                                  {x.nickname}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Meio (O Termômetro) */}
+                <div className="lg:col-span-4 flex flex-col justify-center items-center py-6">
+                  <div className="w-full bg-slate-950 p-6 rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-b from-slate-900/50 to-transparent pointer-events-none"></div>
+                    <div className="text-center mb-8 relative z-10">
+                      <div className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-2">
+                        Previsão do Analista
+                      </div>
+                      <div className="flex justify-between items-end mb-2">
+                        <span className="text-blue-400 font-black text-3xl">
+                          {myOdds}%
+                        </span>
+                        <span className="text-slate-600 font-black text-xl mb-1">
+                          VS
+                        </span>
+                        <span className="text-red-400 font-black text-3xl">
+                          {enemyOdds}%
+                        </span>
+                      </div>
+                      {/* Barra de Progresso do Favoritismo */}
+                      <div className="w-full h-3 bg-slate-900 rounded-full flex overflow-hidden shadow-inner">
+                        <div
+                          className="h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)] transition-all duration-1000"
+                          style={{ width: `${myOdds}%` }}
+                        ></div>
+                        <div
+                          className="h-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.6)] transition-all duration-1000"
+                          style={{ width: `${enemyOdds}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-5 relative z-10">
+                      <div>
+                        <div className="flex justify-between text-[10px] uppercase font-bold text-slate-400 mb-1.5">
+                          <span>K/D: {simMyStats.kd}</span>
+                          <span>Poder de Fogo</span>
+                          <span>K/D: {simEnemyStats.kd}</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-slate-900 rounded-full flex overflow-hidden">
+                          <div
+                            className="h-full bg-blue-400 opacity-80"
+                            style={{
+                              width: `${
+                                (simMyStats.kd /
+                                  (simMyStats.kd + simEnemyStats.kd || 1)) *
+                                100
+                              }%`,
+                            }}
+                          ></div>
+                          <div
+                            className="h-full bg-red-400 opacity-80"
+                            style={{
+                              width: `${
+                                (simEnemyStats.kd /
+                                  (simMyStats.kd + simEnemyStats.kd || 1)) *
+                                100
+                              }%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between text-[10px] uppercase font-bold text-slate-400 mb-1.5">
+                          <span>{simMyStats.wr}%</span>
+                          <span>Experiência (WinRate)</span>
+                          <span>{simEnemyStats.wr}%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-slate-900 rounded-full flex overflow-hidden">
+                          <div
+                            className="h-full bg-blue-400 opacity-80"
+                            style={{
+                              width: `${
+                                (simMyStats.wr /
+                                  (simMyStats.wr + simEnemyStats.wr || 1)) *
+                                100
+                              }%`,
+                            }}
+                          ></div>
+                          <div
+                            className="h-full bg-red-400 opacity-80"
+                            style={{
+                              width: `${
+                                (simEnemyStats.wr /
+                                  (simMyStats.wr + simEnemyStats.wr || 1)) *
+                                100
+                              }%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      className="mt-8 p-4 rounded-xl text-center text-xs leading-relaxed font-bold tracking-wide border relative z-10 
+                      ${myOdds >= 65 ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' : 
+                        myOdds <= 35 ? 'bg-red-500/10 text-red-400 border-red-500/30' : 
+                        'bg-amber-500/10 text-amber-400 border-amber-500/30'}"
+                    >
+                      {myOdds >= 65
+                        ? "🔥 Amasso previsto! Vocês entram como os grandes favoritos da noite."
+                        : myOdds >= 55
+                        ? "✅ Leve favoritismo. A vantagem estatística é nossa, mas não vacilem."
+                        : myOdds >= 45
+                        ? "⚔️ Confronto parelho! O jogo vai ser decidido nos detalhes e na mira pura."
+                        : myOdds >= 35
+                        ? "⚠️ Zebra à vista? O adversário é superior. Precisamos de uma tática impecável."
+                        : "💀 Missão Impossível. Eles são muito mais fortes. Ou a gente faz o jogo da vida, ou é massacre."}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lado Direito (Time Inimigo) */}
+                <div className="lg:col-span-4 bg-slate-900/60 p-6 rounded-3xl border border-red-500/30 shadow-xl backdrop-blur-sm">
+                  <h4 className="text-red-400 font-black uppercase text-center mb-6 border-b border-red-500/20 pb-3">
+                    Line-up Inimiga
+                  </h4>
+                  <div className="space-y-3">
+                    {simEnemyLineup.map((playerId, idx) => {
+                      const p = data.players.find((x) => x.id === playerId);
+                      return (
+                        <div
+                          key={`enemy-${idx}`}
+                          className="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center gap-3"
+                        >
+                          <span className="text-slate-600 font-mono font-black text-[10px] w-4">
+                            {idx + 1}
+                          </span>
+                          <select
+                            className="flex-1 bg-transparent text-white text-xs outline-none font-bold truncate text-right appearance-none"
+                            value={playerId || ""}
+                            onChange={(e) => {
+                              const newArr = [...simEnemyLineup];
+                              newArr[idx] = e.target.value;
+                              setSimEnemyLineup(newArr);
+                            }}
+                          >
+                            <option value="">(Vazio)</option>
+                            {data.players
+                              .filter(
+                                (x) => x.clanId === simEnemyClan && !x.isPaused
+                              )
+                              .map((x) => (
+                                <option key={x.id} value={x.id}>
+                                  {x.nickname}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-slate-900/50 rounded-3xl border border-slate-800 border-dashed text-slate-500">
+                <Target size={48} className="mx-auto mb-4 opacity-20" />
+                <p className="text-sm font-bold uppercase tracking-widest">
+                  Selecione um adversário no topo para iniciar a simulação.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* MODAL DE ASSINATURA DE PATROCÍNIO */}
         {sponsorModalItem &&
           (() => {
