@@ -11642,6 +11642,7 @@ const ManagerDashboard = ({
   onUpdateSponsor,
   onUpdateClanFinancials,
   onUpdatePlayer,
+  onRemovePlayerFromClan,
 }) => {
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -11655,6 +11656,7 @@ const ManagerDashboard = ({
   const [renewalModalPlayer, setRenewalModalPlayer] = useState(null); // Memória da Renovação
   const [renewalDuration, setRenewalDuration] = useState(15); // NOVO: Prazo da renovação
   const [renewalMultiplier, setRenewalMultiplier] = useState(0); // NOVO: Multa da renovação
+  const [dismissModalPlayer, setDismissModalPlayer] = useState(null); // Memória da Dispensa
 
   const clan = data.clans.find((c) => c.id === clanId);
   if (!clan) return null;
@@ -12253,14 +12255,12 @@ const ManagerDashboard = ({
                           <Tag size={12} />{" "}
                           {p.isListedForSale ? "Tirar Anúncio" : "Anunciar"}
                         </button>
-                        <a
-                          href={`https://wa.me/${STAFF_WHATSAPP}?text=Ol%C3%A1%20Staff!%20Sou%20o%20presidente%20da%20${clan.name}%20e%20solicito%20a%20DISPENSA%20do%20jogador%20${p.nickname}%20do%20meu%20elenco.`}
-                          target="_blank"
-                          rel="noreferrer"
+                        <button
+                          onClick={() => setDismissModalPlayer(p)}
                           className="flex-1 bg-slate-800 hover:bg-red-500 hover:text-white text-slate-300 font-bold uppercase text-[9px] py-3 rounded-xl text-center transition-colors border border-slate-700 hover:border-red-500"
                         >
                           Dispensar
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -13430,6 +13430,69 @@ const ManagerDashboard = ({
               </div>
             );
           })()}
+
+{/* MODAL DE DISPENSA */}
+        {dismissModalPlayer && (() => {
+          const p = dismissModalPlayer;
+          return (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fadeIn">
+              <div className="bg-slate-900 border border-red-500/50 rounded-3xl w-full max-w-md shadow-[0_0_40px_rgba(239,68,68,0.15)] relative overflow-hidden flex flex-col">
+                <div className="bg-red-500/10 p-6 border-b border-red-500/20 flex flex-col items-center relative shrink-0 text-center">
+                  <button onClick={() => setDismissModalPlayer(null)} className="absolute top-4 right-4 text-red-400 hover:text-white bg-red-950/50 p-2 rounded-full transition-colors">
+                    <X size={16} />
+                  </button>
+                  <div className="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-4 border border-red-500/30">
+                    <UserMinus size={32} />
+                  </div>
+                  <h3 className="text-red-500 font-black uppercase text-xl tracking-tight leading-tight">
+                    Confirmar Dispensa
+                  </h3>
+                </div>
+
+                <div className="p-6 md:p-8">
+                  <p className="text-slate-300 text-sm leading-relaxed text-center mb-6">
+                    Você está prestes a rescindir o contrato de <strong className="text-white">{p.nickname}</strong>.
+                  </p>
+
+                  <div className="bg-slate-950 border border-red-900/30 rounded-xl p-4 space-y-3 mb-6">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle size={16} className="text-red-400 shrink-0 mt-0.5" />
+                      <p className="text-xs text-slate-400">O jogador ficará <strong>Livre no Mercado</strong> imediatamente para assinar com outros clãs.</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle size={16} className="text-red-400 shrink-0 mt-0.5" />
+                      <p className="text-xs text-slate-400">Sua franquia <strong>NÃO</strong> receberá o valor do passe nem da multa rescisória.</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle size={16} className="text-red-400 shrink-0 mt-0.5" />
+                      <p className="text-xs text-slate-400">Nenhum valor pago na contratação ou na última renovação será estornado ao caixa.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setDismissModalPlayer(null)}
+                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold uppercase py-4 rounded-xl text-xs transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={() => {
+                        onRemovePlayerFromClan(p.id);
+                        setDismissModalPlayer(null);
+                        alert(`Contrato rescindido! ${p.nickname} deixou a equipe.`);
+                      }}
+                      className="flex-1 bg-red-600 hover:bg-red-500 text-white font-black uppercase py-4 rounded-xl text-xs transition-all shadow-[0_10px_20px_rgba(220,38,38,0.2)] hover:-translate-y-1 flex items-center justify-center gap-2"
+                    >
+                      <Trash2 size={16}/> Confirmar Dispensa
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
       </div>
     </div>
   );
@@ -15388,6 +15451,7 @@ const App = () => {
             onUpdateSponsor={updateSponsor}
             onUpdateClanFinancials={updateClanFinancials}
             onUpdatePlayer={updatePlayer}
+            onRemovePlayerFromClan={removePlayerFromClan}
           />
         )}
 
