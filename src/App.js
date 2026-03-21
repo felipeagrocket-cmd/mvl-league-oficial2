@@ -11653,6 +11653,8 @@ const ManagerDashboard = ({
 
   const [sponsorModalItem, setSponsorModalItem] = useState(null); // Memória do Patrocínio
   const [renewalModalPlayer, setRenewalModalPlayer] = useState(null); // Memória da Renovação
+  const [renewalDuration, setRenewalDuration] = useState(15); // NOVO: Prazo da renovação
+  const [renewalMultiplier, setRenewalMultiplier] = useState(0); // NOVO: Multa da renovação
 
   const clan = data.clans.find((c) => c.id === clanId);
   if (!clan) return null;
@@ -12195,6 +12197,10 @@ const ManagerDashboard = ({
                       <button
                         onClick={() => {
                           if (!contract.isValid || contract.isExpiring) {
+                            setRenewalDuration(15);
+                            setRenewalMultiplier(
+                              p.releaseClauseMultiplier || 0
+                            );
                             setRenewalModalPlayer(p);
                           } else {
                             alert(
@@ -13250,18 +13256,21 @@ const ManagerDashboard = ({
         {renewalModalPlayer &&
           (() => {
             const p = renewalModalPlayer;
-            const [duration, setDuration] = useState(15);
-            const [multiplier, setMultiplier] = useState(
-              p.releaseClauseMultiplier || 0
-            );
-
             const baseValue = p.marketValue || 10000000;
 
             // Custos com 30% de desconto aplicado
             const durationFeePct =
-              duration === 7 ? 0.035 : duration === 15 ? 0.07 : 0.105;
+              renewalDuration === 7
+                ? 0.035
+                : renewalDuration === 15
+                ? 0.07
+                : 0.105;
             const multiplierFeePct =
-              multiplier === 0 ? 0 : multiplier <= 0.2 ? 0.035 : 0.07;
+              renewalMultiplier === 0
+                ? 0
+                : renewalMultiplier <= 0.2
+                ? 0.035
+                : 0.07;
 
             const totalFee = baseValue * (durationFeePct + multiplierFeePct);
             const isBankrupting = totalFee > clan.budget;
@@ -13311,9 +13320,9 @@ const ManagerDashboard = ({
                           {[7, 15, 30].map((days) => (
                             <button
                               key={days}
-                              onClick={() => setDuration(days)}
+                              onClick={() => setRenewalDuration(days)}
                               className={`flex-1 py-2.5 rounded-lg text-xs font-black uppercase transition-all ${
-                                duration === days
+                                renewalDuration === days
                                   ? "bg-amber-500 text-black shadow-md"
                                   : "text-slate-500 hover:text-white"
                               }`}
@@ -13330,7 +13339,7 @@ const ManagerDashboard = ({
                             Blindagem (Multa)
                           </label>
                           <span className="text-amber-400 font-mono font-bold text-xs bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                            {(multiplier * 100).toFixed(0)}%
+                            {(renewalMultiplier * 100).toFixed(0)}%
                           </span>
                         </div>
                         <input
@@ -13339,9 +13348,9 @@ const ManagerDashboard = ({
                           max="0.4"
                           step="0.05"
                           className="w-full accent-amber-500 bg-slate-800 rounded-lg appearance-none h-2"
-                          value={multiplier}
+                          value={renewalMultiplier}
                           onChange={(e) =>
-                            setMultiplier(parseFloat(e.target.value))
+                            setRenewalMultiplier(parseFloat(e.target.value))
                           }
                         />
                         <div className="flex justify-between mt-2 text-[9px] text-slate-500 font-bold uppercase">
@@ -13377,7 +13386,7 @@ const ManagerDashboard = ({
                         disabled={isBankrupting}
                         onClick={() => {
                           const newDate = new Date();
-                          newDate.setDate(newDate.getDate() + duration);
+                          newDate.setDate(newDate.getDate() + renewalDuration);
                           const contractEndStr = newDate
                             .toISOString()
                             .split("T")[0];
@@ -13386,18 +13395,18 @@ const ManagerDashboard = ({
                           onUpdateClanFinancials(
                             clan.id,
                             clan.budget - totalFee,
-                            `Taxa de Renovação (${duration}d): ${p.nickname}`,
+                            `Taxa de Renovação (${renewalDuration}d): ${p.nickname}`,
                             "renewal_fee"
                           );
 
                           // 2. Atualiza o Jogador
                           onUpdatePlayer(p.id, {
                             contractEnd: contractEndStr,
-                            releaseClauseMultiplier: multiplier,
+                            releaseClauseMultiplier: renewalMultiplier,
                           });
 
                           alert(
-                            `Contrato de ${p.nickname} renovado com sucesso por ${duration} dias!`
+                            `Contrato de ${p.nickname} renovado com sucesso por ${renewalDuration} dias!`
                           );
                           setRenewalModalPlayer(null);
                         }}
