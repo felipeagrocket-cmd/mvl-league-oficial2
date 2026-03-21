@@ -11938,7 +11938,7 @@ const ManagerDashboard = ({
 
       <div className="max-w-7xl mx-auto px-6 pt-10 relative z-10">
         {/* ABAS DE NAVEGAÇÃO INTERNA */}
-        <div className="flex overflow-x-auto scrollbar-hide gap-2 mb-10 bg-slate-900/50 p-1.5 rounded-2xl border border-slate-800/50 w-full md:w-max backdrop-blur-sm">
+        <div className="flex overflow-x-auto scrollbar-hide gap-2 mb-10 bg-slate-900/50 p-1.5 rounded-2xl border border-slate-800/50 w-full backdrop-blur-sm">
           {[
             { id: "overview", label: "Visão Geral", icon: Activity },
             { id: "squad", label: "Meu Elenco", icon: Users },
@@ -11951,7 +11951,7 @@ const ManagerDashboard = ({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all shrink-0 ${
+              className={`flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all shrink-0 ${
                 activeTab === tab.id
                   ? "bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.3)]"
                   : "text-slate-400 hover:text-white hover:bg-slate-800"
