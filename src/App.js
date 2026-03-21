@@ -11664,11 +11664,9 @@ const ManagerDashboard = ({
   onRemovePlayerFromClan,
   onUpdateClan,
 }) => {
-  // 1. PRIMEIRO A GENTE BUSCA O CLÃ!
   const clan = data.clans.find((c) => c.id === clanId);
-  if (!clan) return null;
 
-  // 2. AGORA SIM CRIAMOS AS MEMÓRIAS (pois a variável 'clan' já existe)
+  // TODOS OS HOOKS DEVEM SER CHAMADOS ANTES DE QUALQUER RETURN!
   const [activeTab, setActiveTab] = useState("overview");
 
   // Memórias do Modal de Proposta
@@ -11677,17 +11675,17 @@ const ManagerDashboard = ({
   const [proposalBonus, setProposalBonus] = useState("");
   const [proposalPitch, setProposalPitch] = useState("");
 
-  const [sponsorModalItem, setSponsorModalItem] = useState(null); // Memória do Patrocínio
-  const [renewalModalPlayer, setRenewalModalPlayer] = useState(null); // Memória da Renovação
-  const [renewalDuration, setRenewalDuration] = useState(15); // NOVO: Prazo da renovação
-  const [renewalMultiplier, setRenewalMultiplier] = useState(0); // NOVO: Multa da renovação
-  const [dismissModalPlayer, setDismissModalPlayer] = useState(null); // Memória da Dispensa
+  const [sponsorModalItem, setSponsorModalItem] = useState(null);
+  const [renewalModalPlayer, setRenewalModalPlayer] = useState(null);
+  const [renewalDuration, setRenewalDuration] = useState(15);
+  const [renewalMultiplier, setRenewalMultiplier] = useState(0);
+  const [dismissModalPlayer, setDismissModalPlayer] = useState(null);
 
-  // --- NOVOS: MEMÓRIAS DA ABA DE MARCA ---
-  const [rebrandName, setRebrandName] = useState(clan.name || "");
-  const [rebrandTag, setRebrandTag] = useState(clan.tag || "");
-  const [rebrandLogo, setRebrandLogo] = useState(clan.logoUrl || "");
-  const [brandBanner, setBrandBanner] = useState(clan.bannerUrl || "");
+  // --- NOVOS: MEMÓRIAS DA ABA DE MARCA COM OPTIONAL CHAINING (?.) ---
+  const [rebrandName, setRebrandName] = useState(clan?.name || "");
+  const [rebrandTag, setRebrandTag] = useState(clan?.tag || "");
+  const [rebrandLogo, setRebrandLogo] = useState(clan?.logoUrl || "");
+  const [brandBanner, setBrandBanner] = useState(clan?.bannerUrl || "");
 
   // Sistema simples de Upload para o próprio Manager usar
   const handleLocalImageUpload = (e, setter) => {
@@ -11710,6 +11708,9 @@ const ManagerDashboard = ({
     };
     reader.readAsDataURL(file);
   };
+
+  // AGORA SIM, A TRAVA DE SEGURANÇA FINAL!
+  if (!clan) return null;
 
   const clanPlayers = data.players.filter(
     (p) => p.clanId === clan.id && !p.isPaused
