@@ -11688,6 +11688,7 @@ const ManagerDashboard = ({
   const [brandBanner, setBrandBanner] = useState(clan?.bannerUrl || "");
   // --- NOVAS: MEMÓRIAS DO SIMULADOR DE CONFRONTOS ---
   const [simEnemyClan, setSimEnemyClan] = useState("");
+  const [simMapName, setSimMapName] = useState(""); // NOVO: Memória do Mapa
   const [simMyLineup, setSimMyLineup] = useState([
     null,
     null,
@@ -11725,22 +11726,42 @@ const ManagerDashboard = ({
     }
   }, [simEnemyClan, clan?.id, data.players]);
 
-  // Função interna para calcular a força do time selecionado no simulador
-  const getSimTeamStats = (lineupIds) => {
+  // Função interna para calcular a força do time (AGORA COM FATOR MAPA!)
+  const getSimTeamStats = (lineupIds, selectedMap) => {
     let totalKd = 0,
       totalWinRate = 0,
       totalValue = 0,
       validPlayers = 0;
+
     lineupIds.forEach((id) => {
       if (!id) return;
       const p = data.players.find((x) => x.id === id);
       if (!p) return;
       const prof = backend.getPlayerFullProfile(id);
-      totalKd += prof?.stats?.totalKD || 1;
-      totalWinRate += prof?.stats?.winRate || 50;
+
+      let pKd = prof?.stats?.totalKD || 1;
+      let pWr = prof?.stats?.winRate || 50;
+
+      // SELECIONOU O MAPA? VAMOS CAÇAR O HISTÓRICO DELE!
+      if (selectedMap && prof?.mapPerformance) {
+        const mapData = prof.mapPerformance.find((m) => m.name === selectedMap);
+        if (mapData) {
+          // O Cara joga esse mapa! Puxa a estatística EXATA dele!
+          pKd = mapData.kd;
+          pWr = mapData.winRate;
+        } else {
+          // O Cara NUNCA jogou esse mapa oficialmente. Penalidade de 10% por inexperiência no terreno!
+          pKd = pKd * 0.9;
+          pWr = pWr * 0.9;
+        }
+      }
+
+      totalKd += pKd;
+      totalWinRate += pWr;
       totalValue += p.marketValue || 10000000;
       validPlayers++;
     });
+
     if (validPlayers === 0) return { kd: 0, wr: 0, value: 0, count: 0 };
     return {
       kd: Number((totalKd / validPlayers).toFixed(2)),
@@ -11750,8 +11771,8 @@ const ManagerDashboard = ({
     };
   };
 
-  const simMyStats = getSimTeamStats(simMyLineup);
-  const simEnemyStats = getSimTeamStats(simEnemyLineup);
+  const simMyStats = getSimTeamStats(simMyLineup, simMapName);
+  const simEnemyStats = getSimTeamStats(simEnemyLineup, simMapName);
 
   // Calcula as Odds (Chances de Vitória)
   let myOdds = 50;
@@ -13232,7 +13253,23 @@ const ManagerDashboard = ({
                   calcular o favoritismo.
                 </p>
               </div>
-              <div className="w-full md:w-auto">
+              <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3">
+                {/* NOVO: SELECT DO MAPA */}
+                <select
+                  className="w-full md:w-48 bg-slate-900 border border-blue-500/30 rounded-xl p-3.5 text-blue-400 text-sm font-bold uppercase tracking-wider outline-none focus:border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
+                  value={simMapName}
+                  onChange={(e) => setSimMapName(e.target.value)}
+                >
+                  <option value="">Geral (Sem Mapa)</option>
+                  {data.maps
+                    .filter((m) => m.isActive)
+                    .map((m) => (
+                      <option key={m.id} value={m.name}>
+                        🌍 {m.name}
+                      </option>
+                    ))}
+                </select>
+
                 <select
                   className="w-full md:w-64 bg-slate-900 border border-amber-500/30 rounded-xl p-3.5 text-white text-sm font-bold uppercase tracking-wider outline-none focus:border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.1)]"
                   value={simEnemyClan}
