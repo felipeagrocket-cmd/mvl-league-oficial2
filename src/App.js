@@ -11641,6 +11641,7 @@ const ManagerDashboard = ({
   onCreateProposal,
   onUpdateSponsor,
   onUpdateClanFinancials,
+  onUpdatePlayer,
 }) => {
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -11751,6 +11752,7 @@ const ManagerDashboard = ({
             { id: "squad", label: "Meu Elenco", icon: Users },
             { id: "finance", label: "Extrato Financeiro", icon: Landmark },
             { id: "scout", label: "Scout & Mercado", icon: Search },
+            { id: "listings", label: "Anúncios Mercado", icon: Tag },
             { id: "sponsors", label: "Patrocínios", icon: Handshake },
           ].map((tab) => (
             <button
@@ -12188,23 +12190,58 @@ const ManagerDashboard = ({
                       </div>
                     </div>
 
-                    <div className="flex gap-3 relative z-10 mt-auto">
+                    <div className="flex flex-col gap-2 relative z-10 mt-auto">
                       <a
                         href={`https://wa.me/${STAFF_WHATSAPP}?text=Ol%C3%A1%20Staff!%20Sou%20o%20presidente%20da%20${clan.name}%20e%20gostaria%20de%20RENOVAR%20o%20contrato%20do%20jogador%20${p.nickname}.`}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex-1 bg-amber-500 hover:bg-amber-400 text-black font-bold uppercase text-[10px] py-3 rounded-xl text-center transition-colors shadow-lg shadow-amber-500/20"
+                        className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold uppercase text-[10px] py-3 rounded-xl text-center transition-colors shadow-lg shadow-amber-500/20"
                       >
                         Negociar Renovação
                       </a>
-                      <a
-                        href={`https://wa.me/${STAFF_WHATSAPP}?text=Ol%C3%A1%20Staff!%20Sou%20o%20presidente%20da%20${clan.name}%20e%20solicito%20a%20DISPENSA%20do%20jogador%20${p.nickname}%20do%20meu%20elenco.`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex-1 bg-slate-800 hover:bg-red-500 hover:text-white text-slate-300 font-bold uppercase text-[10px] py-3 rounded-xl text-center transition-colors border border-slate-700 hover:border-red-500"
-                      >
-                        Dispensar
-                      </a>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            if (p.isListedForSale) {
+                              if (
+                                window.confirm(
+                                  `Remover ${p.nickname} da lista de transferências?`
+                                )
+                              ) {
+                                onUpdatePlayer(p.id, {
+                                  isListedForSale: false,
+                                });
+                                alert("Jogador removido dos anúncios!");
+                              }
+                            } else {
+                              if (
+                                window.confirm(
+                                  `Anunciar ${p.nickname} no Mercado? \n\nO jogador ficará visível na aba de Anúncios para receber propostas de outras equipes.`
+                                )
+                              ) {
+                                onUpdatePlayer(p.id, { isListedForSale: true });
+                                alert("Jogador anunciado com sucesso!");
+                              }
+                            }
+                          }}
+                          className={`flex-1 font-bold uppercase text-[9px] py-3 rounded-xl text-center transition-colors border shadow-sm flex items-center justify-center gap-1 ${
+                            p.isListedForSale
+                              ? "bg-slate-800 text-slate-400 border-slate-700 hover:text-white"
+                              : "bg-blue-600/20 text-blue-400 border-blue-500/30 hover:bg-blue-600 hover:text-white"
+                          }`}
+                        >
+                          <Tag size={12} />{" "}
+                          {p.isListedForSale ? "Tirar Anúncio" : "Anunciar"}
+                        </button>
+                        <a
+                          href={`https://wa.me/${STAFF_WHATSAPP}?text=Ol%C3%A1%20Staff!%20Sou%20o%20presidente%20da%20${clan.name}%20e%20solicito%20a%20DISPENSA%20do%20jogador%20${p.nickname}%20do%20meu%20elenco.`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex-1 bg-slate-800 hover:bg-red-500 hover:text-white text-slate-300 font-bold uppercase text-[9px] py-3 rounded-xl text-center transition-colors border border-slate-700 hover:border-red-500"
+                        >
+                          Dispensar
+                        </a>
+                      </div>
                     </div>
                   </div>
                 );
@@ -12483,6 +12520,157 @@ const ManagerDashboard = ({
             </div>
           </div>
         )}
+
+        {/* =========================================
+            ABA: ANÚNCIOS MERCADO (LISTINGS)
+        ============================================= */}
+        {activeTab === "listings" &&
+          (() => {
+            const listedPlayers = data.players.filter(
+              (p) => p.isListedForSale && !p.isPaused
+            );
+
+            return (
+              <div className="animate-fadeIn">
+                <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 border-b border-slate-800 pb-6">
+                  <div>
+                    <h3 className="text-2xl font-black text-white uppercase tracking-tight flex items-center gap-3">
+                      <Tag className="text-blue-400" size={28} /> Anúncios do
+                      Mercado
+                    </h3>
+                    <p className="text-slate-400 text-xs mt-1">
+                      Jogadores listados para negociação por suas franquias
+                      atuais.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {listedPlayers.map((p) => {
+                    const pClan = data.clans.find((c) => c.id === p.clanId);
+                    const contract = getContractStatus(p);
+                    const penalty = calculateReleaseClause(
+                      p.marketValue || 10000000,
+                      p.releaseClauseMultiplier
+                    );
+                    const minOffer =
+                      (p.marketValue || 10000000) +
+                      (contract.isValid && penalty > 0 ? penalty : 0);
+                    const isMine = p.clanId === clan.id;
+
+                    return (
+                      <div
+                        key={p.id}
+                        className="bg-slate-900/80 border border-slate-700/50 rounded-3xl p-5 backdrop-blur-md shadow-xl flex flex-col group hover:border-blue-500/30 transition-colors"
+                      >
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={p.avatarUrl}
+                              className="w-12 h-12 rounded-xl object-cover bg-slate-950 border border-slate-700 shadow-md"
+                              alt={p.nickname}
+                            />
+                            <div>
+                              <div className="text-white font-black text-sm uppercase flex items-center gap-1.5">
+                                {p.nickname}
+                                {isMine && (
+                                  <span className="bg-amber-500 text-black px-1.5 py-0.5 rounded text-[8px] font-bold">
+                                    SEU
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mt-0.5">
+                                Vendedor:{" "}
+                                <span className="text-slate-300">
+                                  {pClan ? pClan.name : "Free Agent"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 flex flex-col gap-2 mb-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest">
+                              Valor do Passe
+                            </span>
+                            <span className="text-emerald-400 font-mono font-bold text-sm">
+                              {formatCurrency(p.marketValue || 10000000)}
+                            </span>
+                          </div>
+                          {contract.isValid && penalty > 0 && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1">
+                                <Lock size={10} /> Multa Rescisória
+                              </span>
+                              <span className="text-red-400 font-mono font-bold text-xs">
+                                +{formatCurrency(penalty)}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex justify-between items-center pt-3 border-t border-slate-800/50 mt-1">
+                            <span className="text-blue-400 text-[10px] uppercase font-black tracking-widest">
+                              Oferta Mínima
+                            </span>
+                            <span className="text-blue-400 font-mono font-black text-sm">
+                              {formatCurrency(minOffer)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            if (isMine) {
+                              if (
+                                window.confirm(
+                                  "Deseja remover o anúncio deste jogador?"
+                                )
+                              ) {
+                                onUpdatePlayer(p.id, {
+                                  isListedForSale: false,
+                                });
+                                alert("Anúncio removido!");
+                              }
+                            } else {
+                              setProposalModalPlayer(p);
+                              setProposalTransferOffer(minOffer);
+                              setProposalBonus("");
+                              setProposalPitch("");
+                            }
+                          }}
+                          className={`w-full font-black uppercase text-[10px] py-3.5 rounded-xl text-center transition-all border flex items-center justify-center gap-2 shadow-lg mt-auto ${
+                            isMine
+                              ? "bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700"
+                              : "bg-blue-600 hover:bg-blue-500 text-white border-blue-500 shadow-blue-500/20 hover:-translate-y-1"
+                          }`}
+                        >
+                          {isMine ? (
+                            <>
+                              <X size={14} /> Remover Meu Anúncio
+                            </>
+                          ) : (
+                            <>
+                              <Briefcase size={14} /> Fazer Proposta
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
+
+                  {listedPlayers.length === 0 && (
+                    <div className="col-span-full py-16 text-center border border-dashed border-slate-800 rounded-3xl text-slate-500">
+                      <Tag size={48} className="mx-auto mb-4 opacity-20" />
+                      <p className="text-sm font-bold uppercase tracking-widest">
+                        Nenhum jogador anunciado no mercado.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
         {/* =========================================
             ABA: PATROCÍNIOS (VITRINE DO CLÃ)
         ============================================= */}
@@ -14998,6 +15186,7 @@ const App = () => {
             onCreateProposal={createProposal}
             onUpdateSponsor={updateSponsor}
             onUpdateClanFinancials={updateClanFinancials}
+            onUpdatePlayer={updatePlayer}
           />
         )}
 
