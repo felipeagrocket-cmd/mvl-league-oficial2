@@ -1237,7 +1237,18 @@ const TeamsPage = ({ clans, players, sponsors, backend, onPlayerClick }) => {
 
         {/* BANNER DO CLÃ GIGANTE */}
         <div className="relative bg-slate-900 border border-slate-800 rounded-[2.5rem] overflow-hidden shadow-2xl mb-8">
-          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-800/40 via-slate-900 to-slate-950 pointer-events-none"></div>
+          {clan.bannerUrl ? (
+            <>
+              <img
+                src={clan.bannerUrl}
+                className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-luminosity pointer-events-none"
+                alt="Banner do Clã"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/80 to-transparent pointer-events-none"></div>
+            </>
+          ) : (
+            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-800/40 via-slate-900 to-slate-950 pointer-events-none"></div>
+          )}
           <div className="absolute -top-32 -right-32 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[120px] pointer-events-none"></div>
 
           <div className="relative z-10 p-8 md:p-14 flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-12">
@@ -1363,10 +1374,18 @@ const TeamsPage = ({ clans, players, sponsors, backend, onPlayerClick }) => {
               >
                 <div className="w-36 h-48 overflow-hidden rounded-t-2xl bg-gradient-to-b from-slate-800 to-slate-950 relative border-b-4 border-amber-500 group-hover:border-amber-400 transition-colors shadow-2xl">
                   <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors z-10"></div>
+                  {p.isCaptain && (
+                    <div
+                      className="absolute top-2 left-2 bg-amber-500 text-black text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full shadow-[0_0_10px_rgba(251,191,36,0.6)] z-20"
+                      title="Capitão da Equipe"
+                    >
+                      C
+                    </div>
+                  )}
                   <img
                     src={p.avatarUrl}
                     alt={p.nickname}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 relative z-0"
                   />
                 </div>
                 <div className="bg-slate-950 w-full text-center py-4 rounded-b-2xl border border-slate-800 border-t-0 shadow-2xl relative z-20 flex flex-col items-center justify-center gap-1.5 group-hover:bg-slate-800 transition-colors">
@@ -11643,6 +11662,7 @@ const ManagerDashboard = ({
   onUpdateClanFinancials,
   onUpdatePlayer,
   onRemovePlayerFromClan,
+  onUpdateClan,
 }) => {
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -11657,6 +11677,34 @@ const ManagerDashboard = ({
   const [renewalDuration, setRenewalDuration] = useState(15); // NOVO: Prazo da renovação
   const [renewalMultiplier, setRenewalMultiplier] = useState(0); // NOVO: Multa da renovação
   const [dismissModalPlayer, setDismissModalPlayer] = useState(null); // Memória da Dispensa
+
+  // --- NOVOS: MEMÓRIAS DA ABA DE MARCA ---
+  const [rebrandName, setRebrandName] = useState(clan?.name || "");
+  const [rebrandTag, setRebrandTag] = useState(clan?.tag || "");
+  const [rebrandLogo, setRebrandLogo] = useState(clan?.logoUrl || "");
+  const [brandBanner, setBrandBanner] = useState(clan?.bannerUrl || "");
+
+  // Sistema simples de Upload para o próprio Manager usar
+  const handleLocalImageUpload = (e, setter) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const img = new Image();
+      img.src = reader.result;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const scaleSize = 1200 / img.width;
+        canvas.width = img.width < 1200 ? img.width : 1200;
+        canvas.height = img.width < 1200 ? img.height : img.height * scaleSize;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        setter(canvas.toDataURL("image/webp", 0.85));
+      };
+    };
+    reader.readAsDataURL(file);
+  };
 
   const clan = data.clans.find((c) => c.id === clanId);
   if (!clan) return null;
@@ -11759,6 +11807,7 @@ const ManagerDashboard = ({
             { id: "scout", label: "Scout & Mercado", icon: Search },
             { id: "listings", label: "Anúncios Mercado", icon: Tag },
             { id: "sponsors", label: "Patrocínios", icon: Handshake },
+            { id: "brand", label: "Marca & Visual", icon: ImageIcon },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -12148,19 +12197,64 @@ const ManagerDashboard = ({
                     className="bg-slate-900/80 border border-slate-700/50 rounded-3xl p-6 backdrop-blur-md shadow-xl flex flex-col relative overflow-hidden group"
                   >
                     <div className="flex items-center gap-4 mb-6 relative z-10">
-                      <img
-                        src={p.avatarUrl}
-                        className="w-16 h-16 rounded-2xl object-cover bg-slate-950 border border-slate-700 shadow-lg group-hover:scale-110 transition-transform"
-                        alt={p.nickname}
-                      />
-                      <div>
-                        <h4 className="text-white font-black text-lg uppercase tracking-tight leading-none mb-1">
+                      <div className="relative">
+                        <img
+                          src={p.avatarUrl}
+                          className={`w-16 h-16 rounded-2xl object-cover bg-slate-950 border-2 shadow-lg group-hover:scale-110 transition-transform ${
+                            p.isCaptain
+                              ? "border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.3)]"
+                              : "border-slate-700"
+                          }`}
+                          alt={p.nickname}
+                        />
+                        {p.isCaptain && (
+                          <div
+                            className="absolute -top-2 -right-2 bg-amber-500 text-black w-6 h-6 rounded-full flex items-center justify-center shadow-lg border-2 border-slate-900 z-20"
+                            title="Capitão da Equipe"
+                          >
+                            <span className="text-[10px] font-black">C</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-white font-black text-lg uppercase tracking-tight leading-none mb-1 flex items-center gap-2">
                           {p.nickname}
                         </h4>
                         <div className="text-slate-500 text-[10px] font-mono">
                           {p.gameId}
                         </div>
                       </div>
+
+                      {/* BOTÃO DE EGER CAPITÃO */}
+                      <button
+                        onClick={() => {
+                          if (p.isCaptain) return;
+                          if (
+                            window.confirm(
+                              `Deseja nomear ${p.nickname} como o novo Capitão da equipe?`
+                            )
+                          ) {
+                            const oldCap = clanPlayers.find(
+                              (cp) => cp.isCaptain
+                            );
+                            if (oldCap)
+                              onUpdatePlayer(oldCap.id, { isCaptain: false }); // Tira do antigo
+                            onUpdatePlayer(p.id, { isCaptain: true }); // Dá pro novo
+                            alert(`${p.nickname} agora é o Capitão oficial!`);
+                          }
+                        }}
+                        className={`p-2 rounded-xl border transition-all ${
+                          p.isCaptain
+                            ? "bg-amber-500/10 border-amber-500/50 text-amber-400 cursor-default"
+                            : "bg-slate-900 border-slate-700 text-slate-500 hover:text-amber-400 hover:border-amber-400/50"
+                        }`}
+                        title={p.isCaptain ? "Capitão Atual" : "Nomear Capitão"}
+                      >
+                        <Star
+                          size={16}
+                          className={p.isCaptain ? "fill-current" : ""}
+                        />
+                      </button>
                     </div>
 
                     <div className="space-y-3 mb-6 relative z-10 flex-1">
@@ -12540,6 +12634,218 @@ const ManagerDashboard = ({
             </div>
           </div>
         )}
+
+        {/* =========================================
+            ABA: MARCA & VISUAL (NOVO)
+        ============================================= */}
+        {activeTab === "brand" &&
+          (() => {
+            const lastRebrand = clan.lastRebrandDate
+              ? new Date(clan.lastRebrandDate)
+              : new Date(0);
+            const daysSinceRebrand = Math.floor(
+              (new Date() - lastRebrand) / (1000 * 60 * 60 * 24)
+            );
+            const canRebrand = daysSinceRebrand >= 30;
+            const daysLeft = 30 - daysSinceRebrand;
+            const isBankrupting = clan.budget < 500000;
+
+            return (
+              <div className="animate-fadeIn space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 border-b border-slate-800 pb-6">
+                  <div>
+                    <h3 className="text-2xl font-black text-white uppercase tracking-tight flex items-center gap-3">
+                      <ImageIcon className="text-blue-400" size={28} />{" "}
+                      Identidade Visual
+                    </h3>
+                    <p className="text-slate-400 text-xs mt-1">
+                      Personalize o perfil do seu Clã. O Banner é gratuito, mas
+                      o Rebranding tem custo e carência.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* CARTÃO 1: REBRANDING (CUSTA DINHEIRO E TEM TEMPO) */}
+                  <div className="bg-slate-900/80 border border-slate-700/50 rounded-3xl p-6 md:p-8 backdrop-blur-md shadow-xl flex flex-col relative overflow-hidden">
+                    {!canRebrand && (
+                      <div className="absolute inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center border border-red-500/20 rounded-3xl">
+                        <Lock size={32} className="text-red-400 mb-3" />
+                        <h4 className="text-white font-black uppercase text-lg mb-2">
+                          Rebranding Bloqueado
+                        </h4>
+                        <p className="text-slate-400 text-xs mb-4">
+                          Você trocou a marca da equipe recentemente. Aguarde o
+                          período de carência para fazer uma nova mudança.
+                        </p>
+                        <div className="bg-red-500/10 text-red-400 border border-red-500/20 font-mono font-bold px-4 py-2 rounded-lg text-sm">
+                          Faltam {daysLeft} dias
+                        </div>
+                      </div>
+                    )}
+
+                    <h4 className="text-white font-black uppercase tracking-tight text-lg mb-2 flex items-center gap-2">
+                      <RefreshCcw className="text-amber-400" size={18} />{" "}
+                      Rebranding Oficial
+                    </h4>
+                    <p className="text-slate-500 text-[10px] mb-6 leading-relaxed">
+                      Troque o nome, tag ou logo da equipe. Esta operação custa{" "}
+                      <strong className="text-red-400">R$ 500.000</strong> e
+                      você só poderá alterar novamente após 30 dias.
+                    </p>
+
+                    <div className="space-y-5 flex-1">
+                      <div>
+                        <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2">
+                          Novo Nome
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-sm outline-none focus:border-amber-400"
+                          value={rebrandName}
+                          onChange={(e) => setRebrandName(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2">
+                          Nova TAG (3-4 Letras)
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={4}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-sm font-mono uppercase outline-none focus:border-amber-400"
+                          value={rebrandTag}
+                          onChange={(e) =>
+                            setRebrandTag(e.target.value.toUpperCase())
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 text-[10px] uppercase font-bold mb-2">
+                          Nova Logo (Upload)
+                        </label>
+                        <div className="flex items-center gap-4">
+                          <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold py-3 px-4 rounded-lg transition-colors flex items-center gap-2 shrink-0">
+                            <Upload size={14} /> Subir Imagem
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              onChange={(e) =>
+                                handleLocalImageUpload(e, setRebrandLogo)
+                              }
+                            />
+                          </label>
+                          <div className="w-12 h-12 bg-slate-950 rounded-lg p-1 border border-slate-700 flex items-center justify-center">
+                            <img
+                              src={rebrandLogo}
+                              className="max-w-full max-h-full object-contain"
+                              alt="Preview Logo"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      disabled={isBankrupting}
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            "ATENÇÃO: Será debitado R$ 500.000 do caixa e a marca ficará travada por 30 dias. Confirmar?"
+                          )
+                        ) {
+                          onUpdateClanFinancials(
+                            clan.id,
+                            clan.budget - 500000,
+                            "Taxa de Rebranding",
+                            "rebrand_fee"
+                          );
+                          onUpdateClan(clan.id, {
+                            name: rebrandName,
+                            tag: rebrandTag,
+                            logoUrl: rebrandLogo,
+                            lastRebrandDate: new Date().toISOString(),
+                          });
+                          alert("Rebranding concluído com sucesso!");
+                        }
+                      }}
+                      className={`w-full mt-6 font-black uppercase py-4 rounded-xl text-sm transition-transform flex items-center justify-center gap-2 ${
+                        isBankrupting
+                          ? "bg-red-500/20 text-red-500 cursor-not-allowed"
+                          : "bg-amber-500 hover:bg-amber-400 text-black hover:-translate-y-1 shadow-[0_10px_25px_rgba(251,191,36,0.3)]"
+                      }`}
+                    >
+                      {isBankrupting ? (
+                        "Caixa Insuficiente"
+                      ) : (
+                        <>
+                          <DollarSign size={18} /> Pagar 500k e Alterar
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* CARTÃO 2: BANNER GRÁTIS */}
+                  <div className="bg-slate-900/80 border border-slate-700/50 rounded-3xl p-6 md:p-8 backdrop-blur-md shadow-xl flex flex-col">
+                    <h4 className="text-white font-black uppercase tracking-tight text-lg mb-2 flex items-center gap-2">
+                      <ImageIcon className="text-blue-400" size={18} /> Capa do
+                      Perfil
+                    </h4>
+                    <p className="text-slate-500 text-[10px] mb-6 leading-relaxed">
+                      Faça o upload de uma imagem retangular de alta qualidade
+                      para servir de capa da sua franquia na visão pública.{" "}
+                      <strong className="text-emerald-400">
+                        Totalmente Gratuito.
+                      </strong>
+                    </p>
+
+                    <div className="flex-1 flex flex-col justify-center gap-6">
+                      <div className="w-full aspect-video md:aspect-[21/9] bg-slate-950 rounded-2xl border border-slate-700 overflow-hidden relative flex items-center justify-center group shadow-inner">
+                        {brandBanner ? (
+                          <img
+                            src={brandBanner}
+                            className="w-full h-full object-cover"
+                            alt="Banner Preview"
+                          />
+                        ) : (
+                          <div className="text-slate-600 flex flex-col items-center gap-2">
+                            <ImageIcon size={32} className="opacity-50" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">
+                              Sem Banner
+                            </span>
+                          </div>
+                        )}
+                        <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer backdrop-blur-sm">
+                          <div className="bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg">
+                            <Upload size={14} /> Alterar Imagem
+                          </div>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={(e) =>
+                              handleLocalImageUpload(e, setBrandBanner)
+                            }
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        onUpdateClan(clan.id, { bannerUrl: brandBanner });
+                        alert("Banner atualizado e já visível na liga!");
+                      }}
+                      className="w-full mt-6 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase py-4 rounded-xl text-sm transition-transform flex items-center justify-center gap-2 hover:-translate-y-1 shadow-[0_10px_25px_rgba(59,130,246,0.3)]"
+                    >
+                      <CheckCircle size={18} /> Salvar Banner
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
         {/* =========================================
             ABA: ANÚNCIOS MERCADO (LISTINGS)
@@ -13431,68 +13737,92 @@ const ManagerDashboard = ({
             );
           })()}
 
-{/* MODAL DE DISPENSA */}
-        {dismissModalPlayer && (() => {
-          const p = dismissModalPlayer;
-          return (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fadeIn">
-              <div className="bg-slate-900 border border-red-500/50 rounded-3xl w-full max-w-md shadow-[0_0_40px_rgba(239,68,68,0.15)] relative overflow-hidden flex flex-col">
-                <div className="bg-red-500/10 p-6 border-b border-red-500/20 flex flex-col items-center relative shrink-0 text-center">
-                  <button onClick={() => setDismissModalPlayer(null)} className="absolute top-4 right-4 text-red-400 hover:text-white bg-red-950/50 p-2 rounded-full transition-colors">
-                    <X size={16} />
-                  </button>
-                  <div className="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-4 border border-red-500/30">
-                    <UserMinus size={32} />
-                  </div>
-                  <h3 className="text-red-500 font-black uppercase text-xl tracking-tight leading-tight">
-                    Confirmar Dispensa
-                  </h3>
-                </div>
-
-                <div className="p-6 md:p-8">
-                  <p className="text-slate-300 text-sm leading-relaxed text-center mb-6">
-                    Você está prestes a rescindir o contrato de <strong className="text-white">{p.nickname}</strong>.
-                  </p>
-
-                  <div className="bg-slate-950 border border-red-900/30 rounded-xl p-4 space-y-3 mb-6">
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle size={16} className="text-red-400 shrink-0 mt-0.5" />
-                      <p className="text-xs text-slate-400">O jogador ficará <strong>Livre no Mercado</strong> imediatamente para assinar com outros clãs.</p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle size={16} className="text-red-400 shrink-0 mt-0.5" />
-                      <p className="text-xs text-slate-400">Sua franquia <strong>NÃO</strong> receberá o valor do passe nem da multa rescisória.</p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle size={16} className="text-red-400 shrink-0 mt-0.5" />
-                      <p className="text-xs text-slate-400">Nenhum valor pago na contratação ou na última renovação será estornado ao caixa.</p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
+        {/* MODAL DE DISPENSA */}
+        {dismissModalPlayer &&
+          (() => {
+            const p = dismissModalPlayer;
+            return (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fadeIn">
+                <div className="bg-slate-900 border border-red-500/50 rounded-3xl w-full max-w-md shadow-[0_0_40px_rgba(239,68,68,0.15)] relative overflow-hidden flex flex-col">
+                  <div className="bg-red-500/10 p-6 border-b border-red-500/20 flex flex-col items-center relative shrink-0 text-center">
                     <button
                       onClick={() => setDismissModalPlayer(null)}
-                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold uppercase py-4 rounded-xl text-xs transition-colors"
+                      className="absolute top-4 right-4 text-red-400 hover:text-white bg-red-950/50 p-2 rounded-full transition-colors"
                     >
-                      Cancelar
+                      <X size={16} />
                     </button>
-                    <button
-                      onClick={() => {
-                        onRemovePlayerFromClan(p.id);
-                        setDismissModalPlayer(null);
-                        alert(`Contrato rescindido! ${p.nickname} deixou a equipe.`);
-                      }}
-                      className="flex-1 bg-red-600 hover:bg-red-500 text-white font-black uppercase py-4 rounded-xl text-xs transition-all shadow-[0_10px_20px_rgba(220,38,38,0.2)] hover:-translate-y-1 flex items-center justify-center gap-2"
-                    >
-                      <Trash2 size={16}/> Confirmar Dispensa
-                    </button>
+                    <div className="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-4 border border-red-500/30">
+                      <UserMinus size={32} />
+                    </div>
+                    <h3 className="text-red-500 font-black uppercase text-xl tracking-tight leading-tight">
+                      Confirmar Dispensa
+                    </h3>
+                  </div>
+
+                  <div className="p-6 md:p-8">
+                    <p className="text-slate-300 text-sm leading-relaxed text-center mb-6">
+                      Você está prestes a rescindir o contrato de{" "}
+                      <strong className="text-white">{p.nickname}</strong>.
+                    </p>
+
+                    <div className="bg-slate-950 border border-red-900/30 rounded-xl p-4 space-y-3 mb-6">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle
+                          size={16}
+                          className="text-red-400 shrink-0 mt-0.5"
+                        />
+                        <p className="text-xs text-slate-400">
+                          O jogador ficará <strong>Livre no Mercado</strong>{" "}
+                          imediatamente para assinar com outros clãs.
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle
+                          size={16}
+                          className="text-red-400 shrink-0 mt-0.5"
+                        />
+                        <p className="text-xs text-slate-400">
+                          Sua franquia <strong>NÃO</strong> receberá o valor do
+                          passe nem da multa rescisória.
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle
+                          size={16}
+                          className="text-red-400 shrink-0 mt-0.5"
+                        />
+                        <p className="text-xs text-slate-400">
+                          Nenhum valor pago na contratação ou na última
+                          renovação será estornado ao caixa.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setDismissModalPlayer(null)}
+                        className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold uppercase py-4 rounded-xl text-xs transition-colors"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={() => {
+                          onRemovePlayerFromClan(p.id);
+                          setDismissModalPlayer(null);
+                          alert(
+                            `Contrato rescindido! ${p.nickname} deixou a equipe.`
+                          );
+                        }}
+                        className="flex-1 bg-red-600 hover:bg-red-500 text-white font-black uppercase py-4 rounded-xl text-xs transition-all shadow-[0_10px_20px_rgba(220,38,38,0.2)] hover:-translate-y-1 flex items-center justify-center gap-2"
+                      >
+                        <Trash2 size={16} /> Confirmar Dispensa
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          );
-        })()}
-
+            );
+          })()}
       </div>
     </div>
   );
@@ -15452,6 +15782,7 @@ const App = () => {
             onUpdateClanFinancials={updateClanFinancials}
             onUpdatePlayer={updatePlayer}
             onRemovePlayerFromClan={removePlayerFromClan}
+            onUpdateClan={updateClan}
           />
         )}
 
