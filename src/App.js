@@ -11652,6 +11652,7 @@ const ManagerDashboard = ({
   const [proposalPitch, setProposalPitch] = useState("");
 
   const [sponsorModalItem, setSponsorModalItem] = useState(null); // Memória do Patrocínio
+  const [renewalModalPlayer, setRenewalModalPlayer] = useState(null); // Memória da Renovação
 
   const clan = data.clans.find((c) => c.id === clanId);
   if (!clan) return null;
@@ -12191,14 +12192,27 @@ const ManagerDashboard = ({
                     </div>
 
                     <div className="flex flex-col gap-2 relative z-10 mt-auto">
-                      <a
-                        href={`https://wa.me/${STAFF_WHATSAPP}?text=Ol%C3%A1%20Staff!%20Sou%20o%20presidente%20da%20${clan.name}%20e%20gostaria%20de%20RENOVAR%20o%20contrato%20do%20jogador%20${p.nickname}.`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold uppercase text-[10px] py-3 rounded-xl text-center transition-colors shadow-lg shadow-amber-500/20"
+                      <button
+                        onClick={() => {
+                          if (!contract.isValid || contract.isExpiring) {
+                            setRenewalModalPlayer(p);
+                          } else {
+                            alert(
+                              "Calma, Chefe! O contrato deste jogador ainda está seguro e longe do vencimento."
+                            );
+                          }
+                        }}
+                        className={`w-full font-bold uppercase text-[10px] py-3 rounded-xl text-center transition-colors shadow-lg flex justify-center items-center gap-2 ${
+                          !contract.isValid || contract.isExpiring
+                            ? "bg-amber-500 hover:bg-amber-400 text-black shadow-amber-500/20 cursor-pointer"
+                            : "bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed"
+                        }`}
                       >
-                        Negociar Renovação
-                      </a>
+                        <FileText size={14} />
+                        {!contract.isValid || contract.isExpiring
+                          ? "Renovar Contrato"
+                          : "Contrato Vigente"}
+                      </button>
                       <div className="flex gap-2">
                         <button
                           onClick={() => {
@@ -13231,10 +13245,188 @@ const ManagerDashboard = ({
               </div>
             );
           })()}
+
+        {/* MODAL DE RENOVAÇÃO AUTOMÁTICA */}
+        {renewalModalPlayer &&
+          (() => {
+            const p = renewalModalPlayer;
+            const [duration, setDuration] = useState(15);
+            const [multiplier, setMultiplier] = useState(
+              p.releaseClauseMultiplier || 0
+            );
+
+            const baseValue = p.marketValue || 10000000;
+
+            // Custos com 30% de desconto aplicado
+            const durationFeePct =
+              duration === 7 ? 0.035 : duration === 15 ? 0.07 : 0.105;
+            const multiplierFeePct =
+              multiplier === 0 ? 0 : multiplier <= 0.2 ? 0.035 : 0.07;
+
+            const totalFee = baseValue * (durationFeePct + multiplierFeePct);
+            const isBankrupting = totalFee > clan.budget;
+
+            return (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fadeIn">
+                <div className="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-md shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
+                  <div className="bg-slate-950 p-6 border-b border-slate-800 flex justify-between items-center shrink-0">
+                    <h3 className="text-white font-black uppercase flex items-center gap-2 text-lg tracking-tight">
+                      <FileText className="text-amber-500" size={24} />{" "}
+                      Renovação Oficial
+                    </h3>
+                    <button
+                      onClick={() => setRenewalModalPlayer(null)}
+                      className="text-slate-500 hover:text-white bg-slate-800 p-2 rounded-full transition-colors"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  <div className="p-6 md:p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+                    <div className="flex items-center gap-4 mb-6 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                      <img
+                        src={p.avatarUrl}
+                        className="w-14 h-14 rounded-xl object-cover border border-slate-700"
+                        alt={p.nickname}
+                      />
+                      <div>
+                        <h4 className="text-white font-black text-xl uppercase tracking-tight">
+                          {p.nickname}
+                        </h4>
+                        <div className="text-slate-500 text-[10px] font-mono tracking-widest uppercase mt-0.5">
+                          Passe Atual:{" "}
+                          <span className="text-emerald-400 font-bold">
+                            {formatCurrency(baseValue)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-slate-400 text-[10px] uppercase font-bold mb-3 tracking-wider">
+                          Prazo de Extensão
+                        </label>
+                        <div className="flex gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                          {[7, 15, 30].map((days) => (
+                            <button
+                              key={days}
+                              onClick={() => setDuration(days)}
+                              className={`flex-1 py-2.5 rounded-lg text-xs font-black uppercase transition-all ${
+                                duration === days
+                                  ? "bg-amber-500 text-black shadow-md"
+                                  : "text-slate-500 hover:text-white"
+                              }`}
+                            >
+                              {days} Dias
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center mb-3">
+                          <label className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+                            Blindagem (Multa)
+                          </label>
+                          <span className="text-amber-400 font-mono font-bold text-xs bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                            {(multiplier * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="0.4"
+                          step="0.05"
+                          className="w-full accent-amber-500 bg-slate-800 rounded-lg appearance-none h-2"
+                          value={multiplier}
+                          onChange={(e) =>
+                            setMultiplier(parseFloat(e.target.value))
+                          }
+                        />
+                        <div className="flex justify-between mt-2 text-[9px] text-slate-500 font-bold uppercase">
+                          <span>Sem Multa (Grátis)</span>
+                          <span>Taxa Máxima (+7%)</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-slate-500 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
+                            <Landmark size={12} /> Taxa da Liga:
+                          </span>
+                          <span
+                            className={`font-mono font-black text-lg ${
+                              isBankrupting ? "text-red-400" : "text-amber-400"
+                            }`}
+                          >
+                            {formatCurrency(totalFee)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-500 text-[9px] uppercase font-bold">
+                            Caixa da Franquia:
+                          </span>
+                          <span className="font-mono text-xs text-slate-400">
+                            {formatCurrency(clan.budget)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        disabled={isBankrupting}
+                        onClick={() => {
+                          const newDate = new Date();
+                          newDate.setDate(newDate.getDate() + duration);
+                          const contractEndStr = newDate
+                            .toISOString()
+                            .split("T")[0];
+
+                          // 1. Debita a Taxa pro limbo
+                          onUpdateClanFinancials(
+                            clan.id,
+                            clan.budget - totalFee,
+                            `Taxa de Renovação (${duration}d): ${p.nickname}`,
+                            "renewal_fee"
+                          );
+
+                          // 2. Atualiza o Jogador
+                          onUpdatePlayer(p.id, {
+                            contractEnd: contractEndStr,
+                            releaseClauseMultiplier: multiplier,
+                          });
+
+                          alert(
+                            `Contrato de ${p.nickname} renovado com sucesso por ${duration} dias!`
+                          );
+                          setRenewalModalPlayer(null);
+                        }}
+                        className={`w-full font-black uppercase py-4 rounded-xl text-sm transition-transform flex items-center justify-center gap-2 ${
+                          isBankrupting
+                            ? "bg-red-500/20 text-red-500 border border-red-500/50 cursor-not-allowed"
+                            : "bg-amber-500 hover:bg-amber-400 text-black hover:-translate-y-1 shadow-[0_10px_25px_rgba(251,191,36,0.3)]"
+                        }`}
+                      >
+                        {isBankrupting ? (
+                          "Caixa Insuficiente"
+                        ) : (
+                          <>
+                            <PenTool size={18} /> Pagar e Assinar
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
       </div>
     </div>
   );
 };
+
+// --- NOVA SEÇÃO: GUIA DE INTRODUÇÃO (COMECE AQUI) ---
 
 const App = () => {
   const [db, setDb] = useState({
