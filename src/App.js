@@ -11773,23 +11773,40 @@ const ManagerDashboard = ({
       {/* NAVBAR DO MANAGER */}
       <nav className="relative z-10 bg-slate-900/60 backdrop-blur-xl border-b border-slate-800/80 shadow-2xl sticky top-0">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-slate-950 rounded-xl p-1 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
-              <img
-                src={clan.logoUrl}
-                alt={clan.tag}
-                className="w-full h-full object-contain"
-              />
+          <div className="flex items-center gap-4 md:gap-8">
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="w-10 h-10 md:w-12 h-12 bg-slate-950 rounded-xl p-1 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)] shrink-0">
+                <img
+                  src={clan.logoUrl}
+                  alt={clan.tag}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div>
+                <h1 className="text-white font-black text-lg md:text-xl uppercase tracking-tight leading-none">
+                  {clan.name}
+                </h1>
+                <span className="text-blue-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest hidden sm:block mt-1">
+                  Painel da Presidência
+                </span>
+              </div>
             </div>
-            <div>
-              <h1 className="text-white font-black text-xl uppercase tracking-tight leading-none">
-                {clan.name}
-              </h1>
-              <span className="text-blue-400 text-[10px] font-bold uppercase tracking-widest">
-                Painel da Presidência
-              </span>
-            </div>
+
+            {/* BOTÃO DE MARCA E VISUAL MOVIDO PARA CÁ */}
+            <button
+              onClick={() => setActiveTab("brand")}
+              className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                activeTab === "brand"
+                  ? "bg-amber-500 text-slate-950 border-amber-500 shadow-[0_0_15px_rgba(251,191,36,0.4)]"
+                  : "text-amber-400 bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20"
+              }`}
+              title="Configurar Identidade Visual"
+            >
+              <ImageIcon size={14} />{" "}
+              <span className="hidden sm:inline">Marca & Visual</span>
+            </button>
           </div>
+
           <button
             onClick={onLogout}
             className="flex items-center gap-2 text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500 border border-red-500/20 hover:border-red-500 px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all shadow-lg"
