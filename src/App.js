@@ -11818,44 +11818,28 @@ const ManagerDashboard = ({
       </nav>
 
       <div className="max-w-7xl mx-auto px-6 pt-10 relative z-10">
-        {/* ABAS DE NAVEGAÇÃO INTERNA E CONFIGURAÇÕES */}
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-10">
-          {/* Abas de Operação (Esquerda) */}
-          <div className="flex flex-wrap gap-2 bg-slate-900/50 p-1.5 rounded-2xl border border-slate-800/50 w-fit backdrop-blur-sm">
-            {[
-              { id: "overview", label: "Visão Geral", icon: Activity },
-              { id: "squad", label: "Meu Elenco", icon: Users },
-              { id: "finance", label: "Extrato Financeiro", icon: Landmark },
-              { id: "scout", label: "Scout & Mercado", icon: Search },
-              { id: "listings", label: "Anúncios Mercado", icon: Tag },
-              { id: "sponsors", label: "Patrocínios", icon: Handshake },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                  activeTab === tab.id
-                    ? "bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.3)] scale-105"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800"
-                }`}
-              >
-                <tab.icon size={16} /> {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Botão de Marca e Visual Separado (Direita) */}
-          <button
-            onClick={() => setActiveTab("brand")}
-            className={`flex items-center justify-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border-2 w-full xl:w-auto shrink-0 ${
-              activeTab === "brand"
-                ? "bg-amber-500 text-slate-950 border-amber-500 shadow-[0_0_20px_rgba(251,191,36,0.4)] scale-105"
-                : "text-amber-400 bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20 hover:border-amber-400"
-            }`}
-            title="Configurar Identidade Visual do Clã"
-          >
-            <ImageIcon size={18} /> Marca & Visual
-          </button>
+        {/* ABAS DE NAVEGAÇÃO INTERNA */}
+        <div className="flex overflow-x-auto scrollbar-hide gap-2 mb-10 bg-slate-900/50 p-1.5 rounded-2xl border border-slate-800/50 w-full md:w-max backdrop-blur-sm">
+          {[
+            { id: "overview", label: "Visão Geral", icon: Activity },
+            { id: "squad", label: "Meu Elenco", icon: Users },
+            { id: "finance", label: "Extrato Financeiro", icon: Landmark },
+            { id: "scout", label: "Scout & Mercado", icon: Search },
+            { id: "listings", label: "Anúncios Mercado", icon: Tag },
+            { id: "sponsors", label: "Patrocínios", icon: Handshake },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all shrink-0 ${
+                activeTab === tab.id
+                  ? "bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800"
+              }`}
+            >
+              <tab.icon size={16} /> {tab.label}
+            </button>
+          ))}
         </div>
         {/* =========================================
             ABA: VISÃO GERAL (DASHBOARD)
