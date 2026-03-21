@@ -11866,56 +11866,137 @@ const ManagerDashboard = ({
               </div>
             </div>
 
-            {/* Alertas de Crise de Patrocínio */}
-            {clanSponsors.some(
-              (s) => s.tolerance > 0 && s.tolerance - losingStreak <= 1
-            ) && (
-              <div className="bg-red-950/50 border border-red-500/50 p-6 rounded-2xl shadow-[0_0_30px_rgba(239,68,68,0.2)] flex items-start gap-4 animate-pulse">
-                <AlertTriangle size={32} className="text-red-500 shrink-0" />
-                <div>
-                  <h4 className="text-red-400 font-black uppercase tracking-widest text-sm mb-1">
-                    Alerta de Diretoria: Risco de Rescisão
-                  </h4>
-                  <p className="text-red-300/80 text-xs leading-relaxed">
-                    A equipe está em uma sequência de {losingStreak} derrotas.
-                    Temos patrocinadores prestes a romper o contrato se o time
-                    perder a próxima partida. Vençam o próximo jogo
-                    imediatamente!
-                  </p>
-                </div>
-              </div>
-            )}
+            {/* QUADRO DE AVISOS DINÂMICO (NOVO) */}
+            {(() => {
+              const notices = [];
 
-            {/* NOVO: Alertas de Assédio de Mercado */}
-            {incomingProposals.map((prop) => {
-              const targetPlayer = clanPlayers.find(
-                (p) => p.id === prop.playerId
-              );
-              const buyerClan = data.clans.find(
-                (c) => c.id === prop.targetClanId
-              );
+              // 1. Risco de Falência Financeira
+              if (isBankrupt) {
+                notices.push({
+                  id: "bankrupt",
+                  type: "critical",
+                  icon: Landmark,
+                  title: "Falência Decretada",
+                  text: "O caixa da franquia está negativo. Você não pode assinar novos contratos até regularizar as finanças.",
+                });
+              } else if (isCritical) {
+                notices.push({
+                  id: "critical_funds",
+                  type: "warning",
+                  icon: AlertTriangle,
+                  title: "Risco Financeiro",
+                  text: `O caixa atual sustenta apenas mais ${survivalMaps} partidas. Consiga vitórias, novos patrocínios ou venda jogadores urgente.`,
+                });
+              }
+
+              // 2. Saúde dos Patrocínios (Tolerância)
+              clanSponsors.forEach((sp) => {
+                if (sp.tolerance > 0) {
+                  const livesLeft = sp.tolerance - losingStreak;
+                  if (livesLeft <= 0) {
+                    notices.push({
+                      id: `sp_lost_${sp.id}`,
+                      type: "critical",
+                      icon: AlertCircle,
+                      title: `Contrato Rompido: ${sp.name}`,
+                      text: `A marca encerrou o patrocínio devido à sequência atual de ${losingStreak} derrotas. Você perdeu esta fonte de renda. (Recomendamos excluir a marcação na aba de Patrocínios para limpar o painel).`,
+                    });
+                  } else if (livesLeft === 1) {
+                    notices.push({
+                      id: `sp_risk1_${sp.id}`,
+                      type: "danger",
+                      icon: AlertTriangle,
+                      title: `Ultimato da Marca: ${sp.name}`,
+                      text: `A diretoria da marca emitiu um aviso! Se a equipe perder a PRÓXIMA partida, eles vão rescindir o contrato (Limite: ${sp.tolerance} derrotas seguidas). Vençam imediatamente!`,
+                    });
+                  } else if (livesLeft === 2) {
+                    notices.push({
+                      id: `sp_risk2_${sp.id}`,
+                      type: "warning",
+                      icon: AlertCircle,
+                      title: `Atenção: ${sp.name}`,
+                      text: `A marca patrocinadora está insatisfeita com a sequência ruim. Faltam apenas 2 derrotas para o rompimento do contrato.`,
+                    });
+                  }
+                }
+              });
+
+              // 3. Assédio do Mercado de Transferências
+              incomingProposals.forEach((prop) => {
+                const targetPlayer = clanPlayers.find(
+                  (p) => p.id === prop.playerId
+                );
+                const buyerClan = data.clans.find(
+                  (c) => c.id === prop.targetClanId
+                );
+                if (targetPlayer) {
+                  notices.push({
+                    id: `prop_${prop.id}`,
+                    type: "info",
+                    icon: Briefcase,
+                    title: "Assédio de Mercado Detectado",
+                    text: `Existe uma proposta oficial de ${formatCurrency(
+                      prop.transferOffer || 0
+                    )} do clã ${
+                      buyerClan?.name || "Desconhecido"
+                    } para o seu jogador ${
+                      targetPlayer.nickname
+                    }. Se o jogador aceitar, a rescisão será ativada e você o perderá.`,
+                  });
+                }
+              });
+
+              // Se não tiver nenhum aviso, não renderiza o quadro
+              if (notices.length === 0) return null;
+
               return (
-                <div
-                  key={prop.id}
-                  className="bg-amber-950/40 border border-amber-500/40 p-6 rounded-2xl shadow-[0_0_30px_rgba(251,191,36,0.1)] flex items-start gap-4 animate-pulse mt-6"
-                >
-                  <Briefcase size={32} className="text-amber-500 shrink-0" />
-                  <div>
-                    <h4 className="text-amber-400 font-black uppercase tracking-widest text-sm mb-1">
-                      Atenção: Assédio de Mercado
-                    </h4>
-                    <p className="text-amber-300/80 text-xs leading-relaxed">
-                      Detectamos uma <strong>proposta em andamento</strong> de{" "}
-                      {formatCurrency(prop.transferOffer || 0)} do clã{" "}
-                      <strong>{buyerClan?.name || "Desconhecido"}</strong> para
-                      o seu jogador <strong>{targetPlayer?.nickname}</strong>.
-                      Caso ele aceite e a multa seja paga, você perderá este
-                      atleta!
-                    </p>
+                <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 md:p-8 backdrop-blur-sm mt-8 shadow-xl">
+                  <h4 className="text-white font-black uppercase tracking-tight text-lg mb-6 flex items-center gap-2 border-b border-slate-800 pb-4">
+                    <AlertCircle className="text-amber-400" /> Quadro de Avisos
+                  </h4>
+                  <div className="space-y-4">
+                    {notices.map((notice) => {
+                      const Icon = notice.icon;
+                      let colors = "";
+                      let animation = "";
+
+                      // Sistema de Cores Inteligente baseado no peso do problema
+                      if (notice.type === "critical") {
+                        colors =
+                          "bg-red-950/50 border-red-500/50 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)]";
+                        animation = "animate-pulse";
+                      } else if (notice.type === "danger") {
+                        colors =
+                          "bg-orange-950/40 border-orange-500/50 text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.1)]";
+                      } else if (notice.type === "warning") {
+                        colors =
+                          "bg-amber-950/30 border-amber-500/30 text-amber-400";
+                      } else if (notice.type === "info") {
+                        colors =
+                          "bg-blue-950/30 border-blue-500/30 text-blue-400";
+                      }
+
+                      return (
+                        <div
+                          key={notice.id}
+                          className={`p-5 rounded-2xl border flex items-start gap-4 ${colors} ${animation} transition-all`}
+                        >
+                          <Icon size={28} className="shrink-0 mt-1" />
+                          <div>
+                            <h5 className="font-black uppercase tracking-widest text-sm mb-1.5">
+                              {notice.title}
+                            </h5>
+                            <p className="text-xs opacity-90 leading-relaxed font-medium">
+                              {notice.text}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
-            })}
+            })()}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Marcas Atuais */}
